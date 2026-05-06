@@ -16,7 +16,7 @@ npm run format         # oxfmt --write
 npm run format:check   # oxfmt --check
 ```
 
-No watch mode. No CI workflow configured. Build before testing generated output.
+No watch mode. CI workflow configured in `.github/workflows/ci.yml` (lint, format check, type check, test on bun). Build before testing generated output.
 
 ### Running a single test
 
@@ -46,8 +46,8 @@ spec-reader → version detection → validation → ref-resolver → path-analy
 | `src/parser/version/`                  | `VersionStrategy` interface with `v3.0/`, `v3.1/`, `v3.2/` (stub) implementations. Registry auto-detects version. |
 | `src/analyzer/`                        | Path → `AnalyzedOperation[]`, schema → TS type strings (`SchemaMapper`), method naming (`naming.ts`)              |
 | `src/generator/contracts-generator.ts` | Generates the `*.contracts.ts` file                                                                               |
-| `src/generator/client-generator.ts`    | Generates the `*.client.ts` file + file I/O (`generateFullOutput`)                                                |
-| `src/generator/method-generator.ts`    | Generates individual API method bodies                                                                            |
+| `src/generator/client-generator.ts`    | Generates the `*.client.ts` file (method bodies via `buildClientMethodBody`) + file I/O (`generateFullOutput`)    |
+| `src/generator/method-generator.ts`    | Generates individual API method signatures (params, JSDoc)                                                        |
 | `src/generator/error-types.ts`         | `ApiError<TStatus, TData>`, `DefaultApiError`, per-operation error type generation                                |
 | `src/utils/generator-helpers.ts`       | Shared codegen helpers: `toPascalCase`, `getOperationTypePrefix`, `getSuccessType`, `getErrorType`, `makeHeader`  |
 | `src/types/`                           | Shared types: `OpenAPIDocument`, `GeneratorConfig`, `MethodNameStrategy`, `SchemaObject`                          |
@@ -61,7 +61,7 @@ spec-reader → version detection → validation → ref-resolver → path-analy
   - `index.ts` — Thin entry point: shebang + `run(app, args, { process })` + `process.exit()`
   - `errors.ts` — `UserError` class for CLI-facing errors
   - Binary: `genoc <spec> [flags]` (positional spec arg, not `--input`)
-- **Programmatic**: `src/index.ts` → `generateClient(config)`. Exports `ApiError`, `DefaultApiError`, `ApiClient`, `GeneratorConfig`, `GenerationOptions`, `loadSpec`.
+- **Programmatic**: `src/index.ts` → `generateClient(config)`. Runtime exports: `generateClient`, `loadSpec`. Type exports: `GeneratorConfig`, `GenerationOptions`, `ApiClient`, `ApiError`, `DefaultApiError`.
 
 ### CLI flags
 
@@ -93,6 +93,7 @@ import { load } from '../parser/spec-reader.js';
 - Type naming prefix: `{Method}{PathSegments}` in PascalCase (e.g., `GetApiV1Products`).
 - Output file names are fixed: `contracts.ts` and `client.ts`, written directly into the output directory.
 - Method naming strategies: `path-based` (default, from HTTP method + path segments), `operationId` (from spec's `operationId`), `operationId-with-fallback` (uses `operationId` if present, else path-based).
+- Parameter order in generated methods: path → query → body → headers (headers always last).
 
 ## Test structure
 
@@ -101,7 +102,9 @@ import { load } from '../parser/spec-reader.js';
 - **`tests/validation/`** — comprehensive OpenAPI feature coverage tests organized by version and area (data types, keywords, params, bodies, uploads, refs, components, responses, errors, security, servers, operations, webhooks). 13 test files.
 - **`tests/spec-examples/`** — OpenAPI spec feature tests (schemas, parameters, request bodies, responses). Has `v3.0/` subdirectory for version-specific behavior (nullable, exclusive-min-max, file-upload).
 - **`tests/fixtures/`** — OpenAPI spec files used by tests. `v3.0/` subdirectory for 3.0-specific fixtures.
-- **`tests/type-assertions/`** — Compile-time type correctness checks.
+- **`tests/type-assertions/`** — Compile-time type correctness checks (e.g. `is-defined-error-types.ts`).
+- **`tests/poc/`** — Proof-of-concept files validating codegen patterns compile correctly (e.g. `symbol-const-check.ts`).
+- **`tests/type-helpers.ts`** / **`tests/type-helpers.test.ts`** — Shared type assertion utilities.
 - Vitest config: `globals: true` — tests use global `describe`/`it`/`expect` without explicit imports.
 
 ### Integration test pattern
@@ -122,9 +125,9 @@ Integration tests compile generated output with `tsc --strict` to verify type co
 
 ## Generated output structure
 
-**Contracts file** (`*.contracts.ts`): schema types → security scheme types → server variable types → per-operation query/header/body/response/error types → `StreamResponse` class → `ErrorResponse` class → `ApiError<TStatus, TData>` class → `DefaultApiError<TData>` class → `RequesterFailError`. Also includes per-operation error union types and `DefaultErrorBody` when `default` responses are present.
+**Contracts file** (`*.contracts.ts`): schema types → security scheme types → server variable types → per-operation query/header/body/response/error types → `StreamResponse` class (headers as `Record<string, string>`) → `ErrorResponse` class (headers as `Record<string, string>`) → `ApiError<TStatus, TData>` class → `DefaultApiError<TData>` class → `RequesterFailError`. Also includes per-operation error union types and `DefaultErrorBody` when `default` responses are present. Helper functions: `streamResponse()`, `errorResponse()`.
 
-**Client file** (`*.client.ts`): imports from contracts file (`ApiError`, `UnspecifiedApiError`, `ErrorResponse`, `StreamResponse`, `RequestorFailError`) → `Requester` type (returns `TResponse | StreamResponse | ErrorResponse`) → `isDefinedError` type guard → `createClient(requester)` factory → methods with try/catch wrapping `ApiError` throws + `StreamResponse` binary handling.
+**Client file** (`*.client.ts`): imports from contracts file (`ApiError`, `UnspecifiedApiError`, `ErrorResponse`, `StreamResponse`, `RequesterFailError`) → `decorateWithErrors<T, E>()` (attaches `__definedErrors` property) → `Requester` type (returns `TResponse | StreamResponse | ErrorResponse`) → `isDefinedError` type guard (uses `__definedErrors` property for narrowing) → `createClient(requester)` factory → methods with try/catch wrapping `ApiError` throws + `StreamResponse` binary handling. Error codes attached via `decorateWithErrors(fn, [400, ...] as const)`.
 
 ## Dependencies
 
