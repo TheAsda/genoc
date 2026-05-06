@@ -1,7 +1,7 @@
-openapi: "3.0.3"
+openapi: '3.0.3'
 info:
   title: Cross-Task Integration Test Spec
-  version: "1.0.0"
+  version: '1.0.0'
   description: Exercises OAuth2 casing, header parameters, and default responses together
 components:
   schemas:
@@ -32,20 +32,20 @@ components:
       type: oauth2
       flows:
         implicit:
-          authorizationUrl: "https://auth.example.com/authorize"
+          authorizationUrl: 'https://auth.example.com/authorize'
           scopes:
-            "read:products": Read products
-            "write:products": Write products
+            'read:products': Read products
+            'write:products': Write products
     OAuth2Password:
       type: oauth2
       flows:
         password:
-          tokenUrl: "https://auth.example.com/token"
+          tokenUrl: 'https://auth.example.com/token'
           scopes:
-            "read:products": Read products
+            'read:products': Read products
 security:
   - OAuth2Implicit:
-      - "read:products"
+      - 'read:products'
 paths:
   /products:
     get:
@@ -68,32 +68,32 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: List of products
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Product"
-        "400":
+                  $ref: '#/components/schemas/Product'
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorBody"
+                $ref: '#/components/schemas/ErrorBody'
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorBody"
+                $ref: '#/components/schemas/ErrorBody'
     post:
       operationId: createProduct
       summary: Create a product
       security:
         - OAuth2Password:
-            - "write:products"
+            - 'write:products'
       parameters:
         - name: X-Idempotency-Key
           in: header
@@ -105,26 +105,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Product"
+              $ref: '#/components/schemas/Product'
       responses:
-        "201":
+        '201':
           description: Product created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Product"
-        "400":
+                $ref: '#/components/schemas/Product'
+        '400':
           description: Bad request
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorBody"
+                $ref: '#/components/schemas/ErrorBody'
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorBody"
+                $ref: '#/components/schemas/ErrorBody'
   /products/{productId}:
     get:
       operationId: getProduct
@@ -141,24 +141,24 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: A product
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Product"
-        "404":
+                $ref: '#/components/schemas/Product'
+        '404':
           description: Product not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorBody"
+                $ref: '#/components/schemas/ErrorBody'
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorBody"
+                $ref: '#/components/schemas/ErrorBody'
     delete:
       operationId: deleteProduct
       summary: Delete product by ID
@@ -169,11 +169,11 @@ paths:
           schema:
             type: string
       responses:
-        "204":
+        '204':
           description: Product deleted
-        "404":
+        '404':
           description: Product not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorBody"
+                $ref: '#/components/schemas/ErrorBody'
