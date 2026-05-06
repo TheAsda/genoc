@@ -39,7 +39,7 @@ type MyMethodDefinedErrors = ApiError<400, { message: string }> | ApiError<500, 
 
 // 4. Define decorateWithErrors
 function decorateWithErrors<T, E>(item: T, runtimeErrors: unknown): T & { __definedErrors: E } {
-  Object.defineProperty(item, "__definedErrors", {
+  Object.defineProperty(item, '__definedErrors', {
     value: runtimeErrors,
     enumerable: false,
     configurable: true,

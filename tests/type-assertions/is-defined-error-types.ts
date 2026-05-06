@@ -40,7 +40,7 @@ class RequesterFailError extends Error {
 }
 
 function decorateWithErrors<T, E>(item: T, runtimeErrors: unknown): T & { __definedErrors: E } {
-  Object.defineProperty(item, "__definedErrors", {
+  Object.defineProperty(item, '__definedErrors', {
     value: runtimeErrors,
     enumerable: false,
     configurable: true,
