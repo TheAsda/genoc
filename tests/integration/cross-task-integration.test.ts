@@ -1,4 +1,6 @@
 import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 /**
  * Cross-Task Integration Test — F3: Real Manual QA
@@ -15,14 +17,15 @@ import { generateClient as generateClientStrings } from '../../src/generator/cli
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
 
-const SPEC_PATH = '/tmp/cross-task-integration-spec.yaml';
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const SPEC_PATH = join(__dirname, '../fixtures/cross-task-integration-spec.yaml');
 
 function loadSpec(): { contracts: string; client: string } {
   const yaml = readFileSync(SPEC_PATH, 'utf-8');
   const doc = parseYaml(yaml) as OpenAPIDocument;
   const config: GeneratorConfig = {
     input: SPEC_PATH,
-    outputDir: '/tmp/cross-task-test-output',
+    outputDir: join(__dirname, '../__output__/cross-task-test'),
   };
   return generateClientStrings(doc, config);
 }
