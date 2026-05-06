@@ -1,3 +1,4 @@
+// oxlint-disable no-underscore-dangle
 // Compile-only type assertion tests for isDefinedError error narrowing
 //
 // Run: npx tsc --strict --noEmit tests/type-assertions/is-defined-error-types.ts \
@@ -12,8 +13,6 @@ import { expectTypeOf } from 'vitest';
 // Infrastructure: replicate the generated pattern (same as POC in
 // tests/poc/symbol-const-check.ts and the codegen output)
 // ---------------------------------------------------------------------------
-
-const errorsSymbol = Symbol('errors');
 
 class ApiError<TStatus extends number, TData> extends Error {
   constructor(
@@ -40,19 +39,19 @@ class RequesterFailError extends Error {
   }
 }
 
-function decorateWithErrors<T, E>(item: T, runtimeErrors: unknown): T & { [errorsSymbol]: E } {
-  Object.defineProperty(item, errorsSymbol, {
+function decorateWithErrors<T, E>(item: T, runtimeErrors: unknown): T & { __definedErrors: E } {
+  Object.defineProperty(item, '__definedErrors', {
     value: runtimeErrors,
     enumerable: false,
     configurable: true,
     writable: false,
   });
-  return item as T & { [errorsSymbol]: E };
+  return item as T & { __definedErrors: E };
 }
 
 function isDefinedError<E extends ApiError<number, unknown>>(
   err: unknown,
-  fn: { [errorsSymbol]: E }
+  fn: { __definedErrors: E }
 ): err is E {
   if (err instanceof UnspecifiedApiError) return false;
   if (!(err instanceof ApiError)) return false;
@@ -209,20 +208,18 @@ async function test_emptyErrors_narrowsToNever() {
 }
 
 // ===========================================================================
-// TEST 8 — Symbol property: method[errorsSymbol] carries error type at
+// TEST 8 — String-keyed property: method.__definedErrors carries error type at
 //           compile time; runtime values are status code arrays
-// ===========================================================================
 
 function test_symbolProperty_carriesType() {
-  // Compile-time: the symbol-keyed property has the correct error type
-  type GetPetsSym = (typeof client.getPets)[typeof errorsSymbol];
-  expectTypeOf<GetPetsSym>().toEqualTypeOf<GetPetsErrors>();
+  type GetPetsExtracted = (typeof client.getPets)['__definedErrors'];
+  expectTypeOf<GetPetsExtracted>().toEqualTypeOf<GetPetsErrors>();
 
-  type PostPetSym = (typeof client.postPet)[typeof errorsSymbol];
-  expectTypeOf<PostPetSym>().toEqualTypeOf<PostPetErrors>();
+  type PostPetExtracted = (typeof client.postPet)['__definedErrors'];
+  expectTypeOf<PostPetExtracted>().toEqualTypeOf<PostPetErrors>();
 
-  type NoErrorsSym = (typeof client.getNoErrors)[typeof errorsSymbol];
-  expectTypeOf<NoErrorsSym>().toEqualTypeOf<never>();
+  type NoErrorsExtracted = (typeof client.getNoErrors)['__definedErrors'];
+  expectTypeOf<NoErrorsExtracted>().toEqualTypeOf<never>();
 }
 
 // ===========================================================================
