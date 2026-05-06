@@ -1,5 +1,0 @@
----
-"genoc": minor
----
-
-Initial commit
