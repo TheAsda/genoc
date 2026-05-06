@@ -253,23 +253,23 @@ export class StreamResponse {
   constructor(
     public readonly data: ReadableStream<Uint8Array>,
     public readonly filename?: string,
-    public readonly headers: Headers = new Headers(),
+    public readonly headers: Record<string, string> = {},
   ) {}
 }
 
 export function streamResponse(
   data: ReadableStream<Uint8Array>,
   filename?: string,
-  headers?: Headers,
+  headers?: Record<string, string>,
 ): StreamResponse {
-  return new StreamResponse(data, filename, headers ?? new Headers());
+  return new StreamResponse(data, filename, headers ?? {});
 }
 
 export class ErrorResponse {
   constructor(
     public readonly status: number,
     public readonly data: unknown,
-    public readonly headers: Headers,
+    public readonly headers: Record<string, string>,
     public readonly message?: string,
   ) {}
 }
@@ -277,10 +277,10 @@ export class ErrorResponse {
 export function errorResponse(
   status: number,
   data: unknown,
-  headers?: Headers,
+  headers?: Record<string, string>,
   message?: string,
 ): ErrorResponse {
-  return new ErrorResponse(status, data, headers ?? new Headers(), message);
+  return new ErrorResponse(status, data, headers ?? {}, message);
 }
 
 export class RequesterFailError extends Error {

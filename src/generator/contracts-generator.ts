@@ -502,7 +502,7 @@ export function generateContracts(doc: OpenAPIDocument, resolver: RefResolver): 
   lines.push('  constructor(');
   lines.push('    public readonly data: ReadableStream<Uint8Array>,');
   lines.push('    public readonly filename?: string,');
-  lines.push('    public readonly headers: Headers = new Headers(),');
+  lines.push('    public readonly headers: Record<string, string> = {},');
   lines.push('  ) {}');
   lines.push('}');
 
@@ -510,9 +510,9 @@ export function generateContracts(doc: OpenAPIDocument, resolver: RefResolver): 
   lines.push(`export function streamResponse(
   data: ReadableStream<Uint8Array>,
   filename?: string,
-  headers?: Headers,
+  headers?: Record<string, string>,
 ): StreamResponse {
-  return new StreamResponse(data, filename, headers ?? new Headers());
+  return new StreamResponse(data, filename, headers ?? {});
 }`);
 
   // ErrorResponse class
@@ -521,7 +521,7 @@ export function generateContracts(doc: OpenAPIDocument, resolver: RefResolver): 
   constructor(
     public readonly status: number,
     public readonly data: unknown,
-    public readonly headers: Headers,
+    public readonly headers: Record<string, string>,
     public readonly message?: string,
   ) {}
 }`);
@@ -531,10 +531,10 @@ export function generateContracts(doc: OpenAPIDocument, resolver: RefResolver): 
   lines.push(`export function errorResponse(
   status: number,
   data: unknown,
-  headers?: Headers,
+  headers?: Record<string, string>,
   message?: string,
 ): ErrorResponse {
-  return new ErrorResponse(status, data, headers ?? new Headers(), message);
+  return new ErrorResponse(status, data, headers ?? {}, message);
 }`);
 
   // RequesterFailError class
