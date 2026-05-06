@@ -1,14 +1,12 @@
 // oxlint-disable no-underscore-dangle
-// POC: Validate Symbol + intersection type pattern for error narrowing
+// POC: Validate string-keyed intersection type pattern for error narrowing
 // This file MUST compile with `tsc --strict --noEmit`
 //
 // KEY FINDINGS:
 // 1. `as const` strips symbol-keyed properties from intersection types → use inferred return type
 // 2. `Exclude<T, X>` conditional type prevents type inference in type guards → use resolved union types
-// 3. Codegen must emit pre-resolved error unions (not Exclude<> wrappers) on the symbol-keyed property
-
-// 1. Define the Symbol
-const errorsSymbol = Symbol('errors');
+// 3. Codegen must emit pre-resolved error unions (not Exclude<> wrappers) on the __definedErrors property
+// 4. String key `__definedErrors` avoids `unique symbol` type issues with `declaration: true`
 
 // 2. Define ApiError and UnspecifiedApiError (mimicking generated code)
 class ApiError<TStatus extends number, TData> extends Error {
@@ -40,21 +38,20 @@ type MyMethodErrors =
 type MyMethodDefinedErrors = ApiError<400, { message: string }> | ApiError<500, { error: string }>;
 
 // 4. Define decorateWithErrors
-// Runtime errors param is decoupled from the type-level E parameter
-function decorateWithErrors<T, E>(item: T, runtimeErrors: unknown): T & { [errorsSymbol]: E } {
-  Object.defineProperty(item, errorsSymbol, {
+function decorateWithErrors<T, E>(item: T, runtimeErrors: unknown): T & { __definedErrors: E } {
+  Object.defineProperty(item, "__definedErrors", {
     value: runtimeErrors,
     enumerable: false,
     configurable: true,
     writable: false,
   });
-  return item as T & { [errorsSymbol]: E };
+  return item as T & { __definedErrors: E };
 }
 
 // 5. Define isDefinedError type guard
 function isDefinedError<E extends ApiError<number, unknown>>(
   err: unknown,
-  fn: { [errorsSymbol]: E }
+  fn: { __definedErrors: E }
 ): err is E {
   if (err instanceof UnspecifiedApiError) return false;
   if (!(err instanceof ApiError)) return false;
@@ -127,7 +124,7 @@ async function testUnspecified() {
   }
 }
 
-// Test 5: Symbol property is accessible at runtime
-const _codes = (client.myMethod as any)[errorsSymbol];
+// Test 5: String-keyed property is accessible at runtime
+const _codes = (client.myMethod as any).__definedErrors;
 
 console.log('POC compiles successfully!');

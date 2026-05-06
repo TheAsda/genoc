@@ -778,7 +778,7 @@ describe('generateClient', () => {
   });
 
   describe('error narrowing utilities', () => {
-    it('generates errorsSymbol constant', () => {
+    it('generates decorateWithErrors with __definedErrors key', () => {
       const doc = createDoc({
         paths: {
           '/items': {
@@ -793,7 +793,8 @@ describe('generateClient', () => {
       });
       const config = createConfig();
       const { client } = generateClient(doc, config);
-      expect(client).toContain("const errorsSymbol = Symbol('errors')");
+      expect(client).toContain('function decorateWithErrors');
+      expect(client).toContain('__definedErrors');
     });
 
     it('generates decorateWithErrors function', () => {

@@ -234,24 +234,22 @@ function buildClientFile(operations: AnalyzedOperation[], version: string): stri
 
   lines.push('');
 
-  lines.push("const errorsSymbol = Symbol('errors');");
-  lines.push('');
   lines.push('function decorateWithErrors<T, E>(');
   lines.push('  item: T,');
   lines.push('  runtimeErrors: unknown,');
-  lines.push('): T & { [errorsSymbol]: E } {');
-  lines.push('  Object.defineProperty(item, errorsSymbol, {');
+  lines.push('): T & { __definedErrors: E } {');
+  lines.push('  Object.defineProperty(item, "__definedErrors", {');
   lines.push('    value: runtimeErrors,');
   lines.push('    enumerable: false,');
   lines.push('    configurable: true,');
   lines.push('    writable: false,');
   lines.push('  });');
-  lines.push('  return item as T & { [errorsSymbol]: E };');
+  lines.push('  return item as T & { __definedErrors: E };');
   lines.push('}');
   lines.push('');
   lines.push('export function isDefinedError<E extends ApiError<number, unknown>>(');
   lines.push('  err: unknown,');
-  lines.push('  fn: { [errorsSymbol]: E },');
+  lines.push('  fn: { __definedErrors: E },');
   lines.push('): err is E {');
   lines.push('  if (err instanceof UnspecifiedApiError) return false;');
   lines.push('  if (!(err instanceof ApiError)) return false;');

@@ -5,24 +5,22 @@ exports[`Cross-task integration: OAuth2 + Headers + DefaultApiError > Cross-cutt
 import { ApiError, UnspecifiedApiError, ErrorResponse, StreamResponse, RequesterFailError, DefaultApiError } from './contracts.js';
 import type { DeleteProductsProductIdError404, DeleteProductsProductIdErrors, GetProductsDefaultError, GetProductsError400, GetProductsErrors, GetProductsHeaders, GetProductsProductIdDefaultError, GetProductsProductIdError404, GetProductsProductIdErrors, GetProductsProductIdHeaders, GetProductsProductIdResponse, GetProductsQuery, GetProductsResponse, PostProductsBody, PostProductsDefaultError, PostProductsError400, PostProductsErrors, PostProductsHeaders, PostProductsResponse } from './contracts.js';
 
-const errorsSymbol = Symbol('errors');
-
 function decorateWithErrors<T, E>(
   item: T,
   runtimeErrors: unknown,
-): T & { [errorsSymbol]: E } {
-  Object.defineProperty(item, errorsSymbol, {
+): T & { __definedErrors: E } {
+  Object.defineProperty(item, "__definedErrors", {
     value: runtimeErrors,
     enumerable: false,
     configurable: true,
     writable: false,
   });
-  return item as T & { [errorsSymbol]: E };
+  return item as T & { __definedErrors: E };
 }
 
 export function isDefinedError<E extends ApiError<number, unknown>>(
   err: unknown,
-  fn: { [errorsSymbol]: E },
+  fn: { __definedErrors: E },
 ): err is E {
   if (err instanceof UnspecifiedApiError) return false;
   if (!(err instanceof ApiError)) return false;

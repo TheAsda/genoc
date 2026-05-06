@@ -5,24 +5,22 @@ exports[`Petstore integration > matches client snapshot > petstore-client 1`] = 
 import { ApiError, UnspecifiedApiError, ErrorResponse, StreamResponse, RequesterFailError } from './contracts.js';
 import type { DeletePetsPetIdError400, DeletePetsPetIdError404, DeletePetsPetIdError500, DeletePetsPetIdErrors, GetPetsError400, GetPetsError500, GetPetsErrors, GetPetsPetIdError404, GetPetsPetIdError500, GetPetsPetIdErrors, GetPetsPetIdResponse, GetPetsQuery, GetPetsResponse, PostPetsBody, PostPetsError400, PostPetsError500, PostPetsErrors, PostPetsResponse, PutPetsPetIdBody, PutPetsPetIdError400, PutPetsPetIdError404, PutPetsPetIdError500, PutPetsPetIdErrors, PutPetsPetIdResponse } from './contracts.js';
 
-const errorsSymbol = Symbol('errors');
-
 function decorateWithErrors<T, E>(
   item: T,
   runtimeErrors: unknown,
-): T & { [errorsSymbol]: E } {
-  Object.defineProperty(item, errorsSymbol, {
+): T & { __definedErrors: E } {
+  Object.defineProperty(item, "__definedErrors", {
     value: runtimeErrors,
     enumerable: false,
     configurable: true,
     writable: false,
   });
-  return item as T & { [errorsSymbol]: E };
+  return item as T & { __definedErrors: E };
 }
 
 export function isDefinedError<E extends ApiError<number, unknown>>(
   err: unknown,
-  fn: { [errorsSymbol]: E },
+  fn: { __definedErrors: E },
 ): err is E {
   if (err instanceof UnspecifiedApiError) return false;
   if (!(err instanceof ApiError)) return false;
