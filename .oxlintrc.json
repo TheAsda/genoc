@@ -1,0 +1,48 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "rules": {
+    "no-unused-vars": "warn",
+    "prefer-const": "error",
+    "no-var": "error",
+    "eqeqeq": "error",
+    "no-console": "warn",
+    "no-constant-binary-expression": "error",
+    "no-underscore-dangle": ["warn", { "allow": ["__dirname"] }],
+    "typescript/no-non-null-asserted-optional-chain": "error",
+    "typescript/no-require-imports": "error",
+    "typescript/no-empty-object-type": "warn",
+    "typescript/no-unnecessary-parameter-property-assignment": "warn",
+    "import/no-duplicates": "error",
+    "unicorn/no-array-sort": "off"
+  },
+  "ignorePatterns": ["dist/**", "coverage/**", "*.d.ts"],
+  "overrides": [
+    {
+      "files": ["src/**/*.ts"],
+      "rules": {
+        "no-template-curly-in-string": "off",
+        "oxc/no-this-in-exported-function": "off"
+      }
+    },
+    {
+      "files": ["tests/**/*.ts", "tests/**/*.test.ts", "tests/**/*.spec.ts"],
+      "plugins": ["typescript", "unicorn", "oxc", "import", "vitest"],
+      "rules": {
+        "no-console": "off",
+        "no-template-curly-in-string": "off",
+        "no-unused-vars": "off",
+        "no-shadow": "off",
+        "unicorn/consistent-function-scoping": "off"
+      }
+    }
+  ],
+  "env": {
+    "builtin": true
+  }
+}

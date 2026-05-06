@@ -1,0 +1,68 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Refs Test", "version": "1.0.0" },
+  "paths": {
+    "/users": {
+      "get": {
+        "summary": "List users",
+        "operationId": "listUsers",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "address": { "$ref": "#/components/schemas/Address" }
+        }
+      },
+      "Address": {
+        "type": "object",
+        "properties": {
+          "city": { "type": "string" },
+          "country": { "$ref": "#/components/schemas/Country" }
+        }
+      },
+      "Country": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" }
+        }
+      },
+      "CircularA": { "$ref": "#/components/schemas/CircularB" },
+      "CircularB": { "$ref": "#/components/schemas/CircularA" },
+      "ChainA": { "$ref": "#/components/schemas/ChainB" },
+      "ChainB": { "$ref": "#/components/schemas/ChainC" },
+      "ChainC": { "type": "string" },
+      "EscapedPath": {
+        "$ref": "#/paths/~1users/get"
+      },
+      "ExternalRef": {
+        "$ref": "https://example.com/schemas/model.json"
+      },
+      "Depth1": { "$ref": "#/components/schemas/Depth2" },
+      "Depth2": { "$ref": "#/components/schemas/Depth3" },
+      "Depth3": { "$ref": "#/components/schemas/Depth4" },
+      "Depth4": { "$ref": "#/components/schemas/Depth5" },
+      "Depth5": { "$ref": "#/components/schemas/Depth6" },
+      "Depth6": { "$ref": "#/components/schemas/Depth7" },
+      "Depth7": { "$ref": "#/components/schemas/Depth8" },
+      "Depth8": { "$ref": "#/components/schemas/Depth9" },
+      "Depth9": { "$ref": "#/components/schemas/Depth10" },
+      "Depth10": { "$ref": "#/components/schemas/Depth11" },
+      "Depth11": { "type": "boolean" }
+    }
+  }
+}

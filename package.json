@@ -1,0 +1,60 @@
+{
+  "name": "genoc",
+  "version": "0.0.0",
+  "description": "Generate typed HTTP clients from OpenAPI 3.0 / 3.1 specifications",
+  "keywords": [
+    "client",
+    "generator",
+    "http",
+    "openapi",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": "Andrey Kiselev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheAsda/genoc"
+  },
+  "bin": {
+    "genoc": "./dist/cli/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "check": "tsc --noEmit",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt --write",
+    "format:check": "oxfmt --check",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "bun run build && changeset publish"
+  },
+  "dependencies": {
+    "@stricli/core": "^1.2.6",
+    "yaml": "^2.8.4"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.31.0",
+    "@types/node": "^25.6.0",
+    "oxfmt": "^0.48.0",
+    "oxlint": "^1.63.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

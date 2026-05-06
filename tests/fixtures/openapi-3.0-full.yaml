@@ -1,0 +1,1594 @@
+openapi: 3.0.0
+info:
+  title: OpenAPI 3.0 Mega Spec
+  description: Comprehensive spec testing all Tier 1 features for OpenAPI 3.0
+  version: 1.0.0
+  contact:
+    name: Test API
+    email: test@example.com
+
+servers:
+  - url: https://{env}.api.example.com/{basePath}
+    variables:
+      env:
+        description: Environment
+        enum: [development, staging, production]
+        default: development
+      basePath:
+        description: API base path
+        default: v1
+
+  - url: https://backup.api.example.com/v2
+    variables:
+      region:
+        description: Region
+        enum: [us, eu, asia]
+        default: us
+
+components:
+  schemas:
+    # Data Types (3.0-#1-#7)
+    StringType:
+      type: string
+      description: String type
+      deprecated: true
+
+    NumberType:
+      type: number
+      description: Number type
+
+    IntegerType:
+      type: integer
+      description: Integer type
+
+    BooleanType:
+      type: boolean
+      description: Boolean type
+
+    ArrayType:
+      type: array
+      items:
+        type: string
+      description: Array type
+
+    ObjectType:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: number
+      required: [name]
+      description: Object type
+
+    NullableString:
+      type: string
+      nullable: true
+      description: 'Nullable string via nullable keyword (3.0-specific)'
+
+    NullableObject:
+      type: object
+      nullable: true
+      properties:
+        id:
+          type: string
+        count:
+          type: integer
+      required: [id]
+      description: Nullable object via nullable keyword
+
+    NullableEnum:
+      type: string
+      nullable: true
+      enum: [active, inactive, pending]
+      description: Nullable enum via nullable keyword
+
+    NullableArray:
+      type: array
+      nullable: true
+      items:
+        type: string
+      description: Nullable array via nullable keyword
+
+    NullableAllOf:
+      nullable: true
+      allOf:
+        - type: object
+          properties:
+            name:
+              type: string
+          required: [name]
+        - type: object
+          properties:
+            value:
+              type: number
+      description: Nullable allOf via nullable keyword
+
+    # Schema Keywords (3.0-#8-#21)
+    AllOfSchema:
+      allOf:
+        - type: string
+        - type: number
+      description: AllOf schema
+
+    OneOfSchema:
+      oneOf:
+        - type: string
+        - type: number
+      description: OneOf schema
+
+    AnyOfSchema:
+      anyOf:
+        - type: string
+        - type: number
+      description: AnyOf schema
+
+    DiscriminatorSchema:
+      type: object
+      discriminator:
+        propertyName: type
+        mapping:
+          string: StringType
+          number: NumberType
+      properties:
+        type:
+          type: string
+        value:
+          type: string
+      required: [type]
+      description: Discriminator schema
+
+    EnumSchema:
+      type: string
+      enum: [option1, option2, option3]
+      description: Enum schema
+
+    ConstSchema:
+      type: string
+      const: 'constant-value'
+      description: Const schema
+
+    DefaultSchema:
+      type: object
+      properties:
+        name:
+          type: string
+          default: 'default-name'
+        count:
+          type: number
+          default: 42
+      required: []
+      description: Default schema
+
+    DescriptionSchema:
+      type: string
+      description: |
+        This has a detailed description for testing JSDoc generation. This is a longer description that should trigger JSDoc generation with proper formatting and multiple lines of content to test how the generator handles verbose documentation in schema definitions with various metadata and configuration options.
+      deprecated: true
+
+    ReadOnlySchema:
+      type: object
+      properties:
+        readonly_field:
+          type: string
+          readOnly: true
+        normal_field:
+          type: string
+      required: [readonly_field, normal_field]
+      description: ReadOnly schema
+
+    WriteOnlySchema:
+      type: object
+      properties:
+        writeonly_field:
+          type: string
+          writeOnly: true
+        normal_field:
+          type: string
+      required: [writeonly_field, normal_field]
+      description: WriteOnly schema
+
+    DeprecatedSchema:
+      type: string
+      deprecated: true
+      description: Deprecated schema
+
+    FormatSchema:
+      type: string
+      format: date-time
+      properties:
+        email:
+          type: string
+          format: email
+        uuid:
+          type: string
+          format: uuid
+        uri:
+          type: string
+          format: uri
+        binary_data:
+          type: string
+          format: binary
+        byte_data:
+          type: string
+          format: byte
+      required: [email, uuid, uri, binary_data, byte_data]
+      description: Format schema
+
+    AdditionalPropertiesSchema:
+      type: object
+      properties:
+        known_prop:
+          type: string
+      additionalProperties:
+        type: number
+      description: Additional properties schema
+
+    RequiredSchema:
+      type: object
+      properties:
+        required_field:
+          type: string
+        optional_field:
+          type: string
+      required: [required_field]
+      description: Required schema
+
+    # Tier 2 features stored but not emitted
+    ValidationConstraintsSchema:
+      type: string
+      minLength: 1
+      maxLength: 100
+      pattern: '^[a-zA-Z0-9]+$'
+      description: 'Validation constraints (stored but not emitted)'
+
+    NumericConstraintsSchema:
+      type: integer
+      minimum: 0
+      maximum: 100
+      description: 'Numeric constraints (stored but not emitted)'
+
+    ArrayConstraintsSchema:
+      type: array
+      minItems: 1
+      maxItems: 10
+      items:
+        type: string
+      description: 'Array constraints (stored but not emitted)'
+
+    # 3.0-specific: exclusiveMinimum/exclusiveMaximum as booleans
+    ExclusiveBoundsSchema:
+      type: integer
+      minimum: 10
+      exclusiveMinimum: true
+      maximum: 100
+      exclusiveMaximum: true
+      description: 3.0-exclusive bounds with boolean values
+
+    # File upload types
+    FileUpload:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+        text_file:
+          type: string
+          format: byte
+        regular_file:
+          type: string
+      required: [file, text_file]
+      description: File upload schema
+
+    # Complex nested schema
+    NestedSchema:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ObjectType'
+        metadata:
+          type: object
+          properties:
+            tags:
+              type: array
+              items:
+                type: string
+            config:
+              allOf:
+                - $ref: '#/components/schemas/DefaultSchema'
+                - type: object
+                  properties:
+                    extra:
+                      type: string
+                  required: [extra]
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/FileUpload'
+      required: [data]
+      description: Nested schema with refs and composition
+
+    # Circular ref test
+    CircularA:
+      type: object
+      properties:
+        name:
+          type: string
+        reference:
+          $ref: '#/components/schemas/CircularB'
+      required: [name]
+      description: Circular reference A
+
+    CircularB:
+      type: object
+      properties:
+        value:
+          type: number
+        reference:
+          $ref: '#/components/schemas/CircularA'
+      required: [value]
+      description: Circular reference B
+
+    # Chained ref test
+    LevelA:
+      $ref: '#/components/schemas/LevelB'
+      description: 'Level A with ref to B (3.0: siblings stripped)'
+
+    LevelB:
+      $ref: '#/components/schemas/LevelC'
+      description: 'Level B with ref to C (3.0: siblings stripped)'
+
+    LevelC:
+      type: object
+      properties:
+        value:
+          type: string
+      required: [value]
+      description: 'Level C (leaf)'
+
+    # $ref siblings test (3.0: siblings should be stripped)
+    RefTarget:
+      type: string
+      description: Original target description
+      deprecated: true
+
+    RefWithSibling:
+      description: 'Override from sibling (3.0: this should be stripped)'
+      nullable: true
+      allOf:
+        - $ref: '#/components/schemas/RefTarget'
+        - type: object
+          properties:
+            extra_field:
+              type: string
+          required: [extra_field]
+
+  parameters:
+    PathParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Path parameter ID
+
+    QueryParam:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+      description: Query parameter limit
+
+    HeaderParam:
+      name: X-Custom-Header
+      in: header
+      required: true
+      schema:
+        type: string
+      description: Custom header
+
+    CookieParam:
+      name: session_id
+      in: cookie
+      required: false
+      schema:
+        type: string
+      description: Session cookie
+
+    DeprecatedParam:
+      name: legacy_filter
+      in: query
+      required: false
+      deprecated: true
+      schema:
+        type: string
+      description: Deprecated query parameter
+
+  requestBodies:
+    JsonBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              value:
+                type: number
+            required: [name]
+      description: JSON request body
+
+    MultipartBody:
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              text_field:
+                type: string
+                description: Regular text field
+              file_field:
+                type: string
+                format: binary
+                description: Binary file
+              text_file:
+                type: string
+                format: byte
+                description: Text file
+              array_field:
+                type: array
+                items:
+                  type: string
+                description: Array field
+              gallery:
+                type: array
+                items:
+                  type: string
+                  format: binary
+                description: Array of binary files
+            required: [text_field, file_field]
+      description: Multipart request body
+
+    FormUrlencodedBody:
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            type: object
+            properties:
+              field1:
+                type: string
+              field2:
+                type: number
+            required: [field1]
+      description: Form URL encoded body
+
+    OctetStreamBody:
+      content:
+        application/octet-stream:
+          schema:
+            type: string
+            format: binary
+      description: Octet stream body
+
+    ContentNegotiationBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              json_data:
+                type: string
+            required: [json_data]
+        application/xml:
+          schema:
+            type: object
+            properties:
+              xml_data:
+                type: string
+            required: [xml_data]
+      description: Body with multiple content types
+
+    OptionalBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              optional_data:
+                type: string
+      required: false
+      description: Optional request body
+
+  responses:
+    SuccessResponse:
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              result:
+                type: string
+              status:
+                type: number
+            required: [result]
+
+    ErrorResponse:
+      description: Error response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: number
+            required: [error]
+
+    BinaryResponse:
+      description: Binary response
+      content:
+        application/octet-stream:
+          schema:
+            type: string
+            format: binary
+
+    ImageResponse:
+      description: Image response
+      content:
+        image/png:
+          schema:
+            type: string
+            format: binary
+
+    EmptyResponse:
+      description: Empty response
+      headers:
+        X-Custom-Header:
+          schema:
+            type: string
+          description: Custom header
+
+    DefaultResponse:
+      description: Default response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            required: [message]
+
+    MultipleContentResponse:
+      description: Response with multiple content types
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: string
+            required: [data]
+        text/plain:
+          schema:
+            type: string
+
+  securitySchemes:
+    ApiKeyQuery:
+      type: apiKey
+      in: query
+      name: api_key
+
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key header auth
+
+    ApiKeyCookie:
+      type: apiKey
+      in: cookie
+      name: session_token
+      description: Session token cookie auth
+
+    HttpBasic:
+      type: http
+      scheme: basic
+
+    HttpBearer:
+      type: http
+      scheme: bearer
+      description: Bearer token auth
+
+    HttpDigest:
+      type: http
+      scheme: digest
+
+    OAuth2Implicit:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://example.com/oauth/authorize
+          scopes:
+            read: Read access
+            write: Write access
+
+    OAuth2Password:
+      type: oauth2
+      flows:
+        password:
+          tokenUrl: https://example.com/oauth/token
+          scopes:
+            read: Read access
+            write: Write access
+
+    OAuth2ClientCredentials:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://example.com/oauth/token
+          scopes:
+            read: Read access
+
+    OAuth2AuthorizationCode:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://example.com/oauth/authorize
+          tokenUrl: https://example.com/oauth/token
+          scopes:
+            read: Read access
+            write: Write access
+
+    OpenIdConnect:
+      type: openIdConnect
+      openIdConnectUrl: https://example.com/.well-known/openid-configuration
+
+  headers:
+    CustomHeader:
+      description: Custom header
+      schema:
+        type: string
+
+    XRateLimit:
+      description: Rate limit header
+      schema:
+        type: integer
+
+  examples:
+    ExampleUser:
+      value:
+        id: '123'
+        name: 'John Doe'
+        email: 'john@example.com'
+      summary: Example user
+      description: An example user object
+
+paths:
+  # Data types
+  /string:
+    get:
+      operationId: getString
+      summary: Get string type
+      description: Retrieve a string value
+      tags: [data-types]
+      parameters:
+        - $ref: '#/components/parameters/PathParam'
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+        400:
+          $ref: '#/components/responses/ErrorResponse'
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /number:
+    get:
+      operationId: getNumber
+      summary: Get number type
+      description: Retrieve a numeric value
+      tags: [data-types]
+      parameters:
+        - $ref: '#/components/parameters/QueryParam'
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /integer:
+    get:
+      operationId: getInteger
+      summary: Get integer type
+      description: Retrieve an integer value
+      tags: [data-types]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /boolean:
+    get:
+      operationId: getBoolean
+      summary: Get boolean type
+      description: Retrieve a boolean value
+      tags: [data-types]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /array:
+    get:
+      operationId: getArray
+      summary: Get array type
+      description: Retrieve an array of strings
+      tags: [data-types]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /object:
+    get:
+      operationId: getObject
+      summary: Get object type
+      description: Retrieve an object
+      tags: [data-types]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /nullable:
+    get:
+      operationId: getNullable
+      summary: Get nullable type
+      description: 'Retrieve a nullable value (3.0 nullable keyword)'
+      tags: [data-types]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  # Schema keywords
+  /allof:
+    get:
+      operationId: getAllOf
+      summary: AllOf composition
+      description: Test allOf keyword
+      tags: [schema-keywords]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /oneof:
+    get:
+      operationId: getOneOf
+      summary: OneOf composition
+      description: Test oneOf keyword
+      tags: [schema-keywords]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /anyof:
+    get:
+      operationId: getAnyOf
+      summary: AnyOf composition
+      description: Test anyOf keyword
+      tags: [schema-keywords]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /discriminator:
+    post:
+      operationId: postDiscriminator
+      summary: Discriminator test
+      description: Test discriminator keyword
+      tags: [schema-keywords]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiscriminatorSchema'
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /enum:
+    get:
+      operationId: getEnum
+      summary: Enum test
+      description: Test enum keyword
+      tags: [schema-keywords]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /const:
+    get:
+      operationId: getConst
+      summary: Const test
+      description: Test const keyword
+      tags: [schema-keywords]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /default:
+    post:
+      operationId: postDefault
+      summary: Default values test
+      description: Test default keyword
+      tags: [schema-keywords]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DefaultSchema'
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /description:
+    get:
+      operationId: getDescription
+      summary: Description test
+      description: Test description keyword
+      tags: [schema-keywords]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /readonly:
+    get:
+      operationId: getReadOnly
+      summary: ReadOnly test
+      description: Test readOnly keyword
+      tags: [schema-keywords]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /writeonly:
+    post:
+      operationId: postWriteOnly
+      summary: WriteOnly test
+      description: Test writeOnly keyword
+      tags: [schema-keywords]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WriteOnlySchema'
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /deprecated:
+    get:
+      operationId: getDeprecated
+      summary: Deprecated operation
+      description: Test deprecated keyword
+      tags: [schema-keywords]
+      deprecated: true
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /format:
+    get:
+      operationId: getFormat
+      summary: Format test
+      description: Test format keyword
+      tags: [schema-keywords]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /additional-properties:
+    get:
+      operationId: getAdditionalProperties
+      summary: Additional properties test
+      description: Test additionalProperties keyword
+      tags: [schema-keywords]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /required:
+    get:
+      operationId: getRequired
+      summary: Required fields test
+      description: Test required keyword
+      tags: [schema-keywords]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /validation-constraints:
+    get:
+      operationId: getValidationConstraints
+      summary: Validation constraints test
+      description: 'Test Tier 2 validation constraints (should not crash)'
+      tags: [schema-keywords]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  # File uploads
+  /upload:
+    post:
+      operationId: postUpload
+      summary: File upload test
+      description: Test file uploads
+      tags: [file-uploads]
+      requestBody:
+        $ref: '#/components/requestBodies/MultipartBody'
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+        400:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /binary-response:
+    get:
+      operationId: getBinaryResponse
+      summary: Binary response test
+      description: Test binary response handling
+      tags: [responses]
+      responses:
+        200:
+          $ref: '#/components/responses/BinaryResponse'
+        400:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /image-response:
+    get:
+      operationId: getImageResponse
+      summary: Image response test
+      description: Test image response handling
+      tags: [responses]
+      responses:
+        200:
+          $ref: '#/components/responses/ImageResponse'
+
+  /empty-response:
+    get:
+      operationId: getEmptyResponse
+      summary: Empty response test
+      description: Test empty response handling
+      tags: [responses]
+      responses:
+        204:
+          $ref: '#/components/responses/EmptyResponse'
+        400:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /multi-content-response:
+    get:
+      operationId: getMultiContentResponse
+      summary: Multi-content response test
+      description: Test multiple content types in response
+      tags: [responses]
+      responses:
+        200:
+          $ref: '#/components/responses/MultipleContentResponse'
+
+  /nested-schema:
+    post:
+      operationId: postNestedSchema
+      summary: Nested schema test
+      description: Test nested schemas with refs
+      tags: [components]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NestedSchema'
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  # All HTTP methods
+  /all-methods:
+    get:
+      operationId: getAllMethodsGet
+      summary: GET method test
+      description: Test GET method
+      tags: [http-methods]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+    post:
+      operationId: getAllMethodsPost
+      summary: POST method test
+      description: Test POST method
+      tags: [http-methods]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: string
+              required: [data]
+      responses:
+        201:
+          $ref: '#/components/responses/SuccessResponse'
+
+    put:
+      operationId: getAllMethodsPut
+      summary: PUT method test
+      description: Test PUT method
+      tags: [http-methods]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: string
+              required: [data]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+    patch:
+      operationId: getAllMethodsPatch
+      summary: PATCH method test
+      description: Test PATCH method
+      tags: [http-methods]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: string
+              required: [data]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+    delete:
+      operationId: getAllMethodsDelete
+      summary: DELETE method test
+      description: Test DELETE method
+      tags: [http-methods]
+      responses:
+        204:
+          $ref: '#/components/responses/EmptyResponse'
+
+    options:
+      operationId: getAllMethodsOptions
+      summary: OPTIONS method test
+      description: Test OPTIONS method
+      tags: [http-methods]
+      responses:
+        200:
+          description: CORS options response
+          headers:
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+              description: Allowed methods
+
+    head:
+      operationId: getAllMethodsHead
+      summary: HEAD method test
+      description: Test HEAD method
+      tags: [http-methods]
+      responses:
+        200:
+          $ref: '#/components/responses/EmptyResponse'
+
+    trace:
+      operationId: getAllMethodsTrace
+      summary: TRACE method test
+      description: Test TRACE method
+      tags: [http-methods]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  # Path parameters
+  /path/{id}:
+    get:
+      operationId: getPathById
+      summary: Get by path ID
+      description: Test path parameter handling
+      tags: [parameters]
+      parameters:
+        - $ref: '#/components/parameters/PathParam'
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  # Query parameters
+  /query:
+    get:
+      operationId: getWithQuery
+      summary: Get with query params
+      description: Test query parameter handling
+      tags: [parameters]
+      parameters:
+        - $ref: '#/components/parameters/QueryParam'
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+          description: Query offset
+        - name: filter
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9]+$'
+          description: Query filter
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  # Header parameters
+  /headers:
+    get:
+      operationId: getWithHeaders
+      summary: Get with headers
+      description: Test header parameter handling
+      tags: [parameters]
+      parameters:
+        - $ref: '#/components/parameters/HeaderParam'
+        - name: X-Trace-ID
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Trace ID
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  # Cookie parameters
+  /cookies:
+    get:
+      operationId: getWithCookies
+      summary: Get with cookies
+      description: Test cookie parameter handling
+      tags: [parameters]
+      parameters:
+        - $ref: '#/components/parameters/CookieParam'
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  # Request body tests
+  /json-body:
+    post:
+      operationId: postJsonBody
+      summary: Post JSON body
+      description: Test JSON request body
+      tags: [request-bodies]
+      requestBody:
+        $ref: '#/components/requestBodies/JsonBody'
+      responses:
+        201:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /form-body:
+    post:
+      operationId: postFormBody
+      summary: Post form body
+      description: Test form URL encoded request body
+      tags: [request-bodies]
+      requestBody:
+        $ref: '#/components/requestBodies/FormUrlencodedBody'
+      responses:
+        201:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /binary-body:
+    post:
+      operationId: postBinaryBody
+      summary: Post binary body
+      description: Test binary request body
+      tags: [request-bodies]
+      requestBody:
+        $ref: '#/components/requestBodies/OctetStreamBody'
+      responses:
+        201:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /content-negotiation:
+    post:
+      operationId: postContentNegotiation
+      summary: Content negotiation test
+      description: Test multiple content types in request body
+      tags: [request-bodies]
+      requestBody:
+        $ref: '#/components/requestBodies/ContentNegotiationBody'
+      responses:
+        201:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /optional-body:
+    post:
+      operationId: postOptionalBody
+      summary: Optional body test
+      description: Test optional request body
+      tags: [request-bodies]
+      requestBody:
+        $ref: '#/components/requestBodies/OptionalBody'
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  # Error handling tests
+  /error-handling:
+    get:
+      operationId: getWithErrorHandling
+      summary: Error handling test
+      description: Test various error responses
+      tags: [error-handling]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+        400:
+          $ref: '#/components/responses/ErrorResponse'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required: [error]
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  code:
+                    type: number
+                required: [error]
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required: [message]
+        500:
+          $ref: '#/components/responses/ErrorResponse'
+        default:
+          $ref: '#/components/responses/DefaultResponse'
+
+  # Security tests (Tier 2: types generated but no enforcement)
+  /security-test:
+    get:
+      operationId: getSecurityTest
+      summary: Security test
+      description: Test security scheme handling
+      tags: [security]
+      security:
+        - ApiKeyQuery: []
+        - ApiKeyHeader: []
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /oauth-test:
+    get:
+      operationId: getOAuthTest
+      summary: OAuth test
+      description: Test OAuth scheme handling
+      tags: [security]
+      security:
+        - OAuth2Implicit: [read]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  # Complex ref patterns
+  /circular-test:
+    get:
+      operationId: getCircularTest
+      summary: Circular ref test
+      description: Test circular reference handling
+      tags: [refs]
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CircularA'
+
+  /ref-siblings-test:
+    get:
+      operationId: getRefSiblingsTest
+      summary: Ref siblings test
+      description: Test $ref sibling stripping in 3.0
+      tags: [refs]
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ref_with_sibling:
+                    description: 'Sibling description (3.0: should be stripped)'
+                    allOf:
+                      - $ref: '#/components/schemas/DescriptionSchema'
+                      - type: object
+                        properties:
+                          extra_field:
+                            type: string
+                            description: Extra field from sibling
+                        required: [extra_field]
+                  normal_ref:
+                    $ref: '#/components/schemas/DescriptionSchema'
+                required: [ref_with_sibling, normal_ref]
+
+  /chained-refs-test:
+    get:
+      operationId: getChainedRefsTest
+      summary: Chained refs test
+      description: Test chained $ref resolution
+      tags: [refs]
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LevelA'
+
+  # 3.0-specific: exclusiveMin/Max as booleans
+  /exclusive-min-max:
+    get:
+      operationId: getExclusiveMinMax
+      summary: Exclusive min/max test
+      description: Test 3.0 exclusive bounds as booleans
+      tags: [version-specific]
+      parameters:
+        - name: exclusive_min
+          in: query
+          required: false
+          schema:
+            type: number
+            minimum: 10
+            exclusiveMinimum: true
+          description: 'Exclusive minimum test (3.0 boolean)'
+        - name: exclusive_max
+          in: query
+          required: false
+          schema:
+            type: number
+            maximum: 100
+            exclusiveMaximum: true
+          description: 'Exclusive maximum test (3.0 boolean)'
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  # 3.0-specific: nullable keyword
+  /nullable-test:
+    get:
+      operationId: getNullableTest
+      summary: Nullable keyword test
+      description: Test 3.0 nullable keyword on response
+      tags: [version-specific]
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                type: string
+                nullable: true
+                description: Nullable string response
+
+  /nullable-object-test:
+    post:
+      operationId: postNullableObjectTest
+      summary: Nullable object test
+      description: Test nullable keyword on request body object
+      tags: [version-specific]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NullableObject'
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  # Tier 2 features that should not crash
+  /tier2-params:
+    get:
+      operationId: getTier2Params
+      summary: Tier 2 parameters test
+      description: Test Tier 2 parameter features
+      tags: [tier2]
+      parameters:
+        - name: style_test
+          in: query
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+          description: Style test parameter
+        - name: empty_value_test
+          in: query
+          required: false
+          allowEmptyValue: true
+          schema:
+            type: string
+          description: Allow empty value test
+        - name: deprecated_param
+          in: query
+          required: false
+          deprecated: true
+          schema:
+            type: string
+          description: Deprecated param test
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /tier2-validation:
+    get:
+      operationId: getTier2Validation
+      summary: Tier 2 validation test
+      description: Test Tier 2 validation constraints
+      tags: [tier2]
+      parameters:
+        - name: min_items
+          in: query
+          required: false
+          schema:
+            type: array
+            minItems: 1
+            items:
+              type: string
+          description: Min items test
+        - name: max_length
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 100
+          description: Max length test
+        - name: pattern_test
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^[A-Za-z0-9]+$'
+          description: Pattern test
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  # Complex path with multiple params
+  /users/{userId}/posts/{postId}:
+    get:
+      operationId: getUserPost
+      summary: Get user post
+      description: Test complex path with multiple params
+      tags: [parameters]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Post ID
+        - name: include_meta
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Include metadata
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+        404:
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required: [message]
+
+  # Inline schema in operation (no $ref)
+  /inline-schema:
+    post:
+      operationId: postInlineSchema
+      summary: Inline schema test
+      description: Test inline schema definition in operation
+      tags: [components]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                inline_field:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                nested:
+                  type: object
+                  properties:
+                    deep:
+                      type: number
+                  required: [deep]
+              required: [inline_field]
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result_id:
+                    type: string
+                    format: uuid
+                  created_at:
+                    type: string
+                    format: date-time
+                required: [result_id, created_at]
+
+tags:
+  - name: data-types
+    description: Data type tests
+  - name: schema-keywords
+    description: Schema keyword tests
+  - name: parameters
+    description: Parameter tests
+  - name: request-bodies
+    description: Request body tests
+  - name: file-uploads
+    description: File upload tests
+  - name: responses
+    description: Response tests
+  - name: error-handling
+    description: Error handling tests
+  - name: security
+    description: Security scheme tests
+  - name: components
+    description: Component tests
+  - name: http-methods
+    description: HTTP method tests
+  - name: refs
+    description: Reference resolution tests
+  - name: tier2
+    description: Tier 2 feature tests
+  - name: version-specific
+    description: Version-specific feature tests

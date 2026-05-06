@@ -1,0 +1,161 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Format Brands API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/items": {
+      "get": {
+        "summary": "List items with formatted properties",
+        "responses": {
+          "200": {
+            "description": "List of items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    },
+                    "required": ["id", "createdAt"]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create item with email format",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "enum": ["user@example.com", "test@example.org"]
+                  }
+                },
+                "required": ["email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Item created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Item"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/records": {
+      "get": {
+        "summary": "Get records with additional properties",
+        "responses": {
+          "200": {
+            "description": "Records with dynamic formatted properties",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DateString": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "UuidString": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "IntId": {
+        "type": "integer",
+        "format": "int32"
+      },
+      "Score": {
+        "type": "number",
+        "format": "double"
+      },
+      "Email": {
+        "type": "string",
+        "format": "email"
+      },
+      "BinaryData": {
+        "type": "string",
+        "format": "binary"
+      },
+      "ByteData": {
+        "type": "string",
+        "format": "byte"
+      },
+      "EmptyFormat": {
+        "type": "string",
+        "format": ""
+      },
+      "CustomFormat": {
+        "type": "string",
+        "format": "my-custom-format"
+      },
+      "NullableDate": {
+        "type": "string",
+        "format": "date-time",
+        "nullable": true
+      },
+      "Item": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "score": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "required": ["id", "createdAt", "email"]
+      }
+    }
+  }
+}
