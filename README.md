@@ -127,7 +127,7 @@ if (options.expectStream === true) {
 class StreamResponse {
   data: ReadableStream<Uint8Array>;
   filename?: string;
-  headers: Headers;
+  headers: Record<string, string>;
 }
 ```
 

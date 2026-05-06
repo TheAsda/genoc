@@ -88,7 +88,7 @@ describe('Cross-task integration: OAuth2 + Headers + DefaultApiError', () => {
     });
 
     it('includes headers in POST /products method signature (optional because all headers optional)', () => {
-      expect(client).toContain('headers: PostProductsHeaders | undefined');
+      expect(client).toContain('headers?: PostProductsHeaders');
     });
 
     it('passes headers to requester in GET /products method body', () => {
@@ -96,7 +96,7 @@ describe('Cross-task integration: OAuth2 + Headers + DefaultApiError', () => {
     });
 
     it('passes headers to requester in POST /products method body', () => {
-      expect(client).toContain('{ headers, body }');
+      expect(client).toContain('{ body, headers }');
     });
 
     it('passes headers to requester in GET /products/{productId} method body', () => {
