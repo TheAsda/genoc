@@ -13,5 +13,5 @@
   "endOfLine": "lf",
   "sortImports": true,
   "sortPackageJson": true,
-  "ignorePatterns": ["dist/**", "coverage/**", "node_modules/**"]
+  "ignorePatterns": ["dist/**", "coverage/**", "node_modules/**", ".github/**", ".changeset/**"]
 }

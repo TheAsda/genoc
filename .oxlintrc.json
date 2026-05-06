@@ -21,7 +21,7 @@
     "import/no-duplicates": "error",
     "unicorn/no-array-sort": "off"
   },
-  "ignorePatterns": ["dist/**", "coverage/**", "*.d.ts"],
+  "ignorePatterns": ["dist/**", "coverage/**", "*.d.ts", ".github/**", ".changeset/**"],
   "overrides": [
     {
       "files": ["src/**/*.ts"],
