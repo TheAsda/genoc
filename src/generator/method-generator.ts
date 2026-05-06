@@ -13,7 +13,7 @@ function buildParameters(op: AnalyzedOperation): string {
   if (op.queryParams.length > 0) {
     const prefix = getOperationTypePrefix(op);
     const allOptional = op.queryParams.every((p) => !p.required);
-    const hasRequiredAfter = op.headerParams.some((p) => p.required) || !!op.requestBody?.required;
+    const hasRequiredAfter = !!op.requestBody?.required || op.headerParams.some((p) => p.required);
 
     if (allOptional && hasRequiredAfter) {
       // All optional query params + required param after: use explicit undefined to avoid "required param cannot follow optional" error
@@ -25,22 +25,17 @@ function buildParameters(op: AnalyzedOperation): string {
     }
   }
 
-  if (op.headerParams.length > 0) {
-    const prefix = getOperationTypePrefix(op);
-    const allOptional = op.headerParams.every((p) => !p.required);
-
-    if (allOptional && op.requestBody?.required) {
-      params.push(`headers: ${prefix}Headers | undefined`);
-    } else {
-      const optional = allOptional ? '?' : '';
-      params.push(`headers${optional}: ${prefix}Headers`);
-    }
-  }
-
   if (op.requestBody) {
     const prefix = getOperationTypePrefix(op);
     const optional = op.requestBody.required ? '' : '?';
     params.push(`body${optional}: ${prefix}Body`);
+  }
+
+  if (op.headerParams.length > 0) {
+    const prefix = getOperationTypePrefix(op);
+    const allOptional = op.headerParams.every((p) => !p.required);
+    const optional = allOptional ? '?' : '';
+    params.push(`headers${optional}: ${prefix}Headers`);
   }
 
   return params.join(', ');
@@ -148,11 +143,11 @@ function buildImplementation(op: AnalyzedOperation): string {
   if (op.queryParams.length > 0) {
     requesterOpts.push('query');
   }
-  if (op.headerParams.length > 0) {
-    requesterOpts.push('headers');
-  }
   if (op.requestBody) {
     requesterOpts.push('body');
+  }
+  if (op.headerParams.length > 0) {
+    requesterOpts.push('headers');
   }
 
   // Error responses for status-specific checks

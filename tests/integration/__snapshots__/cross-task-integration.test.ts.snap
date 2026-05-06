@@ -76,10 +76,10 @@ export function createClient(requester: Requester) {
      *
      * @param body — request body
      */
-    postProducts: decorateWithErrors<(headers: PostProductsHeaders | undefined, body: PostProductsBody) => Promise<PostProductsResponse>, PostProductsErrors>(
-      async (headers: PostProductsHeaders | undefined, body: PostProductsBody): Promise<PostProductsResponse> => {
+    postProducts: decorateWithErrors<(body: PostProductsBody, headers?: PostProductsHeaders) => Promise<PostProductsResponse>, PostProductsErrors>(
+      async (body: PostProductsBody, headers?: PostProductsHeaders): Promise<PostProductsResponse> => {
         try {
-          const result = await requester<PostProductsResponse>("POST", \`/products\`, { headers, body });
+          const result = await requester<PostProductsResponse>("POST", \`/products\`, { body, headers });
           if (result instanceof ErrorResponse) {
             if (result.status === 400) throw new ApiError(400, result.data as PostProductsError400, result.message ?? \`Request failed with status 400\`);
             throw new DefaultApiError(result.status, result.data as PostProductsDefaultError, result.message ?? \`Request failed with status \${result.status}\`);

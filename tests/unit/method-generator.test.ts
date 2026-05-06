@@ -773,7 +773,7 @@ describe('generateMethod', () => {
 
       const result = generateMethod(op);
 
-      expect(result.signature).toContain('headers: GetApiV1ProductsHeaders | undefined');
+      expect(result.signature).toContain('headers?: GetApiV1ProductsHeaders');
     });
 
     it('does not include cookie params in method signature', () => {

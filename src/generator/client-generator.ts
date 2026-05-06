@@ -119,11 +119,11 @@ function buildClientMethodBody(op: AnalyzedOperation): string {
   if (op.queryParams.length > 0) {
     opts.push('query');
   }
-  if (op.headerParams.length > 0) {
-    opts.push('headers');
-  }
   if (op.requestBody) {
     opts.push('body');
+  }
+  if (op.headerParams.length > 0) {
+    opts.push('headers');
   }
 
   const lines: string[] = [];
