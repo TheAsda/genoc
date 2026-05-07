@@ -55,7 +55,7 @@ describe('OpenAPI 3.1 — $ref Resolution (3.1-#70-#75)', () => {
   // 3.1-#70: JSON pointer resolution — Tier 1
   describe('3.1-#70: JSON pointer resolution', () => {
     it('resolves #/components/schemas/ pointer in response schema', () => {
-      const { contracts } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.1.0"
         info: { title: Test, version: "1.0.0" }
         components:
@@ -80,11 +80,8 @@ describe('OpenAPI 3.1 — $ref Resolution (3.1-#70-#75)', () => {
                           $ref: "#/components/schemas/Product"
       `);
 
-      // Schema is resolved and emitted as a named type
-      expect(contracts).toContain('export type Product = {');
-      expect(contracts).toContain('id: string;');
-      // Response references the resolved schema
-      expect(contracts).toContain('export type GetProductsResponse = Product[];');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
 
     it('resolves $ref in nested property schema', () => {
@@ -109,9 +106,7 @@ describe('OpenAPI 3.1 — $ref Resolution (3.1-#70-#75)', () => {
         paths: {}
       `);
 
-      expect(contracts).toContain('export type Address = {');
-      expect(contracts).toContain('export type Person = {');
-      expect(contracts).toContain('address: Address;');
+      expect(contracts).toMatchSnapshot();
     });
   });
 
@@ -132,14 +127,11 @@ describe('OpenAPI 3.1 — $ref Resolution (3.1-#70-#75)', () => {
         paths: {}
       `);
 
-      // Generator uses immediate ref name, not fully resolved chain
-      expect(contracts).toContain('export type LevelC = string;');
-      expect(contracts).toContain('export type LevelA = LevelB;');
-      expect(contracts).toContain('export type LevelB = LevelC;');
+      expect(contracts).toMatchSnapshot();
     });
 
     it('resolves chained refs through intermediate object schemas', () => {
-      const { contracts } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.1.0"
         info: { title: Test, version: "1.0.0" }
         components:
@@ -166,10 +158,8 @@ describe('OpenAPI 3.1 — $ref Resolution (3.1-#70-#75)', () => {
                         $ref: "#/components/schemas/DetailedError"
       `);
 
-      expect(contracts).toContain('export type BaseError = {');
-      expect(contracts).toContain('code: number;');
-      // Generator uses the intermediate ref name (DetailedError), not BaseError
-      expect(contracts).toContain('export type GetItemsError500 = DetailedError;');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
   });
 
@@ -286,9 +276,7 @@ describe('OpenAPI 3.1 — $ref Resolution (3.1-#70-#75)', () => {
         true // preserveRefSiblings = true (3.1 mode)
       );
 
-      // Sibling description overrides on RefWithSibling; Target keeps its own
-      expect(contracts).toContain('/** Override from sibling */');
-      expect(contracts).toContain('/** Original target description */');
+      expect(contracts).toMatchSnapshot();
     });
 
     it('3.0 mode (preserveRefSiblings:false) ignores sibling description', () => {
@@ -311,8 +299,7 @@ describe('OpenAPI 3.1 — $ref Resolution (3.1-#70-#75)', () => {
         false // preserveRefSiblings = false (3.0 mode)
       );
 
-      // Target's own description is used; sibling is stripped
-      expect(contracts).toContain('/** Original target description */');
+      expect(contracts).toMatchSnapshot();
       expect(contracts).not.toContain('/** Override from sibling */');
     });
 
@@ -335,18 +322,14 @@ describe('OpenAPI 3.1 — $ref Resolution (3.1-#70-#75)', () => {
         true
       );
 
-      // Sibling description overrides
-      expect(contracts).toContain('/** Nullable override */');
-      // The type still resolves through the $ref chain
-      // (nullable: true as sibling may or may not be processed — verify no crash)
-      expect(contracts).toContain('BaseName');
+      expect(contracts).toMatchSnapshot();
     });
   });
 
   // 3.1-#74: local refs — Tier 1
   describe('3.1-#74: local refs (#/...)', () => {
     it('resolves $ref within operation response content schema', () => {
-      const { contracts } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.1.0"
         info: { title: Test, version: "1.0.0" }
         components:
@@ -373,12 +356,12 @@ describe('OpenAPI 3.1 — $ref Resolution (3.1-#70-#75)', () => {
                         $ref: "#/components/schemas/Item"
       `);
 
-      expect(contracts).toContain('export type Item = {');
-      expect(contracts).toContain('export type GetItemsIdResponse = Item;');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
 
     it('resolves $ref in request body schema', () => {
-      const { contracts } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.1.0"
         info: { title: Test, version: "1.0.0" }
         components:
@@ -402,8 +385,8 @@ describe('OpenAPI 3.1 — $ref Resolution (3.1-#70-#75)', () => {
                   description: Created
       `);
 
-      expect(contracts).toContain('export type CreateItem = {');
-      expect(contracts).toContain('export type PostItemsBody = CreateItem;');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
   });
 
@@ -464,11 +447,7 @@ describe('OpenAPI 3.1 — Components (3.1-#76-#84)', () => {
         paths: {}
       `);
 
-      expect(contracts).toContain('export type User = {');
-      expect(contracts).toContain('id: string;');
-      expect(contracts).toContain('name: string;');
-      expect(contracts).toContain('email?: string;');
-      expect(contracts).toContain("export type Status = 'active' | 'inactive' | 'pending';");
+      expect(contracts).toMatchSnapshot();
     });
 
     it('sorts schemas topologically when one references another via $ref', () => {
@@ -492,6 +471,7 @@ describe('OpenAPI 3.1 — Components (3.1-#76-#84)', () => {
         paths: {}
       `);
 
+      expect(contracts).toMatchSnapshot();
       // Product must appear before Order (topological sort)
       const productPos = contracts.indexOf('export type Product');
       const orderPos = contracts.indexOf('export type Order');
@@ -518,16 +498,14 @@ describe('OpenAPI 3.1 — Components (3.1-#76-#84)', () => {
         paths: {}
       `);
 
-      expect(contracts).toContain('export type Base = {');
-      expect(contracts).toContain('export type Extended = Base & {');
-      expect(contracts).toContain('extra?: string;');
+      expect(contracts).toMatchSnapshot();
     });
   });
 
   // 3.1-#77: responses — Tier 1
   describe('3.1-#77: components/responses', () => {
     it('resolves $ref to reusable response in error codes', () => {
-      const { contracts } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.1.0"
         info: { title: Test, version: "1.0.0" }
         components:
@@ -559,13 +537,12 @@ describe('OpenAPI 3.1 — Components (3.1-#76-#84)', () => {
                   $ref: "#/components/responses/NotFound"
       `);
 
-      expect(contracts).toContain('export type GetItemsError400 = ErrorBody;');
-      expect(contracts).toContain('GetItemsErrors');
-      expect(contracts).toContain('ApiError<400, GetItemsError400>');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
 
     it('resolves reusable response with content schema across multiple operations', () => {
-      const { contracts } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.1.0"
         info: { title: Test, version: "1.0.0" }
         components:
@@ -597,8 +574,8 @@ describe('OpenAPI 3.1 — Components (3.1-#76-#84)', () => {
                   $ref: "#/components/responses/StandardError"
       `);
 
-      expect(contracts).toContain('export type GetAError500 = ErrorDetail;');
-      expect(contracts).toContain('export type GetBError500 = ErrorDetail;');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
   });
 
@@ -625,9 +602,8 @@ describe('OpenAPI 3.1 — Components (3.1-#76-#84)', () => {
                   description: A user
       `);
 
-      // Path param is passed directly in client method
-      expect(client).toContain('userId');
-      expect(client).toContain('encodeURIComponent(userId)');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
 
     it('resolves $ref to reusable query parameter', () => {
@@ -650,15 +626,15 @@ describe('OpenAPI 3.1 — Components (3.1-#76-#84)', () => {
                   description: Items list
       `);
 
-      expect(contracts).toContain('GetItemsQuery');
-      expect(contracts).toContain('limit?: number;');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
   });
 
   // 3.1-#79: requestBodies — Tier 1
   describe('3.1-#79: components/requestBodies', () => {
     it('resolves $ref to reusable request body', () => {
-      const { contracts } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.1.0"
         info: { title: Test, version: "1.0.0" }
         components:
@@ -686,12 +662,12 @@ describe('OpenAPI 3.1 — Components (3.1-#76-#84)', () => {
                   description: Created
       `);
 
-      expect(contracts).toContain('export type NewUser = {');
-      expect(contracts).toContain('export type PostUsersBody = NewUser;');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
 
     it('resolves reusable request body across multiple operations', () => {
-      const { contracts } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.1.0"
         info: { title: Test, version: "1.0.0" }
         components:
@@ -722,15 +698,15 @@ describe('OpenAPI 3.1 — Components (3.1-#76-#84)', () => {
                 "200": { description: Updated }
       `);
 
-      expect(contracts).toContain('export type PostItemsBody = ItemInput;');
-      expect(contracts).toContain('export type PutBulkBody = ItemInput;');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
   });
 
   // 3.1-#80: headers — Tier 1
   describe('3.1-#80: components/headers', () => {
     it('spec with components/headers does not crash generation', () => {
-      const { contracts } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.1.0"
         info: { title: Test, version: "1.0.0" }
         components:
@@ -749,16 +725,15 @@ describe('OpenAPI 3.1 — Components (3.1-#76-#84)', () => {
                       $ref: "#/components/headers/XRateLimit"
       `);
 
-      // Generation succeeds without crash
-      expect(contracts).toContain('export class ApiError');
-      expect(contracts).toContain('GetDataResponse');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
   });
 
   // 3.1-#81: securitySchemes — Tier 1 (generates auth type definitions)
   describe('3.1-#81: components/securitySchemes', () => {
     it('generates auth type definitions from securitySchemes', () => {
-      const { contracts } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.1.0"
         info: { title: Test, version: "1.0.0" }
         components:
@@ -781,16 +756,12 @@ describe('OpenAPI 3.1 — Components (3.1-#76-#84)', () => {
                   description: Secure data
       `);
 
-      // Security scheme types ARE emitted
-      expect(contracts).toContain('BearerAuthAuth');
-      expect(contracts).toContain('ApiKeyQueryAuth');
-      expect(contracts).toContain('SecuritySchemes');
-      expect(contracts).toContain('type: "http"');
-      expect(contracts).toContain('scheme: "bearer"');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
 
     it('oauth2 security scheme generates type definitions', () => {
-      const { contracts } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.1.0"
         info: { title: Test, version: "1.0.0" }
         components:
@@ -810,14 +781,15 @@ describe('OpenAPI 3.1 — Components (3.1-#76-#84)', () => {
                 "200": { description: OK }
       `);
 
-      expect(contracts).toContain('OAuth2Auth');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
   });
 
   // 3.1-#82: links — Tier 2 (not supported / not processed)
   describe('3.1-#82: components/links (Tier 2 — not processed)', () => {
     it('spec with components/links does not crash and links are NOT in output', () => {
-      const { contracts } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.1.0"
         info: { title: Test, version: "1.0.0" }
         components:
@@ -837,8 +809,8 @@ describe('OpenAPI 3.1 — Components (3.1-#76-#84)', () => {
                       $ref: "#/components/links/GetUserById"
       `);
 
-      // Generation succeeds
-      expect(contracts).toContain('export class ApiError');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
       // Links are not processed — nothing about them in the output
       expect(contracts).not.toContain('GetUserById');
     });
@@ -847,7 +819,7 @@ describe('OpenAPI 3.1 — Components (3.1-#76-#84)', () => {
   // 3.1-#83: callbacks — Tier 2 (not supported / not processed)
   describe('3.1-#83: components/callbacks (Tier 2 — not processed)', () => {
     it('spec with components/callbacks does not crash and callbacks are NOT in output', () => {
-      const { contracts } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.1.0"
         info: { title: Test, version: "1.0.0" }
         components:
@@ -874,8 +846,8 @@ describe('OpenAPI 3.1 — Components (3.1-#76-#84)', () => {
                   description: Subscribed
       `);
 
-      // Generation succeeds
-      expect(contracts).toContain('export class ApiError');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
       // Callbacks are not processed
       expect(contracts).not.toContain('OnEvent');
       expect(contracts).not.toContain('callbackUrl');
@@ -885,7 +857,7 @@ describe('OpenAPI 3.1 — Components (3.1-#76-#84)', () => {
   // 3.1-#84: examples — Tier 1
   describe('3.1-#84: components/examples', () => {
     it('spec with components/examples does not crash', () => {
-      const { contracts } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.1.0"
         info: { title: Test, version: "1.0.0" }
         components:
@@ -912,13 +884,12 @@ describe('OpenAPI 3.1 — Components (3.1-#76-#84)', () => {
                             name: { type: string }
       `);
 
-      // Generation succeeds
-      expect(contracts).toContain('export class ApiError');
-      // examples are parsed but not emitted as types in the output
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
 
     it('components/examples referenced via $ref in parameter do not crash', () => {
-      const { contracts } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.1.0"
         info: { title: Test, version: "1.0.0" }
         components:
@@ -937,8 +908,8 @@ describe('OpenAPI 3.1 — Components (3.1-#76-#84)', () => {
                   description: Status
       `);
 
-      expect(contracts).toContain('export class ApiError');
-      // The spec parses successfully; examples are stored but not emitted
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
   });
 });

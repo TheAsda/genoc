@@ -65,25 +65,25 @@ describe('OpenAPI 3.0 — Data Types (3.0-#1-#6)', () => {
   // 3.0-#1: string
   it('3.0-#1: maps string type to TypeScript string', () => {
     const result = generateFromYaml(BASE_SPEC('Status: { type: string }'));
-    expect(result).toContain('export type Status = string;');
+    expect(result).toMatchSnapshot();
   });
 
   // 3.0-#2: number
   it('3.0-#2: maps number type to TypeScript number', () => {
     const result = generateFromYaml(BASE_SPEC('Price: { type: number }'));
-    expect(result).toContain('export type Price = number;');
+    expect(result).toMatchSnapshot();
   });
 
   // 3.0-#3: integer
   it('3.0-#3: maps integer type to TypeScript number', () => {
     const result = generateFromYaml(BASE_SPEC('Count: { type: integer }'));
-    expect(result).toContain('export type Count = number;');
+    expect(result).toMatchSnapshot();
   });
 
   // 3.0-#4: boolean
   it('3.0-#4: maps boolean type to TypeScript boolean', () => {
     const result = generateFromYaml(BASE_SPEC('Active: { type: boolean }'));
-    expect(result).toContain('export type Active = boolean;');
+    expect(result).toMatchSnapshot();
   });
 
   // 3.0-#5: array
@@ -96,7 +96,7 @@ describe('OpenAPI 3.0 — Data Types (3.0-#1-#6)', () => {
           type: string
     `)
     );
-    expect(result).toContain('export type Tags = string[];');
+    expect(result).toMatchSnapshot();
   });
 
   // 3.0-#6: object
@@ -111,9 +111,7 @@ describe('OpenAPI 3.0 — Data Types (3.0-#1-#6)', () => {
         required: [name]
     `)
     );
-    expect(result).toContain('export type User = {');
-    expect(result).toContain('name: string;');
-    expect(result).toContain('age?: number;');
+    expect(result).toMatchSnapshot();
   });
 });
 
@@ -129,7 +127,7 @@ describe('OpenAPI 3.0 — Null via nullable (3.0-#7)', () => {
         nullable: true
     `)
     );
-    expect(result).toContain('export type NullableName = string | null;');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#7: nullable: true on integer produces number | null', () => {
@@ -140,7 +138,7 @@ describe('OpenAPI 3.0 — Null via nullable (3.0-#7)', () => {
         nullable: true
     `)
     );
-    expect(result).toContain('export type NullableInt = number | null;');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#7: nullable: true on boolean produces boolean | null', () => {
@@ -151,7 +149,7 @@ describe('OpenAPI 3.0 — Null via nullable (3.0-#7)', () => {
         nullable: true
     `)
     );
-    expect(result).toContain('export type NullableBool = boolean | null;');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#7: nullable: true on array produces T[] | null', () => {
@@ -164,7 +162,7 @@ describe('OpenAPI 3.0 — Null via nullable (3.0-#7)', () => {
         nullable: true
     `)
     );
-    expect(result).toContain('export type NullableArray = string[] | null;');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#7: nullable: true on object property produces property | null', () => {
@@ -178,8 +176,7 @@ describe('OpenAPI 3.0 — Null via nullable (3.0-#7)', () => {
         required: [name, nickname]
     `)
     );
-    expect(result).toContain('name: string;');
-    expect(result).toContain('nickname: string | null;');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#7: nullable: true on enum produces enum | null', () => {
@@ -191,7 +188,7 @@ describe('OpenAPI 3.0 — Null via nullable (3.0-#7)', () => {
         nullable: true
     `)
     );
-    expect(result).toContain("'active' | 'inactive' | null");
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#7: nullable: false produces regular type (no null)', () => {
@@ -202,7 +199,7 @@ describe('OpenAPI 3.0 — Null via nullable (3.0-#7)', () => {
         nullable: false
     `)
     );
-    expect(result).toContain('export type NotNullable = string;');
+    expect(result).toMatchSnapshot();
     expect(result).not.toContain('NotNullable = string | null');
   });
 
@@ -213,7 +210,7 @@ describe('OpenAPI 3.0 — Null via nullable (3.0-#7)', () => {
         type: string
     `)
     );
-    expect(result).toContain('export type RegularString = string;');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#7: nullable inside allOf produces intersection | null', () => {
@@ -236,8 +233,7 @@ components:
             extra: { type: string }
       nullable: true
     `);
-    expect(result).toContain('export type Extended = (Base &');
-    expect(result).toContain(') | null');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#7: nullable inside oneOf produces union | null', () => {
@@ -250,7 +246,7 @@ components:
         nullable: true
     `)
     );
-    expect(result).toContain('export type NullableOneOf = (string | number) | null;');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#7: nullable without type produces unknown', () => {
@@ -260,7 +256,7 @@ components:
         nullable: true
     `)
     );
-    expect(result).toContain('export type NullableUntyped = unknown;');
+    expect(result).toMatchSnapshot();
   });
 });
 
@@ -316,8 +312,7 @@ components:
   // 3.0-#8: allOf
   it('3.0-#8: generates intersection type (&) for allOf', () => {
     const result = generateFromYaml(DISCRIMINATOR_SPEC);
-    expect(result).toContain('export type Cat = Pet &');
-    expect(result).toContain('export type Dog = Pet &');
+    expect(result).toMatchSnapshot();
   });
 
   // 3.0-#9: oneOf
@@ -335,20 +330,19 @@ components:
         - $ref: "#/components/schemas/Cat"
         - $ref: "#/components/schemas/Dog"
     `);
-    expect(result).toContain('export type Pet = Cat | Dog;');
+    expect(result).toMatchSnapshot();
   });
 
   // 3.0-#10: anyOf
   it('3.0-#10: generates union type (|) for anyOf', () => {
     const result = generateFromYaml(DISCRIMINATOR_SPEC);
-    expect(result).toContain('export type MixedUnion = string | number;');
+    expect(result).toMatchSnapshot();
   });
 
   // 3.0-#11: discriminator
   it('3.0-#11: generates discriminated union with propertyName and mapping', () => {
     const result = generateFromYaml(DISCRIMINATOR_SPEC);
-    expect(result).toContain('petType');
-    expect(result).toContain('export type PetVariant =');
+    expect(result).toMatchSnapshot();
   });
 });
 
@@ -364,7 +358,7 @@ describe('OpenAPI 3.0 — Enum & Const (3.0-#12-#13)', () => {
         enum: [active, inactive, pending]
     `)
     );
-    expect(result).toContain("'active' | 'inactive' | 'pending'");
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#12: generates number literal union for number enum', () => {
@@ -375,7 +369,7 @@ describe('OpenAPI 3.0 — Enum & Const (3.0-#12-#13)', () => {
         enum: [1, 2, 3]
     `)
     );
-    expect(result).toContain('1 | 2 | 3');
+    expect(result).toMatchSnapshot();
   });
 
   // 3.0-#13: const
@@ -387,7 +381,7 @@ describe('OpenAPI 3.0 — Enum & Const (3.0-#12-#13)', () => {
         const: "1.0.0"
     `)
     );
-    expect(result).toContain('export type FixedVersion = string;');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#13: produces unknown for const without type', () => {
@@ -397,7 +391,7 @@ describe('OpenAPI 3.0 — Enum & Const (3.0-#12-#13)', () => {
         const: "hello"
     `)
     );
-    expect(result).toContain('export type JustConst = unknown;');
+    expect(result).toMatchSnapshot();
   });
 });
 
@@ -416,8 +410,7 @@ describe('OpenAPI 3.0 — Default & Description (3.0-#14-#15)', () => {
         required: [name]
     `)
     );
-    expect(result).toContain('name: string;');
-    expect(result).toContain('timeout?: number;');
+    expect(result).toMatchSnapshot();
   });
 
   // 3.0-#15: description
@@ -431,8 +424,7 @@ describe('OpenAPI 3.0 — Default & Description (3.0-#14-#15)', () => {
           name: { type: string }
     `)
     );
-    expect(result).toContain('/** A product in the catalog */');
-    expect(result).toContain('export type Product =');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#15: generates JSDoc comment from description on individual type alias', () => {
@@ -443,8 +435,7 @@ describe('OpenAPI 3.0 — Default & Description (3.0-#14-#15)', () => {
         description: "A valid email address"
     `)
     );
-    expect(result).toContain('/** A valid email address */');
-    expect(result).toContain('export type Email = string;');
+    expect(result).toMatchSnapshot();
   });
 });
 
@@ -495,28 +486,30 @@ paths:
 
   // 3.0-#16: readOnly
   it('3.0-#16: excludes readOnly properties from request body type', () => {
-    const { contracts } = generateClientFromYaml(READ_WRITE_SPEC);
-    expect(contracts).toContain('PostItemsBody');
+    const { contracts, client } = generateClientFromYaml(READ_WRITE_SPEC);
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     expect(contracts).not.toMatch(/PostItemsBody = \{[^}]*id[^}]*\}/s);
   });
 
   it('3.0-#16: includes readOnly properties in response type', () => {
-    const { contracts } = generateClientFromYaml(READ_WRITE_SPEC);
-    expect(contracts).toContain('PostItemsResponse');
-    expect(contracts).toMatch(/PostItemsResponse.*=.*\{[^}]*id/s);
+    const { contracts, client } = generateClientFromYaml(READ_WRITE_SPEC);
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#17: writeOnly
   it('3.0-#17: excludes writeOnly properties from response type', () => {
-    const { contracts } = generateClientFromYaml(READ_WRITE_SPEC);
-    expect(contracts).toContain('PostItemsResponse');
+    const { contracts, client } = generateClientFromYaml(READ_WRITE_SPEC);
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     expect(contracts).not.toMatch(/PostItemsResponse.*=.*\{[^}]*password/s);
   });
 
   it('3.0-#17: includes writeOnly properties in request body type', () => {
-    const { contracts } = generateClientFromYaml(READ_WRITE_SPEC);
-    expect(contracts).toContain('PostItemsBody');
-    expect(contracts).toMatch(/PostItemsBody.*=.*\{[^}]*password/s);
+    const { contracts, client } = generateClientFromYaml(READ_WRITE_SPEC);
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 });
 
@@ -524,7 +517,7 @@ paths:
 
 describe('OpenAPI 3.0 — Deprecated (3.0-#18)', () => {
   it('3.0-#18: includes @deprecated JSDoc for deprecated operations', () => {
-    const { client } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
 openapi: "3.0.3"
 info: { title: Test, version: "1.0.0" }
 paths:
@@ -540,7 +533,8 @@ paths:
               schema:
                 type: string
     `);
-    expect(client).toContain('@deprecated');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   it('3.0-#18: does not crash for schema with deprecated flag', () => {
@@ -551,7 +545,7 @@ paths:
         deprecated: true
     `)
     );
-    expect(result).toContain('export type LegacyType = string;');
+    expect(result).toMatchSnapshot();
   });
 });
 
@@ -566,8 +560,7 @@ describe('OpenAPI 3.0 — Format (3.0-#19)', () => {
         format: date-time
     `)
     );
-    expect(result).toContain('DateTimeString');
-    expect(result).toContain('export type CreatedAt = DateTimeString;');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#19: generates branded type for uuid format on string', () => {
@@ -578,8 +571,7 @@ describe('OpenAPI 3.0 — Format (3.0-#19)', () => {
         format: uuid
     `)
     );
-    expect(result).toContain('UuidString');
-    expect(result).toContain('export type UserId = UuidString;');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#19: generates plain string for binary format (no branding)', () => {
@@ -590,7 +582,7 @@ describe('OpenAPI 3.0 — Format (3.0-#19)', () => {
         format: binary
     `)
     );
-    expect(result).toContain('export type FileData = string;');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#19: generates plain string for byte format (no branding)', () => {
@@ -601,7 +593,7 @@ describe('OpenAPI 3.0 — Format (3.0-#19)', () => {
         format: byte
     `)
     );
-    expect(result).toContain('export type Encoded = string;');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#19: generates branded type for numeric format', () => {
@@ -612,8 +604,7 @@ describe('OpenAPI 3.0 — Format (3.0-#19)', () => {
         format: int32
     `)
     );
-    expect(result).toContain('Int32Number');
-    expect(result).toContain('export type Score = Int32Number;');
+    expect(result).toMatchSnapshot();
   });
 });
 
@@ -629,7 +620,7 @@ describe('OpenAPI 3.0 — AdditionalProperties & Required (3.0-#20-#21)', () => 
         additionalProperties: { type: string }
     `)
     );
-    expect(result).toContain('[key: string]: string');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#20: generates [key: string]: unknown for additionalProperties: true', () => {
@@ -642,7 +633,7 @@ describe('OpenAPI 3.0 — AdditionalProperties & Required (3.0-#20-#21)', () => 
         additionalProperties: true
     `)
     );
-    expect(result).toContain('[key: string]: unknown');
+    expect(result).toMatchSnapshot();
   });
 
   // 3.0-#21: required
@@ -658,9 +649,7 @@ describe('OpenAPI 3.0 — AdditionalProperties & Required (3.0-#20-#21)', () => 
         required: [username, email]
     `)
     );
-    expect(result).toContain('username: string;');
-    expect(result).toContain('email: string;');
-    expect(result).toContain('bio?: string;');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#21: all properties optional when required is absent', () => {
@@ -673,8 +662,7 @@ describe('OpenAPI 3.0 — AdditionalProperties & Required (3.0-#20-#21)', () => 
           b: { type: integer }
     `)
     );
-    expect(result).toContain('a?: string;');
-    expect(result).toContain('b?: number;');
+    expect(result).toMatchSnapshot();
   });
 });
 
@@ -692,7 +680,7 @@ describe('OpenAPI 3.0 — Validation Constraints, Tier 2 (3.0-#22-#28)', () => {
         minItems: 1
     `)
     );
-    expect(result).toContain('export type TagList = string[];');
+    expect(result).toMatchSnapshot();
     expect(result).not.toContain('minItems');
   });
 
@@ -706,7 +694,7 @@ describe('OpenAPI 3.0 — Validation Constraints, Tier 2 (3.0-#22-#28)', () => {
         maxItems: 10
     `)
     );
-    expect(result).toContain('export type LimitedList = number[];');
+    expect(result).toMatchSnapshot();
     expect(result).not.toContain('maxItems');
   });
 
@@ -719,7 +707,7 @@ describe('OpenAPI 3.0 — Validation Constraints, Tier 2 (3.0-#22-#28)', () => {
         minLength: 3
     `)
     );
-    expect(result).toContain('export type Username = string;');
+    expect(result).toMatchSnapshot();
     expect(result).not.toContain('minLength');
   });
 
@@ -732,7 +720,7 @@ describe('OpenAPI 3.0 — Validation Constraints, Tier 2 (3.0-#22-#28)', () => {
         maxLength: 50
     `)
     );
-    expect(result).toContain('export type ShortName = string;');
+    expect(result).toMatchSnapshot();
     expect(result).not.toContain('maxLength');
   });
 
@@ -745,7 +733,7 @@ describe('OpenAPI 3.0 — Validation Constraints, Tier 2 (3.0-#22-#28)', () => {
         pattern: '^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-zA-Z]{2,}$'
     `)
     );
-    expect(result).toContain('export type Email = string;');
+    expect(result).toMatchSnapshot();
     expect(result).not.toContain('pattern');
   });
 
@@ -758,7 +746,7 @@ describe('OpenAPI 3.0 — Validation Constraints, Tier 2 (3.0-#22-#28)', () => {
         minimum: 0
     `)
     );
-    expect(result).toContain('export type Age = number;');
+    expect(result).toMatchSnapshot();
     expect(result).not.toContain('minimum');
   });
 
@@ -771,7 +759,7 @@ describe('OpenAPI 3.0 — Validation Constraints, Tier 2 (3.0-#22-#28)', () => {
         maximum: 100
     `)
     );
-    expect(result).toContain('export type Percentage = number;');
+    expect(result).toMatchSnapshot();
     expect(result).not.toContain('maximum');
   });
 
@@ -785,7 +773,7 @@ describe('OpenAPI 3.0 — Validation Constraints, Tier 2 (3.0-#22-#28)', () => {
         pattern: "^[a-z]+$"
     `)
     );
-    expect(result).toContain('export type BoundedString = string;');
+    expect(result).toMatchSnapshot();
     expect(result).not.toContain('minLength');
     expect(result).not.toContain('maxLength');
     expect(result).not.toContain('pattern');
@@ -807,7 +795,7 @@ describe('OpenAPI 3.0 — Exclusive Bounds, Tier 3 (3.0-#29-#30)', () => {
         exclusiveMinimum: true
     `)
     );
-    expect(result).toContain('export type ExclusiveMin = number;');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#29: exclusiveMinimum: false does not affect type', () => {
@@ -819,7 +807,7 @@ describe('OpenAPI 3.0 — Exclusive Bounds, Tier 3 (3.0-#29-#30)', () => {
         exclusiveMinimum: false
     `)
     );
-    expect(result).toContain('export type NonExclusive = number;');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#29: exclusiveMinimum without minimum does not crash', () => {
@@ -830,7 +818,7 @@ describe('OpenAPI 3.0 — Exclusive Bounds, Tier 3 (3.0-#29-#30)', () => {
         exclusiveMinimum: true
     `)
     );
-    expect(result).toContain('export type NoMin = number;');
+    expect(result).toMatchSnapshot();
   });
 
   // 3.0-#30: exclusiveMaximum as boolean
@@ -843,7 +831,7 @@ describe('OpenAPI 3.0 — Exclusive Bounds, Tier 3 (3.0-#29-#30)', () => {
         exclusiveMaximum: true
     `)
     );
-    expect(result).toContain('export type ExclusiveMax = number;');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#30: exclusiveMaximum: false does not affect type', () => {
@@ -855,7 +843,7 @@ describe('OpenAPI 3.0 — Exclusive Bounds, Tier 3 (3.0-#29-#30)', () => {
         exclusiveMaximum: false
     `)
     );
-    expect(result).toContain('export type NonExclusiveMax = number;');
+    expect(result).toMatchSnapshot();
   });
 
   // Both exclusive bounds together
@@ -870,7 +858,7 @@ describe('OpenAPI 3.0 — Exclusive Bounds, Tier 3 (3.0-#29-#30)', () => {
         exclusiveMaximum: true
     `)
     );
-    expect(result).toContain('export type BothBounded = number;');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#29-#30: exclusive bounds with nullable produce correct type', () => {
@@ -885,7 +873,7 @@ describe('OpenAPI 3.0 — Exclusive Bounds, Tier 3 (3.0-#29-#30)', () => {
         nullable: true
     `)
     );
-    expect(result).toContain('export type NullableBounded = number | null;');
+    expect(result).toMatchSnapshot();
   });
 
   it('3.0-#29-#30: exclusive bounds on object property produce correct type', () => {
@@ -903,8 +891,7 @@ describe('OpenAPI 3.0 — Exclusive Bounds, Tier 3 (3.0-#29-#30)', () => {
         required: [priority]
     `)
     );
-    expect(result).toContain('export type Config = {');
-    expect(result).toContain('priority: number;');
+    expect(result).toMatchSnapshot();
   });
 
   // Cross-version equivalence: 3.0 boolean produces same output as 3.1 numeric
@@ -935,6 +922,8 @@ components:
     // Both should produce the same TypeScript type
     expect(result30).toContain('export type Bounded = number;');
     expect(result31).toContain('export type Bounded = number;');
+    expect(result30).toMatchSnapshot();
+    expect(result31).toMatchSnapshot();
   });
 });
 
@@ -959,10 +948,7 @@ components:
       $ref: "#/components/schemas/Target"
       description: "This sibling should be ignored in 3.0"
     `);
-    // Target keeps its description
-    expect(result).toContain('/** Original target description */');
-    // Sibling description should NOT appear on RefWithSibling since it's stripped
-    expect(result).toContain('export type RefWithSibling = Target;');
+    expect(result).toMatchSnapshot();
     expect(result).not.toContain('This sibling should be ignored in 3.0');
   });
 
@@ -990,8 +976,7 @@ components:
       preserveRefSiblings: true,
     });
     const result = generateContracts(doc, resolver);
-    // With preserveRefSiblings, the sibling description should be applied
-    expect(result).toContain('Override from sibling');
+    expect(result).toMatchSnapshot();
   });
 });
 
@@ -1007,7 +992,7 @@ describe('OpenAPI 3.0 — example keyword', () => {
         example: red
     `)
     );
-    expect(result).toContain('export type Color = string;');
+    expect(result).toMatchSnapshot();
     expect(result).not.toContain("'red'");
   });
 
@@ -1024,8 +1009,6 @@ describe('OpenAPI 3.0 — example keyword', () => {
           price: 9.99
     `)
     );
-    expect(result).toContain('export type Product = {');
-    expect(result).toContain('name?: string;');
-    expect(result).toContain('price?: number;');
+    expect(result).toMatchSnapshot();
   });
 });

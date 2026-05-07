@@ -83,13 +83,8 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
               "200": { description: OK }
     `);
 
-    // Contracts: type definition with apiKey properties
-    expect(contracts).toContain('export type ApiKeyQueryAuth = {');
-    expect(contracts).toContain('type: "apiKey"');
-    expect(contracts).toContain('name: "api_key"');
-    expect(contracts).toContain('in: "query"');
-    // Contracts: JSDoc description
-    expect(contracts).toContain('API key passed as query parameter');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     // Client: does not import or reference the auth type for enforcement
     expect(client).not.toContain('ApiKeyQueryAuth');
   });
@@ -112,10 +107,8 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
               "200": { description: OK }
     `);
 
-    expect(contracts).toContain('export type ApiKeyHeaderAuth = {');
-    expect(contracts).toContain('type: "apiKey"');
-    expect(contracts).toContain('name: "X-API-Key"');
-    expect(contracts).toContain('in: "header"');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     expect(client).not.toContain('ApiKeyHeaderAuth');
   });
 
@@ -137,10 +130,8 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
               "200": { description: OK }
     `);
 
-    expect(contracts).toContain('export type SessionCookieAuth = {');
-    expect(contracts).toContain('type: "apiKey"');
-    expect(contracts).toContain('name: "session"');
-    expect(contracts).toContain('in: "cookie"');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     expect(client).not.toContain('SessionCookieAuth');
   });
 
@@ -161,9 +152,8 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
               "200": { description: OK }
     `);
 
-    expect(contracts).toContain('export type BasicAuthAuth = {');
-    expect(contracts).toContain('type: "http"');
-    expect(contracts).toContain('scheme: "basic"');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     expect(client).not.toContain('BasicAuthAuth');
   });
 
@@ -185,10 +175,8 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
               "200": { description: OK }
     `);
 
-    expect(contracts).toContain('export type BearerAuthAuth = {');
-    expect(contracts).toContain('type: "http"');
-    expect(contracts).toContain('scheme: "bearer"');
-    expect(contracts).toContain('bearerFormat: "JWT"');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     expect(client).not.toContain('BearerAuthAuth');
   });
 
@@ -209,9 +197,8 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
               "200": { description: OK }
     `);
 
-    expect(contracts).toContain('export type DigestAuthAuth = {');
-    expect(contracts).toContain('type: "http"');
-    expect(contracts).toContain('scheme: "digest"');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     expect(client).not.toContain('DigestAuthAuth');
   });
 
@@ -237,13 +224,8 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
               "200": { description: OK }
     `);
 
-    expect(contracts).toContain('export type OAuth2ImplicitAuth = {');
-    expect(contracts).toContain('type: "oauth2"');
-    expect(contracts).toContain('flows:');
-    expect(contracts).toContain('implicit:');
-    expect(contracts).toContain('authorizationUrl: "https://example.com/auth"');
-    expect(contracts).toContain('"read:items": "Read items"');
-    expect(contracts).toContain('"write:items": "Write items"');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     expect(client).not.toContain('OAuth2ImplicitAuth');
   });
 
@@ -268,10 +250,8 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
               "200": { description: OK }
     `);
 
-    expect(contracts).toContain('export type OAuth2PasswordAuth = {');
-    expect(contracts).toContain('type: "oauth2"');
-    expect(contracts).toContain('password:');
-    expect(contracts).toContain('tokenUrl: "https://example.com/token"');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     expect(client).not.toContain('OAuth2PasswordAuth');
   });
 
@@ -296,10 +276,8 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
               "200": { description: OK }
     `);
 
-    expect(contracts).toContain('export type OAuth2ClientAuth = {');
-    expect(contracts).toContain('type: "oauth2"');
-    expect(contracts).toContain('clientCredentials:');
-    expect(contracts).toContain('tokenUrl: "https://example.com/token"');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     expect(client).not.toContain('OAuth2ClientAuth');
   });
 
@@ -325,11 +303,8 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
               "200": { description: OK }
     `);
 
-    expect(contracts).toContain('export type OAuth2AuthCodeAuth = {');
-    expect(contracts).toContain('type: "oauth2"');
-    expect(contracts).toContain('authorizationCode:');
-    expect(contracts).toContain('authorizationUrl: "https://example.com/auth"');
-    expect(contracts).toContain('tokenUrl: "https://example.com/token"');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     expect(client).not.toContain('OAuth2AuthCodeAuth');
   });
 
@@ -350,11 +325,8 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
               "200": { description: OK }
     `);
 
-    expect(contracts).toContain('export type OidcAuthAuth = {');
-    expect(contracts).toContain('type: "openIdConnect"');
-    expect(contracts).toContain(
-      'openIdConnectUrl: "https://example.com/.well-known/openid-configuration"'
-    );
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     expect(client).not.toContain('OidcAuthAuth');
   });
 
@@ -382,8 +354,8 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
     // Generation completes without crash
     expect(contracts).toBeTruthy();
     expect(client).toBeTruthy();
-    // Security scheme type is generated
-    expect(contracts).toContain('export type BearerAuthAuth = {');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     // Client does not enforce security
     expect(client).not.toContain('BearerAuth');
     // No security-related headers or auth middleware in client
@@ -393,7 +365,7 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
 
   // Combined: multiple security schemes generate SecuritySchemes union
   it('3.0-#83-#94: multiple security schemes generate SecuritySchemes union type', () => {
-    const { contracts } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       components:
@@ -412,15 +384,12 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
               "200": { description: OK }
     `);
 
-    // Individual types
-    expect(contracts).toContain('export type ApiKeyHeaderAuth = {');
-    expect(contracts).toContain('export type BearerAuthAuth = {');
-    // Union type when multiple schemes exist
-    expect(contracts).toContain('export type SecuritySchemes = ApiKeyHeaderAuth | BearerAuthAuth;');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   it('3.0-#83-#94: single security scheme does not generate SecuritySchemes union', () => {
-    const { contracts } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       components:
@@ -435,13 +404,14 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
               "200": { description: OK }
     `);
 
-    expect(contracts).toContain('export type OnlyAuthAuth = {');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     // No union when only one scheme
     expect(contracts).not.toContain('export type SecuritySchemes =');
   });
 
   it('3.0-#89-#92: OAuth2 with multiple flows generates all flow types', () => {
-    const { contracts } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       components:
@@ -473,15 +443,12 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
               "200": { description: OK }
     `);
 
-    expect(contracts).toContain('export type FullOAuthAuth = {');
-    expect(contracts).toContain('implicit:');
-    expect(contracts).toContain('password:');
-    expect(contracts).toContain('clientCredentials:');
-    expect(contracts).toContain('authorizationCode:');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   it('3.0-#83-#94: OAuth2 flow with refreshUrl includes it in type', () => {
-    const { contracts } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       components:
@@ -502,7 +469,8 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
               "200": { description: OK }
     `);
 
-    expect(contracts).toContain('refreshUrl: "https://example.com/refresh"');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 });
 
@@ -511,7 +479,7 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
 describe('OpenAPI 3.0 — Servers (3.0-#95-#99)', () => {
   // 3.0-#95: server URLs — Tier 1
   it('3.0-#95: server without variables does not generate a server params type', () => {
-    const { contracts } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       servers:
@@ -524,13 +492,15 @@ describe('OpenAPI 3.0 — Servers (3.0-#95-#99)', () => {
               "200": { description: OK }
     `);
 
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     // A server without variables produces no ServerParams interface
     expect(contracts).not.toContain('ServerParams');
   });
 
   // 3.0-#96: server variables — Tier 1
   it('3.0-#96: server with variables generates ServerParams interface', () => {
-    const { contracts } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       servers:
@@ -547,20 +517,13 @@ describe('OpenAPI 3.0 — Servers (3.0-#95-#99)', () => {
               "200": { description: OK }
     `);
 
-    // ServerParams interface is generated
-    expect(contracts).toContain('export interface ServerParams {');
-    // Variable as string type (no enum)
-    expect(contracts).toContain('env: string;');
-    // JSDoc with description and default
-    expect(contracts).toContain('Server environment');
-    expect(contracts).toContain('@default production');
-    // Server URL as JSDoc
-    expect(contracts).toContain('Server: https://{env}.api.example.com');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#97: enum for variables — Tier 1
   it('3.0-#97: server variables with enum generate union type', () => {
-    const { contracts } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       servers:
@@ -579,14 +542,13 @@ describe('OpenAPI 3.0 — Servers (3.0-#95-#99)', () => {
               "200": { description: OK }
     `);
 
-    expect(contracts).toContain('export interface ServerParams {');
-    // Enum values become union type
-    expect(contracts).toContain('env: "production" | "staging" | "development";');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#98: default variable values — Tier 1
   it('3.0-#98: server variable default value appears in JSDoc', () => {
-    const { contracts } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       servers:
@@ -602,16 +564,13 @@ describe('OpenAPI 3.0 — Servers (3.0-#95-#99)', () => {
               "200": { description: OK }
     `);
 
-    expect(contracts).toContain('export interface ServerParams {');
-    expect(contracts).toContain('API version');
-    expect(contracts).toContain('@default v2');
-    // Default value is documented, not used as the type itself (still string)
-    expect(contracts).toContain('version: string;');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#99: multiple servers — Tier 1
   it('3.0-#99: multiple servers with variables generate indexed ServerParams', () => {
-    const { contracts } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       servers:
@@ -637,21 +596,12 @@ describe('OpenAPI 3.0 — Servers (3.0-#95-#99)', () => {
               "200": { description: OK }
     `);
 
-    // Multiple servers use indexed names: Server1Params, Server2Params
-    expect(contracts).toContain('export interface Server1Params {');
-    expect(contracts).toContain('export interface Server2Params {');
-    // First server URL
-    expect(contracts).toContain('Server: https://{env}.api.example.com');
-    // Second server URL
-    expect(contracts).toContain('Server: https://cdn.example.com/{region}');
-    // Server1Params has env
-    expect(contracts).toContain('env: "production" | "staging";');
-    // Server2Params has region
-    expect(contracts).toContain('region: "us" | "eu" | "ap";');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   it('3.0-#99: servers with and without variables mixed correctly', () => {
-    const { contracts } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       servers:
@@ -668,16 +618,14 @@ describe('OpenAPI 3.0 — Servers (3.0-#95-#99)', () => {
               "200": { description: OK }
     `);
 
-    // Two servers total → indexed naming
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     // First server has no variables → skipped (no Server1Params)
-    // Second server has variables → Server2Params
     expect(contracts).not.toContain('export interface Server1Params {');
-    expect(contracts).toContain('export interface Server2Params {');
-    expect(contracts).toContain('env: string;');
   });
 
   it('3.0-#95-#99: server variable without description still generates correctly', () => {
-    const { contracts } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       servers:
@@ -692,10 +640,8 @@ describe('OpenAPI 3.0 — Servers (3.0-#95-#99)', () => {
               "200": { description: OK }
     `);
 
-    expect(contracts).toContain('export interface ServerParams {');
-    expect(contracts).toContain('host: string;');
-    // @default is still present even without description
-    expect(contracts).toContain('@default api');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 });
 
@@ -721,14 +667,8 @@ describe('OpenAPI 3.0 — HTTP Methods (3.0-#100-#107)', () => {
                         type: string
     `);
 
-    // Contracts: response type
-    expect(contracts).toContain('export type GetItemsResponse = string[];');
-    // Client: method named correctly
-    expect(client).toContain('getItems:');
-    // Client: uses GET method
-    expect(client).toContain('"GET"');
-    // Client: requester called correctly
-    expect(client).toContain('requester<GetItemsResponse>');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#101: POST — Tier 1
@@ -760,18 +700,13 @@ describe('OpenAPI 3.0 — HTTP Methods (3.0-#100-#107)', () => {
                       required: [id]
     `);
 
-    // Body type generated
-    expect(contracts).toContain('export type PostItemsBody =');
-    // Client: POST method
-    expect(client).toContain('postItems:');
-    expect(client).toContain('"POST"');
-    // Body param in signature
-    expect(client).toContain('body: PostItemsBody');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#102: PUT — Tier 1
   it('3.0-#102: PUT operation generates client method with body and path params', () => {
-    const { client } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       paths:
@@ -794,15 +729,13 @@ describe('OpenAPI 3.0 — HTTP Methods (3.0-#100-#107)', () => {
               "200": { description: Updated }
     `);
 
-    expect(client).toContain('putItems');
-    expect(client).toContain('"PUT"');
-    // Both path param and body
-    expect(client).toContain('(id: string, body:');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#103: PATCH — Tier 1
   it('3.0-#103: PATCH operation generates client method', () => {
-    const { client } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       paths:
@@ -825,13 +758,13 @@ describe('OpenAPI 3.0 — HTTP Methods (3.0-#100-#107)', () => {
               "200": { description: Patched }
     `);
 
-    expect(client).toContain('patchItems');
-    expect(client).toContain('"PATCH"');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#104: DELETE — Tier 1
   it('3.0-#104: DELETE operation generates client method', () => {
-    const { client } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       paths:
@@ -846,13 +779,13 @@ describe('OpenAPI 3.0 — HTTP Methods (3.0-#100-#107)', () => {
               "204": { description: Deleted }
     `);
 
-    expect(client).toContain('deleteItems');
-    expect(client).toContain('"DELETE"');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#105: OPTIONS — Tier 1
   it('3.0-#105: OPTIONS operation generates client method', () => {
-    const { client } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       paths:
@@ -862,13 +795,13 @@ describe('OpenAPI 3.0 — HTTP Methods (3.0-#100-#107)', () => {
               "200": { description: CORS }
     `);
 
-    expect(client).toContain('optionsItems');
-    expect(client).toContain('"OPTIONS"');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#106: HEAD — Tier 1
   it('3.0-#106: HEAD operation generates client method', () => {
-    const { client } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       paths:
@@ -878,13 +811,13 @@ describe('OpenAPI 3.0 — HTTP Methods (3.0-#100-#107)', () => {
               "200": { description: Headers }
     `);
 
-    expect(client).toContain('headItems');
-    expect(client).toContain('"HEAD"');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#107: TRACE — Tier 1
   it('3.0-#107: TRACE operation generates client method', () => {
-    const { client } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       paths:
@@ -894,13 +827,13 @@ describe('OpenAPI 3.0 — HTTP Methods (3.0-#100-#107)', () => {
               "200": { description: Debug }
     `);
 
-    expect(client).toContain('traceItems');
-    expect(client).toContain('"TRACE"');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // Combined: all HTTP methods on the same path
   it('3.0-#100-#107: all 8 HTTP methods on one path generate 8 distinct methods', () => {
-    const { client } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       paths:
@@ -931,14 +864,8 @@ describe('OpenAPI 3.0 — HTTP Methods (3.0-#100-#107)', () => {
               "200": { description: Debug }
     `);
 
-    expect(client).toContain('getResource');
-    expect(client).toContain('postResource');
-    expect(client).toContain('putResource');
-    expect(client).toContain('patchResource');
-    expect(client).toContain('deleteResource');
-    expect(client).toContain('optionsResource');
-    expect(client).toContain('headResource');
-    expect(client).toContain('traceResource');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 });
 
@@ -947,7 +874,7 @@ describe('OpenAPI 3.0 — HTTP Methods (3.0-#100-#107)', () => {
 describe('OpenAPI 3.0 — Operation Metadata (3.0-#108-#113)', () => {
   // 3.0-#108: operationId — Tier 1
   it('3.0-#108: operationId strategy uses operationId as method name', () => {
-    const { client } = generateClientFromYaml(
+    const { contracts, client } = generateClientFromYaml(
       `
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
@@ -961,13 +888,14 @@ describe('OpenAPI 3.0 — Operation Metadata (3.0-#108-#113)', () => {
       { methodNameStrategy: 'operationId' }
     );
 
-    expect(client).toContain('listAllItems:');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     // Should NOT use path-based name
     expect(client).not.toContain('getItems:');
   });
 
   it('3.0-#108: operationId with path-based strategy is ignored', () => {
-    const { client } = generateClientFromYaml(
+    const { contracts, client } = generateClientFromYaml(
       `
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
@@ -981,12 +909,12 @@ describe('OpenAPI 3.0 — Operation Metadata (3.0-#108-#113)', () => {
       { methodNameStrategy: 'path-based' }
     );
 
-    // Default path-based strategy ignores operationId
-    expect(client).toContain('getItems:');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   it('3.0-#108: operationId-with-fallback uses operationId when present', () => {
-    const { client } = generateClientFromYaml(
+    const { contracts, client } = generateClientFromYaml(
       `
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
@@ -1004,15 +932,13 @@ describe('OpenAPI 3.0 — Operation Metadata (3.0-#108-#113)', () => {
       { methodNameStrategy: 'operationId-with-fallback' }
     );
 
-    // First path: uses operationId
-    expect(client).toContain('listItems:');
-    // Second path: falls back to path-based
-    expect(client).toContain('getThings:');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#109: summary — Tier 1
   it('3.0-#109: operation summary becomes JSDoc description', () => {
-    const { client } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       paths:
@@ -1023,13 +949,13 @@ describe('OpenAPI 3.0 — Operation Metadata (3.0-#108-#113)', () => {
               "200": { description: OK }
     `);
 
-    // JSDoc with summary
-    expect(client).toContain('Retrieve all items from the catalog');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#110: description — Tier 1
   it('3.0-#110: operation description appears in JSDoc after summary', () => {
-    const { client } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       paths:
@@ -1041,13 +967,12 @@ describe('OpenAPI 3.0 — Operation Metadata (3.0-#108-#113)', () => {
               "200": { description: OK }
     `);
 
-    // Both summary and description in JSDoc
-    expect(client).toContain('Get items');
-    expect(client).toContain('Returns a paginated list of all available items');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   it('3.0-#110: description without summary still generates JSDoc', () => {
-    const { client } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       paths:
@@ -1058,12 +983,13 @@ describe('OpenAPI 3.0 — Operation Metadata (3.0-#108-#113)', () => {
               "200": { description: OK }
     `);
 
-    expect(client).toContain('Fetches the complete catalog');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#111: tags — Tier 1
   it('3.0-#111: operation tags become @category JSDoc annotations', () => {
-    const { client } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       paths:
@@ -1075,14 +1001,13 @@ describe('OpenAPI 3.0 — Operation Metadata (3.0-#108-#113)', () => {
               "200": { description: OK }
     `);
 
-    // Tags become @category entries
-    expect(client).toContain('@category catalog');
-    expect(client).toContain('@category public');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#112: deprecated (operation) — Tier 1
   it('3.0-#112: deprecated operation adds @deprecated JSDoc tag', () => {
-    const { client } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       paths:
@@ -1094,9 +1019,8 @@ describe('OpenAPI 3.0 — Operation Metadata (3.0-#108-#113)', () => {
               "200": { description: OK }
     `);
 
-    expect(client).toContain('@deprecated');
-    // Method still generated normally
-    expect(client).toContain('getLegacyItems:');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#113: path templating — Tier 1
@@ -1127,20 +1051,13 @@ describe('OpenAPI 3.0 — Operation Metadata (3.0-#108-#113)', () => {
                         title: { type: string }
     `);
 
-    // Client: method with path params — naming uses "By" separator for path segments
-    expect(client).toContain('getUsersByUserIdPostsByPostId');
-    // Both path parameters in the method signature
-    expect(client).toContain('userId: string');
-    expect(client).toContain('postId: string');
-    // URL template with encodeURIComponent
-    expect(client).toContain('encodeURIComponent');
-    expect(client).toContain('/users/');
-    expect(client).toContain('/posts/');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // Combined: summary + description + tags + deprecated
   it('3.0-#109-#112: combined JSDoc with all metadata fields', () => {
-    const { client } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       paths:
@@ -1154,11 +1071,7 @@ describe('OpenAPI 3.0 — Operation Metadata (3.0-#108-#113)', () => {
               "200": { description: OK }
     `);
 
-    // Full JSDoc: summary, description, category tags, @deprecated
-    expect(client).toContain('Legacy items endpoint');
-    expect(client).toContain('Use the new /items endpoint instead');
-    expect(client).toContain('@category legacy');
-    expect(client).toContain('@category deprecated');
-    expect(client).toContain('@deprecated');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 });
