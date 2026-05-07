@@ -8,6 +8,7 @@ import type {
   ResponseObject,
   SchemaObject,
 } from '../types/openapi.js';
+import { sanitizeTypeName } from '../utils/generator-helpers.js';
 import { getMethodName } from './naming.js';
 
 export interface AnalyzedParameter {
@@ -77,7 +78,7 @@ function schemaToTsType(
   if (isRef(schema)) {
     const resolved = resolver.resolve<SchemaObject>(schema);
     const refStr = schema.$ref;
-    const lastSegment = refStr.split('/').pop();
+    const lastSegment = sanitizeTypeName(refStr.split('/').pop()!);
     if (lastSegment && resolved.type) {
       return lastSegment;
     }

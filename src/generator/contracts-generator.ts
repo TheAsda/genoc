@@ -12,6 +12,7 @@ import type {
 import {
   RESERVED_TYPE_NAMES,
   buildSchemaRenameMap,
+  sanitizeTypeName,
   toPascalCase,
   getOperationTypePrefix,
   makeHeader,
@@ -39,7 +40,7 @@ function substituteDiscriminatedType(
   if (!refSchema || typeof refSchema !== 'object') return tsType;
 
   if (typeof refSchema.$ref === 'string') {
-    const schemaName = (refSchema.$ref as string).split('/').pop();
+    const schemaName = sanitizeTypeName((refSchema.$ref as string).split('/').pop()!);
     if (schemaName && discriminatorInfo.has(schemaName)) {
       const renamed = renameMap.get(schemaName) ?? schemaName;
       return tsType.replace(new RegExp(`\\b${renamed}\\b`, 'g'), `${renamed}Variant`);
@@ -49,7 +50,7 @@ function substituteDiscriminatedType(
   if (refSchema.items && typeof refSchema.items === 'object') {
     const items = refSchema.items as Record<string, unknown>;
     if (typeof items.$ref === 'string') {
-      const schemaName = (items.$ref as string).split('/').pop();
+      const schemaName = sanitizeTypeName((items.$ref as string).split('/').pop()!);
       if (schemaName && discriminatorInfo.has(schemaName)) {
         const renamed = renameMap.get(schemaName) ?? schemaName;
         return tsType.replace(new RegExp(`\\b${renamed}\\b`, 'g'), `${renamed}Variant`);
@@ -212,8 +213,9 @@ export function generateContracts(doc: OpenAPIDocument, resolver: RefResolver): 
 
   const renamingTypeGenerator = (refString: string): string => {
     const segments = refString.split('/');
-    const original = segments[segments.length - 1] || 'unknown';
-    return renameMap.get(original) ?? original;
+    const rawSegment = segments[segments.length - 1] || 'unknown';
+    const lastSegment = sanitizeTypeName(rawSegment);
+    return renameMap.get(lastSegment) ?? lastSegment;
   };
 
   const discriminatorInfo = new Map<
@@ -231,12 +233,12 @@ export function generateContracts(doc: OpenAPIDocument, resolver: RefResolver): 
         const mapping = new Map<string, string>();
         if (resolved.discriminator.mapping) {
           for (const [key, ref] of Object.entries(resolved.discriminator.mapping)) {
-            const targetName = ref.split('/').pop() || key;
+            const targetName = sanitizeTypeName(ref.split('/').pop() || key);
             const renamedTarget = renameMap.get(targetName) ?? targetName;
             mapping.set(key, renamedTarget);
           }
         }
-        discriminatorInfo.set(name, {
+        discriminatorInfo.set(sanitizeTypeName(name), {
           propertyName: resolved.discriminator.propertyName,
           mapping,
         });
@@ -257,7 +259,7 @@ export function generateContracts(doc: OpenAPIDocument, resolver: RefResolver): 
   const allSchemaNames = new Set<string>();
   if (doc.components?.schemas) {
     for (const name of Object.keys(doc.components.schemas)) {
-      allSchemaNames.add(renameMap.get(name) ?? name);
+      allSchemaNames.add(sanitizeTypeName(name));
     }
   }
 
@@ -276,8 +278,9 @@ export function generateContracts(doc: OpenAPIDocument, resolver: RefResolver): 
 
   if (doc.components?.schemas) {
     for (const [name, schema] of Object.entries(doc.components.schemas)) {
-      const renamedName = renameMap.get(name) ?? name;
-      const result = mapper.mapSchema(schema, name);
+      const sanitizedName = sanitizeTypeName(name);
+      const renamedName = renameMap.get(sanitizedName) ?? sanitizedName;
+      const result = mapper.mapSchema(schema, sanitizedName);
       const resolved = resolver.resolve<SchemaObject>(schema as SchemaObject | ReferenceObject);
 
       const definition = `export type ${renamedName} = ${result.tsType};`;
@@ -305,7 +308,7 @@ export function generateContracts(doc: OpenAPIDocument, resolver: RefResolver): 
     const subtypeNames = Array.from(info.mapping.values());
     if (subtypeNames.length === 0) continue;
     const unionType = subtypeNames.join(' | ');
-    const renamedBase = renameMap.get(baseName) ?? baseName;
+    const renamedBase = renameMap.get(sanitizeTypeName(baseName)) ?? sanitizeTypeName(baseName);
     lines.push('');
     lines.push(`export type ${renamedBase}Variant = ${unionType};`);
     allSchemaNames.add(`${renamedBase}Variant`);

@@ -2,6 +2,7 @@ import { RefResolver } from '../parser/ref-resolver.js';
 import type { TypeMappingResult } from '../types/contracts.js';
 import type { SchemaObject, ReferenceObject } from '../types/openapi.js';
 import { formatToBrandTypeName } from '../utils/case.js';
+import { sanitizeTypeName } from '../utils/generator-helpers.js';
 import { quoteKey } from '../utils/string.js';
 
 /**
@@ -15,7 +16,8 @@ export type TypeNameGenerator = (refString: string) => string;
  */
 function defaultTypeNameGenerator(refString: string): string {
   const segments = refString.split('/');
-  return segments[segments.length - 1] || 'unknown';
+  const rawSegment = segments[segments.length - 1] || 'unknown';
+  return sanitizeTypeName(rawSegment);
 }
 
 function isRefObject(obj: unknown): boolean {
@@ -292,7 +294,7 @@ export class SchemaMapper {
     schema: SchemaObject,
     refStr: string
   ): { propertyName: string; literalValue: string } | undefined {
-    const schemaName = refStr.split('/').pop()!;
+    const schemaName = sanitizeTypeName(refStr.split('/').pop()!);
     const target = this.discriminatorTargets.get(schemaName);
     if (target) return target;
 
