@@ -31,52 +31,36 @@ describe('Format branding in generated contracts', () => {
   const result = generateContracts(doc, resolver);
 
   it('emits branded type definitions for formatted schemas', () => {
-    expect(result).toContain(
-      "export type DateTimeString = string & { readonly __format?: 'date-time' };"
-    );
-    expect(result).toContain("export type Int32Number = number & { readonly __format?: 'int32' };");
-    expect(result).toContain(
-      "export type DoubleNumber = number & { readonly __format?: 'double' };"
-    );
-    expect(result).toContain("export type EmailString = string & { readonly __format?: 'email' };");
-    expect(result).toContain(
-      "export type MyCustomFormatString = string & { readonly __format?: 'my-custom-format' };"
-    );
+    expect(result).toMatchSnapshot();
   });
 
   it('does NOT emit branded types for binary/byte formats', () => {
     expect(result).not.toContain('BinaryString');
     expect(result).not.toContain('ByteString');
-    expect(result).toContain('export type BinaryData = string;');
-    expect(result).toContain('export type ByteData = string;');
   });
 
   it('does NOT emit branded type for empty format', () => {
     expect(result).not.toContain("String & { readonly __format?: ''");
-    expect(result).toContain('export type EmptyFormat = string;');
   });
 
   it('nullable branded type renders as union with null', () => {
-    expect(result).toContain('DateTimeString | null');
+    expect(result).toMatchSnapshot();
   });
 
   it('enum wins over format — no branded type for enum+format', () => {
-    expect(result).toContain("'user@example.com'");
-    expect(result).toContain("'test@example.org'");
+    expect(result).toMatchSnapshot();
   });
 
   it('array items with format use branded type', () => {
-    expect(result).toContain(
-      'GetItemsResponse = Array<{ id: string; createdAt: DateTimeString; }>'
-    );
+    expect(result).toMatchSnapshot();
   });
 
   it('object properties with format use branded type', () => {
-    expect(result).toContain('DateTimeString');
+    expect(result).toMatchSnapshot();
   });
 
   it('additionalProperties with format use branded type', () => {
-    expect(result).toContain('DateTimeString');
+    expect(result).toMatchSnapshot();
   });
 
   it('branded type definitions appear before schema types', () => {

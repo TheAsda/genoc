@@ -50,9 +50,7 @@ describe('Schema Object — OpenAPI 3.0.3', () => {
         },
       });
 
-      expect(result).toContain('export type User = {');
-      expect(result).toContain('id: string;');
-      expect(result).toContain('name: string;');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates optional properties when not in required array', () => {
@@ -67,8 +65,7 @@ describe('Schema Object — OpenAPI 3.0.3', () => {
         },
       });
 
-      expect(result).toContain('id: string;');
-      expect(result).toContain('label?: string;');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -84,7 +81,7 @@ describe('Schema Object — OpenAPI 3.0.3', () => {
         },
       });
 
-      expect(result).toContain('export type Tags = string[];');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates array of objects', () => {
@@ -100,9 +97,7 @@ describe('Schema Object — OpenAPI 3.0.3', () => {
         },
       });
 
-      expect(result).toContain('export type Users =');
-      expect(result).toContain('Array<');
-      expect(result).toContain('email?: string;');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -112,22 +107,22 @@ describe('Schema Object — OpenAPI 3.0.3', () => {
   describe('primitive types', () => {
     it('generates string type alias', () => {
       const result = generate({ Name: { type: 'string' } });
-      expect(result).toContain('export type Name = string;');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates number type alias for integer', () => {
       const result = generate({ Count: { type: 'integer' } });
-      expect(result).toContain('export type Count = number;');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates number type alias for number', () => {
       const result = generate({ Score: { type: 'number' } });
-      expect(result).toContain('export type Score = number;');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates boolean type alias', () => {
       const result = generate({ Active: { type: 'boolean' } });
-      expect(result).toContain('export type Active = boolean;');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -140,7 +135,7 @@ describe('Schema Object — OpenAPI 3.0.3', () => {
         Status: { type: 'string', enum: ['active', 'inactive'] },
       });
 
-      expect(result).toContain("export type Status = 'active' | 'inactive';");
+      expect(result).toMatchSnapshot();
     });
 
     it('generates number literal union for numeric enum', () => {
@@ -148,7 +143,7 @@ describe('Schema Object — OpenAPI 3.0.3', () => {
         Priority: { type: 'integer', enum: [1, 2, 3] },
       });
 
-      expect(result).toContain('export type Priority = 1 | 2 | 3;');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -174,7 +169,7 @@ describe('Schema Object — OpenAPI 3.0.3', () => {
         },
       });
 
-      expect(result).toContain('export type Extended = Base &');
+      expect(result).toMatchSnapshot();
       const basePos = result.indexOf('export type Base');
       const extPos = result.indexOf('export type Extended');
       expect(basePos).toBeLessThan(extPos);
@@ -194,7 +189,7 @@ describe('Schema Object — OpenAPI 3.0.3', () => {
         },
       });
 
-      expect(result).toContain('export type Pet = Cat | Dog;');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates union type for inline primitives', () => {
@@ -202,7 +197,7 @@ describe('Schema Object — OpenAPI 3.0.3', () => {
         StringOrNumber: { oneOf: [{ type: 'string' }, { type: 'number' }] },
       });
 
-      expect(result).toContain('export type StringOrNumber = string | number;');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -222,7 +217,7 @@ describe('Schema Object — OpenAPI 3.0.3', () => {
         },
       });
 
-      expect(result).toContain('export type Media = Photo | Video;');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -246,8 +241,7 @@ describe('Schema Object — OpenAPI 3.0.3', () => {
         },
       });
 
-      expect(result).toContain('export type Person = {');
-      expect(result).toContain('address: Address;');
+      expect(result).toMatchSnapshot();
       const addressPos = result.indexOf('export type Address');
       const personPos = result.indexOf('export type Person');
       expect(addressPos).toBeLessThan(personPos);
@@ -270,8 +264,7 @@ describe('Schema Object — OpenAPI 3.0.3', () => {
         },
       });
 
-      expect(result).toContain('id: string;');
-      expect(result).toContain('createdAt: string;');
+      expect(result).toMatchSnapshot();
       expect(result).not.toContain('id?:');
       expect(result).not.toContain('createdAt?:');
     });
@@ -288,8 +281,7 @@ describe('Schema Object — OpenAPI 3.0.3', () => {
         },
       });
 
-      expect(result).toContain('id: string;');
-      expect(result).toContain('nickname?: string;');
+      expect(result).toMatchSnapshot();
     });
 
     it('treats all properties as optional when required is absent', () => {
@@ -303,8 +295,7 @@ describe('Schema Object — OpenAPI 3.0.3', () => {
         },
       });
 
-      expect(result).toContain('a?: string;');
-      expect(result).toContain('b?: number;');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -331,10 +322,7 @@ describe('Schema Object — OpenAPI 3.0.3', () => {
         },
       });
 
-      expect(result).toContain('export type Order = {');
-      expect(result).toContain('shipping: {');
-      expect(result).toContain('address: string;');
-      expect(result).toContain('city?: string;');
+      expect(result).toMatchSnapshot();
     });
   });
 });

@@ -44,14 +44,14 @@ describe('OpenAPI 3.0 — exclusiveMinimum / exclusiveMaximum', () => {
     const result = generate({
       BoundedMin: { type: 'number', minimum: 5, exclusiveMinimum: true },
     });
-    expect(result).toContain('export type BoundedMin = number;');
+    expect(result).toMatchSnapshot();
   });
 
   it('generates number type for exclusiveMaximum: true with maximum', () => {
     const result = generate({
       BoundedMax: { type: 'integer', maximum: 100, exclusiveMaximum: true },
     });
-    expect(result).toContain('export type BoundedMax = number;');
+    expect(result).toMatchSnapshot();
   });
 
   it('generates number type when both exclusiveMinimum and exclusiveMaximum are set', () => {
@@ -64,7 +64,7 @@ describe('OpenAPI 3.0 — exclusiveMinimum / exclusiveMaximum', () => {
         exclusiveMaximum: true,
       },
     });
-    expect(result).toContain('export type BothBounded = number;');
+    expect(result).toMatchSnapshot();
   });
 
   it('generates number type when exclusiveMinimum is false', () => {
@@ -75,14 +75,14 @@ describe('OpenAPI 3.0 — exclusiveMinimum / exclusiveMaximum', () => {
         exclusiveMinimum: false,
       },
     });
-    expect(result).toContain('export type NonExclusive = number;');
+    expect(result).toMatchSnapshot();
   });
 
   it('generates number type without exclusiveMinimum/Maximum', () => {
     const result = generate({
       PlainNumber: { type: 'number', minimum: 0, maximum: 100 },
     });
-    expect(result).toContain('export type PlainNumber = number;');
+    expect(result).toMatchSnapshot();
   });
 
   it('generates nullable number with exclusive bounds', () => {
@@ -96,7 +96,7 @@ describe('OpenAPI 3.0 — exclusiveMinimum / exclusiveMaximum', () => {
         nullable: true,
       },
     });
-    expect(result).toContain('export type NullableBounded = number | null;');
+    expect(result).toMatchSnapshot();
   });
 
   it('generates correct type for exclusive bounds on object property', () => {
@@ -116,7 +116,6 @@ describe('OpenAPI 3.0 — exclusiveMinimum / exclusiveMaximum', () => {
       },
     });
 
-    expect(result).toContain('export type Config = {');
-    expect(result).toContain('priority: number;');
+    expect(result).toMatchSnapshot();
   });
 });

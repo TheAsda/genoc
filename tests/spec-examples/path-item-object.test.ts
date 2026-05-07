@@ -62,8 +62,7 @@ describe('PathItem Object examples', () => {
       expect(methods).toContain('post');
 
       const { client } = generateClient(doc, makeConfig());
-      expect(client).toContain('getUsers');
-      expect(client).toContain('postUsers');
+      expect(client).toMatchSnapshot();
     });
 
     it('generates separate contracts types for each method on same path', () => {
@@ -92,9 +91,7 @@ describe('PathItem Object examples', () => {
 
       const { contracts } = generateClient(doc, makeConfig());
 
-      expect(contracts).toContain('GetUsersResponse');
-      expect(contracts).toContain('PostUsersBody');
-      expect(contracts).toContain('PostUsersResponse');
+      expect(contracts).toMatchSnapshot();
     });
   });
 

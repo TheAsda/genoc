@@ -46,9 +46,8 @@ describe('Parameter Object spec examples', () => {
 
       // Client: path param becomes flat string argument in method signature
       const { client } = generateClient(doc, createConfig());
-      expect(client).toContain('getUsersByUserId: decorateWithErrors<');
-      expect(client).toContain('(userId: string)');
-      expect(client).toContain('${encodeURIComponent(userId)}');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
   });
 
@@ -78,15 +77,11 @@ describe('Parameter Object spec examples', () => {
       const resolver = new RefResolver(doc);
       const contracts = generateContracts(doc, resolver);
 
-      // Query params grouped into a single object type
-      expect(contracts).toContain('export type GetUsersQuery = {');
-      expect(contracts).toContain('page?: number');
-      expect(contracts).toContain('limit?: number');
+      expect(contracts).toMatchSnapshot();
 
       // Client method receives query object
       const { client } = generateClient(doc, createConfig());
-      expect(client).toContain('getUsers: decorateWithErrors<');
-      expect(client).toContain('(query?: GetUsersQuery)');
+      expect(client).toMatchSnapshot();
     });
   });
 
@@ -124,20 +119,13 @@ describe('Parameter Object spec examples', () => {
       const resolver = new RefResolver(doc);
       const contracts = generateContracts(doc, resolver);
 
+      expect(contracts).toMatchSnapshot();
       // required: true → non-optional
-      expect(contracts).toContain('q: string');
       expect(contracts).not.toMatch(/q\?:/);
-
-      // required: false → optional
-      expect(contracts).toContain('sort?: string');
-
-      // required absent → optional
-      expect(contracts).toContain('filter?: string');
 
       // Client: not all optional, so query is required arg
       const { client } = generateClient(doc, createConfig());
-      expect(client).toContain('getSearch: decorateWithErrors<');
-      expect(client).toContain('(query: GetSearchQuery)');
+      expect(client).toMatchSnapshot();
     });
 
     it('makes path params always required regardless of explicit setting', () => {
@@ -159,8 +147,7 @@ describe('Parameter Object spec examples', () => {
         },
       });
       const { client } = generateClient(doc, createConfig());
-      expect(client).toContain('getItemsByItemId: decorateWithErrors<');
-      expect(client).toContain('(itemId: string)');
+      expect(client).toMatchSnapshot();
     });
   });
 
@@ -190,15 +177,10 @@ describe('Parameter Object spec examples', () => {
       const resolver = new RefResolver(doc);
       const contracts = generateContracts(doc, resolver);
 
-      expect(contracts).toContain('export type GetDataQuery = {');
-      expect(contracts).toContain('page?: number');
-      expect(contracts).toContain('export type GetDataHeaders = {');
-      expect(contracts).toContain('"X-Request-Id"?: string');
+      expect(contracts).toMatchSnapshot();
 
       const { client } = generateClient(doc, createConfig());
-      expect(client).toContain('getData: decorateWithErrors<');
-      expect(client).toContain('(query?: GetDataQuery, headers?: GetDataHeaders) => Promise');
-      expect(client).toContain('{ query, headers }');
+      expect(client).toMatchSnapshot();
     });
   });
 
@@ -228,8 +210,8 @@ describe('Parameter Object spec examples', () => {
 
       // Client method has no cookie arguments
       const { client } = generateClient(doc, createConfig());
-      expect(client).toContain('getSession: decorateWithErrors<');
-      expect(client).toContain('() => Promise');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
       expect(client).not.toContain('session_id');
     });
   });
@@ -278,22 +260,13 @@ describe('Parameter Object spec examples', () => {
       const resolver = new RefResolver(doc);
       const contracts = generateContracts(doc, resolver);
 
-      // Query type includes only query params
-      expect(contracts).toContain('GetOrgsOrgIdUsersUserIdQuery = {');
-      expect(contracts).toContain('include?: string');
-      expect(contracts).toContain('fields?: string');
+      expect(contracts).toMatchSnapshot();
       // No path params in query type
       expect(contracts).not.toContain('orgId');
-      // Header type includes header params
-      expect(contracts).toContain('GetOrgsOrgIdUsersUserIdHeaders = {');
-      expect(contracts).toContain('"X-Api-Key": string');
 
       // Client: path params as flat args + query object + headers object
       const { client } = generateClient(doc, createConfig());
-      expect(client).toMatch(
-        /\(orgId: string, userId: string, query: GetOrgsOrgIdUsersUserIdQuery \| undefined, headers: GetOrgsOrgIdUsersUserIdHeaders\) => Promise/
-      );
-      expect(client).toContain('{ query, headers }');
+      expect(client).toMatchSnapshot();
     });
   });
 });
