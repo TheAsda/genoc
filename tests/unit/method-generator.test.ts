@@ -102,12 +102,7 @@ describe('generateMethod', () => {
 
       const result = generateMethod(op);
 
-      expect(result.implementation).toContain('const url = "/api/v1/products";');
-      expect(result.implementation).toContain('const queryString = query');
-      expect(result.implementation).toContain('const fullUrl = url + queryString;');
-      expect(result.implementation).toContain(
-        'requester<GetApiV1ProductsResponse>("GET", fullUrl, { query })'
-      );
+      expect(result.implementation).toMatchSnapshot();
     });
   });
 
@@ -140,7 +135,7 @@ describe('generateMethod', () => {
 
       const result = generateMethod(op);
 
-      expect(result.implementation).toContain('${encodeURIComponent(productId)}');
+      expect(result.implementation).toMatchSnapshot();
     });
   });
 
@@ -173,8 +168,7 @@ describe('generateMethod', () => {
 
       const result = generateMethod(op);
 
-      expect(result.implementation).toContain('${encodeURIComponent(userId)}');
-      expect(result.implementation).toContain('${encodeURIComponent(postId)}');
+      expect(result.implementation).toMatchSnapshot();
     });
   });
 
@@ -223,8 +217,7 @@ describe('generateMethod', () => {
 
       const result = generateMethod(op);
 
-      expect(result.implementation).toContain('{ body }');
-      expect(result.implementation).toContain('"POST"');
+      expect(result.implementation).toMatchSnapshot();
     });
   });
 
@@ -257,7 +250,7 @@ describe('generateMethod', () => {
 
       const result = generateMethod(op);
 
-      expect(result.implementation).toContain('requester<void>');
+      expect(result.implementation).toMatchSnapshot();
     });
   });
 
@@ -308,8 +301,7 @@ describe('generateMethod', () => {
 
       const result = generateMethod(op);
 
-      expect(result.implementation).toContain('body');
-      expect(result.implementation).toContain('"PUT"');
+      expect(result.implementation).toMatchSnapshot();
     });
   });
 
@@ -344,8 +336,7 @@ describe('generateMethod', () => {
 
       const result = generateMethod(op);
 
-      expect(result.implementation).toContain('query');
-      expect(result.implementation).toContain('GetItemsItemIdReviewsResponse');
+      expect(result.implementation).toMatchSnapshot();
     });
   });
 
@@ -645,8 +636,7 @@ describe('generateMethod', () => {
 
       const result = generateMethod(op);
 
-      expect(result.implementation).toContain('requester<GetApiV1ProductsResponse>');
-      expect(result.implementation).toContain('instanceof ErrorResponse');
+      expect(result.implementation).toMatchSnapshot();
     });
 
     it('uses status-specific error types when error responses exist', () => {
@@ -656,8 +646,7 @@ describe('generateMethod', () => {
 
       const result = generateMethod(op);
 
-      expect(result.implementation).toContain('GetApiV1ProductsError400');
-      expect(result.implementation).toContain('GetApiV1ProductsError404');
+      expect(result.implementation).toMatchSnapshot();
     });
   });
 
@@ -703,8 +692,7 @@ describe('generateMethod', () => {
 
       const result = generateMethod(op);
 
-      expect(result.implementation).toContain('"GET"');
-      expect(result.implementation).toContain(', {})');
+      expect(result.implementation).toMatchSnapshot();
     });
   });
 
@@ -727,7 +715,7 @@ describe('generateMethod', () => {
       const result = generateMethod(op);
 
       expect(result.signature).toContain('headers?: GetApiV1ProductsHeaders');
-      expect(result.implementation).toContain('headers');
+      expect(result.implementation).toMatchSnapshot();
     });
 
     it('includes required header params without optional marker', () => {
@@ -820,11 +808,7 @@ describe('generateMethod', () => {
       const result = generateMethod(op);
 
       expect(result.implementation.startsWith(result.signature)).toBe(true);
-      expect(result.implementation).toContain('{');
-      expect(result.implementation).toContain('}');
-      expect(result.implementation).toContain('try {');
-      expect(result.implementation).toContain('instanceof ErrorResponse');
-      expect(result.implementation).toContain('requester<');
+      expect(result.implementation).toMatchSnapshot();
     });
   });
 
@@ -855,14 +839,7 @@ describe('generateMethod', () => {
 
       const result = generateMethod(op);
 
-      expect(result.implementation).toContain('const formData = new FormData();');
-      expect(result.implementation).toContain(
-        'formData.append("file", body.file.data, body.file.filename);'
-      );
-      expect(result.implementation).toContain(
-        'if (body.name !== undefined) formData.append("name", body.name);'
-      );
-      expect(result.implementation).toContain('body: formData');
+      expect(result.implementation).toMatchSnapshot();
     });
 
     it('generates optional binary field with undefined check in multipart body', () => {
@@ -891,12 +868,7 @@ describe('generateMethod', () => {
 
       const result = generateMethod(op);
 
-      expect(result.implementation).toContain(
-        'formData.append("avatar", body.avatar.data, body.avatar.filename);'
-      );
-      expect(result.implementation).toContain(
-        'if (body.thumbnail !== undefined) formData.append("thumbnail", body.thumbnail.data, body.thumbnail.filename);'
-      );
+      expect(result.implementation).toMatchSnapshot();
     });
   });
 
@@ -921,7 +893,7 @@ describe('generateMethod', () => {
 
       const result = generateMethod(op);
 
-      expect(result.implementation).toContain('expectStream: true');
+      expect(result.implementation).toMatchSnapshot();
     });
 
     it('does not add responseType for non-binary response', () => {
@@ -948,7 +920,7 @@ describe('generateMethod', () => {
       const result = generateMethod(op);
 
       expect(result.signature).toContain('Promise<void>');
-      expect(result.implementation).toContain('requester<void>');
+      expect(result.implementation).toMatchSnapshot();
     });
 
     it('201 no-content produces void signature', () => {
@@ -962,7 +934,7 @@ describe('generateMethod', () => {
       const result = generateMethod(op);
 
       expect(result.signature).toContain('Promise<void>');
-      expect(result.implementation).toContain('requester<void>');
+      expect(result.implementation).toMatchSnapshot();
     });
 
     it('mixed 200+schema and 204 void returns schema type', () => {

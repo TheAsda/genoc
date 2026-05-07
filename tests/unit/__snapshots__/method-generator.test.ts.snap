@@ -1,0 +1,355 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`generateMethod > GeneratedMethod structure > implementation starts with signature and wraps in function body 1`] = `
+"getApiV1Products(): Promise<GetApiV1ProductsResponse> {
+  const url = "/api/v1/products";
+  try {
+    const result = await requester<GetApiV1ProductsResponse>("GET", url, {});
+    if (result instanceof ErrorResponse) {
+      throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
+    }
+    if (result instanceof StreamResponse) {
+      throw new RequesterFailError(new Error("Unexpected stream response"));
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof UnspecifiedApiError) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new RequesterFailError(error);
+  }
+}"
+`;
+
+exports[`generateMethod > Section 7.2 Example 1: GET /api/v1/products > generates implementation with query string construction 1`] = `
+"getApiV1Products(query?: GetApiV1ProductsQuery): Promise<GetApiV1ProductsResponse> {
+  const url = "/api/v1/products";
+  const queryString = query ? "?" + new URLSearchParams(query as Record<string, string>).toString() : "";
+  const fullUrl = url + queryString;
+  try {
+    const result = await requester<GetApiV1ProductsResponse>("GET", fullUrl, { query });
+    if (result instanceof ErrorResponse) {
+      throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
+    }
+    if (result instanceof StreamResponse) {
+      throw new RequesterFailError(new Error("Unexpected stream response"));
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof UnspecifiedApiError) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new RequesterFailError(error);
+  }
+}"
+`;
+
+exports[`generateMethod > Section 7.2 Example 2: GET /api/v1/products/{productId} > generates URL with encodeURIComponent for path params 1`] = `
+"getApiV1ProductsByProductId(productId: string): Promise<GetApiV1ProductsProductIdResponse> {
+  const url = \`/api/v1/products/\${encodeURIComponent(productId)}\`;
+  try {
+    const result = await requester<GetApiV1ProductsProductIdResponse>("GET", url, {});
+    if (result instanceof ErrorResponse) {
+      throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
+    }
+    if (result instanceof StreamResponse) {
+      throw new RequesterFailError(new Error("Unexpected stream response"));
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof UnspecifiedApiError) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new RequesterFailError(error);
+  }
+}"
+`;
+
+exports[`generateMethod > Section 7.2 Example 3: GET /users/{userId}/posts/{postId} > generates URL with both path params encoded 1`] = `
+"getUsersByUserIdPostsByPostId(userId: string, postId: string): Promise<GetUsersUserIdPostsPostIdResponse> {
+  const url = \`/users/\${encodeURIComponent(userId)}/posts/\${encodeURIComponent(postId)}\`;
+  try {
+    const result = await requester<GetUsersUserIdPostsPostIdResponse>("GET", url, {});
+    if (result instanceof ErrorResponse) {
+      throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
+    }
+    if (result instanceof StreamResponse) {
+      throw new RequesterFailError(new Error("Unexpected stream response"));
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof UnspecifiedApiError) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new RequesterFailError(error);
+  }
+}"
+`;
+
+exports[`generateMethod > Section 7.2 Example 4: POST /api/v1/products > generates implementation with body in requester options 1`] = `
+"postApiV1Products(body: PostApiV1ProductsBody): Promise<PostApiV1ProductsResponse> {
+  const url = "/api/v1/products";
+  try {
+    const result = await requester<PostApiV1ProductsResponse>("POST", url, { body });
+    if (result instanceof ErrorResponse) {
+      throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
+    }
+    if (result instanceof StreamResponse) {
+      throw new RequesterFailError(new Error("Unexpected stream response"));
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof UnspecifiedApiError) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new RequesterFailError(error);
+  }
+}"
+`;
+
+exports[`generateMethod > Section 7.2 Example 5: PATCH /api/v1/products:changeQuantity > generates requester call with void return type for 204 1`] = `
+"patchApiV1ProductsChangeQuantity(query?: PatchApiV1ProductsChangeQuantityQuery): Promise<void> {
+  const url = "/api/v1/products:changeQuantity";
+  const queryString = query ? "?" + new URLSearchParams(query as Record<string, string>).toString() : "";
+  const fullUrl = url + queryString;
+  try {
+    const result = await requester<void>("PATCH", fullUrl, { query });
+    if (result instanceof ErrorResponse) {
+      throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
+    }
+    if (result instanceof StreamResponse) {
+      throw new RequesterFailError(new Error("Unexpected stream response"));
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof UnspecifiedApiError) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new RequesterFailError(error);
+  }
+}"
+`;
+
+exports[`generateMethod > Section 7.2 Example 6: PUT /organizations/{orgId}/members > generates implementation with both params and body 1`] = `
+"putOrganizationsByOrgIdMembers(orgId: string, body: PutOrganizationsOrgIdMembersBody): Promise<PutOrganizationsOrgIdMembersResponse> {
+  const url = \`/organizations/\${encodeURIComponent(orgId)}/members\`;
+  try {
+    const result = await requester<PutOrganizationsOrgIdMembersResponse>("PUT", url, { body });
+    if (result instanceof ErrorResponse) {
+      throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
+    }
+    if (result instanceof StreamResponse) {
+      throw new RequesterFailError(new Error("Unexpected stream response"));
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof UnspecifiedApiError) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new RequesterFailError(error);
+  }
+}"
+`;
+
+exports[`generateMethod > Section 7.2 Example 7: GET /items/{itemId}/reviews > generates implementation with path param, query, and correct type prefix 1`] = `
+"getItemsByItemIdReviews(itemId: string, query?: GetItemsItemIdReviewsQuery): Promise<GetItemsItemIdReviewsResponse> {
+  const url = \`/items/\${encodeURIComponent(itemId)}/reviews\`;
+  const queryString = query ? "?" + new URLSearchParams(query as Record<string, string>).toString() : "";
+  const fullUrl = url + queryString;
+  try {
+    const result = await requester<GetItemsItemIdReviewsResponse>("GET", fullUrl, { query });
+    if (result instanceof ErrorResponse) {
+      throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
+    }
+    if (result instanceof StreamResponse) {
+      throw new RequesterFailError(new Error("Unexpected stream response"));
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof UnspecifiedApiError) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new RequesterFailError(error);
+  }
+}"
+`;
+
+exports[`generateMethod > binary stream response > adds expectStream: true for binary success response 1`] = `
+"getFilesId(id: string): Promise<GetFilesIdResponse> {
+  const url = \`/files/\${encodeURIComponent(id)}\`;
+  try {
+    const result = await requester<GetFilesIdResponse>("GET", url, { expectStream: true });
+    if (result instanceof ErrorResponse) {
+      throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
+    }
+    if (!(result instanceof StreamResponse)) {
+      throw new RequesterFailError(new Error("Expected stream response"));
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof UnspecifiedApiError) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new RequesterFailError(error);
+  }
+}"
+`;
+
+exports[`generateMethod > error types in implementation > uses 'never' for error type when no error responses 1`] = `
+"getApiV1Products(): Promise<GetApiV1ProductsResponse> {
+  const url = "/api/v1/products";
+  try {
+    const result = await requester<GetApiV1ProductsResponse>("GET", url, {});
+    if (result instanceof ErrorResponse) {
+      throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
+    }
+    if (result instanceof StreamResponse) {
+      throw new RequesterFailError(new Error("Unexpected stream response"));
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof UnspecifiedApiError) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new RequesterFailError(error);
+  }
+}"
+`;
+
+exports[`generateMethod > error types in implementation > uses status-specific error types when error responses exist 1`] = `
+"getApiV1Products(): Promise<GetApiV1ProductsResponse> {
+  const url = "/api/v1/products";
+  try {
+    const result = await requester<GetApiV1ProductsResponse>("GET", url, {});
+    if (result instanceof ErrorResponse) {
+      if (result.status === 400) throw new ApiError(400, result.data as GetApiV1ProductsError400, result.message ?? \`Request failed with status 400\`);
+      if (result.status === 404) throw new ApiError(404, result.data as GetApiV1ProductsError404, result.message ?? \`Request failed with status 404\`);
+      throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
+    }
+    if (result instanceof StreamResponse) {
+      throw new RequesterFailError(new Error("Unexpected stream response"));
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof UnspecifiedApiError) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new RequesterFailError(error);
+  }
+}"
+`;
+
+exports[`generateMethod > header params included in signature > includes optional header params in method signature 1`] = `
+"getApiV1Products(headers?: GetApiV1ProductsHeaders): Promise<GetApiV1ProductsResponse> {
+  const url = "/api/v1/products";
+  try {
+    const result = await requester<GetApiV1ProductsResponse>("GET", url, { headers });
+    if (result instanceof ErrorResponse) {
+      throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
+    }
+    if (result instanceof StreamResponse) {
+      throw new RequesterFailError(new Error("Unexpected stream response"));
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof UnspecifiedApiError) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new RequesterFailError(error);
+  }
+}"
+`;
+
+exports[`generateMethod > multipart form data > generates FormData construction for multipart body 1`] = `
+"postUpload(body: PostUploadBody): Promise<PostUploadResponse> {
+  const url = "/upload";
+  const formData = new FormData();
+  formData.append("file", body.file.data, body.file.filename);
+  if (body.name !== undefined) formData.append("name", body.name);
+  try {
+    const result = await requester<PostUploadResponse>("POST", url, { body: formData });
+    if (result instanceof ErrorResponse) {
+      throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
+    }
+    if (result instanceof StreamResponse) {
+      throw new RequesterFailError(new Error("Unexpected stream response"));
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof UnspecifiedApiError) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new RequesterFailError(error);
+  }
+}"
+`;
+
+exports[`generateMethod > multipart form data > generates optional binary field with undefined check in multipart body 1`] = `
+"postUpload(body: PostUploadBody): Promise<PostUploadResponse> {
+  const url = "/upload";
+  const formData = new FormData();
+  formData.append("avatar", body.avatar.data, body.avatar.filename);
+  if (body.thumbnail !== undefined) formData.append("thumbnail", body.thumbnail.data, body.thumbnail.filename);
+  try {
+    const result = await requester<PostUploadResponse>("POST", url, { body: formData });
+    if (result instanceof ErrorResponse) {
+      throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
+    }
+    if (result instanceof StreamResponse) {
+      throw new RequesterFailError(new Error("Unexpected stream response"));
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof UnspecifiedApiError) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new RequesterFailError(error);
+  }
+}"
+`;
+
+exports[`generateMethod > no parameters at all > implementation uses empty object for requester options with no params 1`] = `
+"getApiV1Products(): Promise<GetApiV1ProductsResponse> {
+  const url = "/api/v1/products";
+  try {
+    const result = await requester<GetApiV1ProductsResponse>("GET", url, {});
+    if (result instanceof ErrorResponse) {
+      throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
+    }
+    if (result instanceof StreamResponse) {
+      throw new RequesterFailError(new Error("Unexpected stream response"));
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof UnspecifiedApiError) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new RequesterFailError(error);
+  }
+}"
+`;
+
+exports[`generateMethod > void/no-content responses > 200 no-content produces void signature 1`] = `
+"getApiV1Products(): Promise<void> {
+  const url = "/api/v1/products";
+  try {
+    const result = await requester<void>("GET", url, {});
+    if (result instanceof ErrorResponse) {
+      throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
+    }
+    if (result instanceof StreamResponse) {
+      throw new RequesterFailError(new Error("Unexpected stream response"));
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof UnspecifiedApiError) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new RequesterFailError(error);
+  }
+}"
+`;
+
+exports[`generateMethod > void/no-content responses > 201 no-content produces void signature 1`] = `
+"postApiV1Items(): Promise<void> {
+  const url = "/api/v1/items";
+  try {
+    const result = await requester<void>("POST", url, {});
+    if (result instanceof ErrorResponse) {
+      throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
+    }
+    if (result instanceof StreamResponse) {
+      throw new RequesterFailError(new Error("Unexpected stream response"));
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof UnspecifiedApiError) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new RequesterFailError(error);
+  }
+}"
+`;
