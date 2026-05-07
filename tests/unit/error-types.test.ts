@@ -27,27 +27,19 @@ describe('generateErrorTypes', () => {
   it('generates ApiError class', () => {
     const output = generateErrorTypes([]);
 
-    expect(output).toContain('export class ApiError<TStatus extends number, TData> extends Error');
-    expect(output).toContain('public readonly status: TStatus');
-    expect(output).toContain('public readonly data: TData');
-    expect(output).toContain('this.name = "ApiError"');
+    expect(output).toMatchSnapshot();
   });
 
   it('generates UnspecifiedApiError class', () => {
     const output = generateErrorTypes([]);
 
-    expect(output).toContain('export class UnspecifiedApiError extends ApiError<number, unknown>');
-    expect(output).toContain('status: number');
-    expect(output).toContain('data: unknown');
-    expect(output).toContain('this.name = "UnspecifiedApiError"');
+    expect(output).toMatchSnapshot();
   });
 
   it('generates isError type guard', () => {
     const output = generateErrorTypes([]);
 
-    expect(output).toContain('export function isError');
-    expect(output).toContain('response is Extract<T, { status: S }>');
-    expect(output).toContain('return response.status === status');
+    expect(output).toMatchSnapshot();
   });
 
   it('generates error union for operation with multiple error status codes', () => {
@@ -87,13 +79,7 @@ describe('generateErrorTypes', () => {
 
     const output = generateErrorTypes([op]);
 
-    expect(output).toContain('export type getApiV1ProductsError400 = BadRequestError;');
-    expect(output).toContain('export type getApiV1ProductsError404 = NotFoundError;');
-    expect(output).toContain('export type getApiV1ProductsError500 = InternalServerError;');
-    expect(output).toContain('ApiError<400, getApiV1ProductsError400>');
-    expect(output).toContain('ApiError<404, getApiV1ProductsError404>');
-    expect(output).toContain('ApiError<500, getApiV1ProductsError500>');
-    expect(output).toContain('export type getApiV1ProductsErrors =');
+    expect(output).toMatchSnapshot();
   });
 
   it('includes catch-all UnspecifiedApiError in error unions', () => {
@@ -119,7 +105,7 @@ describe('generateErrorTypes', () => {
 
     const output = generateErrorTypes([op]);
 
-    expect(output).toContain('UnspecifiedApiError');
+    expect(output).toMatchSnapshot();
   });
 
   it('handles default response with DefaultErrorBody', () => {
@@ -152,9 +138,7 @@ describe('generateErrorTypes', () => {
 
     const output = generateErrorTypes([op]);
 
-    expect(output).toContain('export type DefaultErrorBody = unknown;');
-    expect(output).toContain('ApiError<number, DefaultErrorBody>');
-    expect(output).toContain('export type postApiV1UsersErrors =');
+    expect(output).toMatchSnapshot();
   });
 
   it('does not emit DefaultErrorBody when no operation uses default response', () => {
@@ -181,6 +165,7 @@ describe('generateErrorTypes', () => {
     const output = generateErrorTypes([op]);
 
     expect(output).not.toContain('DefaultErrorBody');
+    expect(output).toMatchSnapshot();
   });
 
   it('skips operations with no error responses', () => {
@@ -201,6 +186,7 @@ describe('generateErrorTypes', () => {
 
     expect(output).not.toContain('getHealthError');
     expect(output).not.toContain('getHealthErrors');
+    expect(output).toMatchSnapshot();
   });
 
   it('skips operations with only success responses and default', () => {
@@ -221,6 +207,7 @@ describe('generateErrorTypes', () => {
 
     expect(output).not.toContain('pingError');
     expect(output).not.toContain('pingErrors');
+    expect(output).toMatchSnapshot();
   });
 
   it('uses unknown when tsType is empty', () => {
@@ -239,7 +226,7 @@ describe('generateErrorTypes', () => {
 
     const output = generateErrorTypes([op]);
 
-    expect(output).toContain('export type putApiV1ConfigError400 = unknown;');
+    expect(output).toMatchSnapshot();
   });
 
   it('generates error types for multiple operations', () => {
@@ -294,11 +281,7 @@ describe('generateErrorTypes', () => {
 
     const output = generateErrorTypes([op1, op2]);
 
-    expect(output).toContain('export type getApiV1ProductsError404 = NotFoundError;');
-    expect(output).toContain('export type getApiV1ProductsErrors =');
-    expect(output).toContain('export type postApiV1UsersError400 = ValidationError;');
-    expect(output).toContain('export type postApiV1UsersError409 = ConflictError;');
-    expect(output).toContain('export type postApiV1UsersErrors =');
+    expect(output).toMatchSnapshot();
   });
 
   it('formats multi-branch error unions with pipe on new lines', () => {
@@ -338,11 +321,7 @@ describe('generateErrorTypes', () => {
 
     const output = generateErrorTypes([op]);
 
-    expect(output).toContain('export type getApiV1OrdersErrors =');
-    expect(output).toContain('ApiError<400, getApiV1OrdersError400>');
-    expect(output).toContain('  | ApiError<401, getApiV1OrdersError401>');
-    expect(output).toContain('  | ApiError<403, getApiV1OrdersError403>');
-    expect(output).toContain('  | UnspecifiedApiError');
+    expect(output).toMatchSnapshot();
   });
 
   it('does not include success responses in error types', () => {
@@ -377,7 +356,7 @@ describe('generateErrorTypes', () => {
 
     expect(output).not.toContain('Error200');
     expect(output).not.toContain('Error201');
-    expect(output).toContain('export type getApiV1StatusError500 = ServerError;');
+    expect(output).toMatchSnapshot();
   });
 
   it('handles operation with only default error response', () => {
@@ -403,19 +382,14 @@ describe('generateErrorTypes', () => {
 
     const output = generateErrorTypes([op]);
 
-    expect(output).toContain('export type patchApiV1SettingsErrors =');
-    expect(output).toContain('ApiError<number, DefaultErrorBody>');
-    expect(output).toContain('UnspecifiedApiError');
-    expect(output).toContain('export type DefaultErrorBody = unknown;');
     expect(output).not.toContain('patchApiV1SettingsError4');
+    expect(output).toMatchSnapshot();
   });
 
   it('always produces ApiError, UnspecifiedApiError classes and isError even with empty operations', () => {
     const output = generateErrorTypes([]);
 
-    expect(output).toContain('export class ApiError');
-    expect(output).toContain('export class UnspecifiedApiError');
-    expect(output).toContain('export function isError');
+    expect(output).toMatchSnapshot();
   });
 
   it('uses methodName as prefix for error type names', () => {
@@ -434,8 +408,6 @@ describe('generateErrorTypes', () => {
 
     const output = generateErrorTypes([op]);
 
-    expect(output).toContain('export type deleteApiV1UsersByUserIdError404 = UserNotFoundError;');
-    expect(output).toContain('export type deleteApiV1UsersByUserIdErrors =');
-    expect(output).toContain('ApiError<404, deleteApiV1UsersByUserIdError404>');
+    expect(output).toMatchSnapshot();
   });
 });
