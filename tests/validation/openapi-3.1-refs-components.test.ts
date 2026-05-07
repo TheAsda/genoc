@@ -410,7 +410,7 @@ describe('OpenAPI 3.1 — $ref Resolution (3.1-#70-#75)', () => {
   // 3.1-#75: remote refs — Tier 2 (not supported, throws error)
   describe('3.1-#75: remote refs (not supported)', () => {
     it('throws error for https:// external $ref', () => {
-      const doc = {
+      const doc: OpenAPIDocument = {
         openapi: '3.1.0',
         info: { title: 'Test', version: '1.0.0' },
         components: {
@@ -419,7 +419,7 @@ describe('OpenAPI 3.1 — $ref Resolution (3.1-#70-#75)', () => {
           },
         },
         paths: {},
-      } as unknown as OpenAPIDocument;
+      };
 
       const resolver = new RefResolver(doc);
       expect(() => resolver.resolveRef('#/components/schemas/ExternalRef')).toThrow(

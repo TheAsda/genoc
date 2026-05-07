@@ -26,7 +26,21 @@ export const RESERVED_TYPE_NAMES: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * Build a mapping of original schema names → renamed names for any that
+ * Sanitize a schema type name by converting dot-separated segments into
+ * PascalCase. Names without dots pass through unchanged.
+ *
+ * "Api.Error" → "ApiError", "Simple" → "Simple"
+ */
+export function sanitizeTypeName(name: string): string {
+  if (!name.includes('.')) return name;
+  return name
+    .split('.')
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join('');
+}
+
+/**
+ * Build a mapping of sanitized schema names → renamed names for any that
  * collide with reserved type names.
  */
 export function buildSchemaRenameMap(
@@ -36,8 +50,9 @@ export function buildSchemaRenameMap(
 ): Map<string, string> {
   const renameMap = new Map<string, string>();
   for (const name of schemaNames) {
-    if (reserved.has(name)) {
-      renameMap.set(name, `${name}${suffix}`);
+    const sanitized = sanitizeTypeName(name);
+    if (reserved.has(sanitized)) {
+      renameMap.set(sanitized, `${sanitized}${suffix}`);
     }
   }
   return renameMap;
