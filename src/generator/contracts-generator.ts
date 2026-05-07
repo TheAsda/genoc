@@ -9,7 +9,13 @@ import type {
   SecuritySchemeObject,
   ServerVariableObject,
 } from '../types/openapi.js';
-import { toPascalCase, getOperationTypePrefix, makeHeader } from '../utils/generator-helpers.js';
+import {
+  RESERVED_TYPE_NAMES,
+  buildSchemaRenameMap,
+  toPascalCase,
+  getOperationTypePrefix,
+  makeHeader,
+} from '../utils/generator-helpers.js';
 
 function isBinaryContentType(ct: string): boolean {
   if (ct === 'application/octet-stream') return true;
@@ -26,7 +32,8 @@ function isBinaryContentType(ct: string): boolean {
 function substituteDiscriminatedType(
   tsType: string,
   schema: unknown,
-  discriminatorInfo: Map<string, { propertyName: string; mapping: Map<string, string> }>
+  discriminatorInfo: Map<string, { propertyName: string; mapping: Map<string, string> }>,
+  renameMap: Map<string, string>
 ): string {
   const refSchema = schema as Record<string, unknown> | null;
   if (!refSchema || typeof refSchema !== 'object') return tsType;
@@ -34,7 +41,8 @@ function substituteDiscriminatedType(
   if (typeof refSchema.$ref === 'string') {
     const schemaName = (refSchema.$ref as string).split('/').pop();
     if (schemaName && discriminatorInfo.has(schemaName)) {
-      return tsType.replace(new RegExp(`\\b${schemaName}\\b`, 'g'), `${schemaName}Variant`);
+      const renamed = renameMap.get(schemaName) ?? schemaName;
+      return tsType.replace(new RegExp(`\\b${renamed}\\b`, 'g'), `${renamed}Variant`);
     }
   }
 
@@ -43,7 +51,8 @@ function substituteDiscriminatedType(
     if (typeof items.$ref === 'string') {
       const schemaName = (items.$ref as string).split('/').pop();
       if (schemaName && discriminatorInfo.has(schemaName)) {
-        return tsType.replace(new RegExp(`\\b${schemaName}\\b`, 'g'), `${schemaName}Variant`);
+        const renamed = renameMap.get(schemaName) ?? schemaName;
+        return tsType.replace(new RegExp(`\\b${renamed}\\b`, 'g'), `${renamed}Variant`);
       }
     }
   }
@@ -190,6 +199,23 @@ function topologicalSort(entries: ContractEntry[], allNames: Set<string>): Contr
  * 7b. UnspecifiedApiError class
  */
 export function generateContracts(doc: OpenAPIDocument, resolver: RefResolver): string {
+  const schemaNameList = doc.components?.schemas ? Object.keys(doc.components.schemas) : [];
+  const renameMap = buildSchemaRenameMap(schemaNameList, RESERVED_TYPE_NAMES);
+
+  for (const [original, renamed] of renameMap) {
+    // TODO: Replace with structured logging solution
+    // oxlint-disable-next-line no-console
+    console.warn(
+      `Warning: Schema "${original}" collides with a built-in type and was renamed to "${renamed}".`
+    );
+  }
+
+  const renamingTypeGenerator = (refString: string): string => {
+    const segments = refString.split('/');
+    const original = segments[segments.length - 1] || 'unknown';
+    return renameMap.get(original) ?? original;
+  };
+
   const discriminatorInfo = new Map<
     string,
     {
@@ -206,7 +232,8 @@ export function generateContracts(doc: OpenAPIDocument, resolver: RefResolver): 
         if (resolved.discriminator.mapping) {
           for (const [key, ref] of Object.entries(resolved.discriminator.mapping)) {
             const targetName = ref.split('/').pop() || key;
-            mapping.set(key, targetName);
+            const renamedTarget = renameMap.get(targetName) ?? targetName;
+            mapping.set(key, renamedTarget);
           }
         }
         discriminatorInfo.set(name, {
@@ -227,15 +254,19 @@ export function generateContracts(doc: OpenAPIDocument, resolver: RefResolver): 
     }
   }
 
-  // reservedNames: prevent branded types from colliding with user-defined schema names
   const allSchemaNames = new Set<string>();
   if (doc.components?.schemas) {
     for (const name of Object.keys(doc.components.schemas)) {
-      allSchemaNames.add(name);
+      allSchemaNames.add(renameMap.get(name) ?? name);
     }
   }
 
-  const mapper = new SchemaMapper(resolver, undefined, discriminatorTargets, allSchemaNames);
+  const mapper = new SchemaMapper(
+    resolver,
+    renamingTypeGenerator,
+    discriminatorTargets,
+    allSchemaNames
+  );
   const lines: string[] = [];
 
   lines.push(makeHeader(doc.openapi));
@@ -245,13 +276,14 @@ export function generateContracts(doc: OpenAPIDocument, resolver: RefResolver): 
 
   if (doc.components?.schemas) {
     for (const [name, schema] of Object.entries(doc.components.schemas)) {
+      const renamedName = renameMap.get(name) ?? name;
       const result = mapper.mapSchema(schema, name);
       const resolved = resolver.resolve<SchemaObject>(schema as SchemaObject | ReferenceObject);
 
-      const definition = `export type ${name} = ${result.tsType};`;
+      const definition = `export type ${renamedName} = ${result.tsType};`;
 
       schemaEntries.push({
-        name,
+        name: renamedName,
         kind: 'type',
         definition,
         jsDoc: buildJsDoc(resolved.description),
@@ -273,9 +305,10 @@ export function generateContracts(doc: OpenAPIDocument, resolver: RefResolver): 
     const subtypeNames = Array.from(info.mapping.values());
     if (subtypeNames.length === 0) continue;
     const unionType = subtypeNames.join(' | ');
+    const renamedBase = renameMap.get(baseName) ?? baseName;
     lines.push('');
-    lines.push(`export type ${baseName}Variant = ${unionType};`);
-    allSchemaNames.add(`${baseName}Variant`);
+    lines.push(`export type ${renamedBase}Variant = ${unionType};`);
+    allSchemaNames.add(`${renamedBase}Variant`);
   }
 
   // Section 1b: Security scheme types
@@ -432,7 +465,7 @@ export function generateContracts(doc: OpenAPIDocument, resolver: RefResolver): 
         if (r.isBinary) return 'StreamResponse';
         if (r.schema) {
           const result = mapper.mapSchema(r.schema, undefined, 'response').tsType;
-          return substituteDiscriminatedType(result, r.schema, discriminatorInfo);
+          return substituteDiscriminatedType(result, r.schema, discriminatorInfo, renameMap);
         }
         return r.tsType;
       });

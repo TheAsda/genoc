@@ -1377,4 +1377,166 @@ describe('generateContracts', () => {
       expect(result).toContain('export function streamResponse(');
     });
   });
+
+  describe('reserved name collision handling', () => {
+    it('renames user schema that collides with ErrorResponse', () => {
+      const doc = createDoc({
+        components: {
+          schemas: {
+            ErrorResponse: {
+              type: 'object',
+              properties: {
+                code: { type: 'integer' },
+                message: { type: 'string' },
+              },
+              required: ['code', 'message'],
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+
+      expect(result).toContain('export type ErrorResponseModel = {');
+      expect(result).toContain(' code: number;');
+      expect(result).toContain(' message: string;');
+      expect(result).toContain('export class ErrorResponse');
+      expect(result).not.toMatch(/export type ErrorResponse =/);
+    });
+
+    it('renames user schema that collides with ApiError', () => {
+      const doc = createDoc({
+        components: {
+          schemas: {
+            ApiError: {
+              type: 'object',
+              properties: {
+                detail: { type: 'string' },
+              },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+
+      expect(result).toContain('export type ApiErrorModel = {');
+      expect(result).toContain('export class ApiError<TStatus extends number, TData>');
+    });
+
+    it('renames user schema that collides with StreamResponse', () => {
+      const doc = createDoc({
+        components: {
+          schemas: {
+            StreamResponse: { type: 'string' },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+
+      expect(result).toContain('export type StreamResponseModel = string;');
+      expect(result).toContain('export class StreamResponse {');
+    });
+
+    it('does not rename schemas without collisions', () => {
+      const doc = createDoc({
+        components: {
+          schemas: {
+            Product: {
+              type: 'object',
+              properties: { name: { type: 'string' } },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+
+      expect(result).toContain('export type Product = {');
+      expect(result).not.toContain('ProductModel');
+    });
+
+    it('renames $ref references to collided schemas in response types', () => {
+      const doc = createDoc({
+        components: {
+          schemas: {
+            ErrorResponse: {
+              type: 'object',
+              properties: {
+                message: { type: 'string' },
+              },
+            },
+          },
+        },
+        paths: {
+          '/items': {
+            get: {
+              responses: {
+                '200': { description: 'OK' },
+                '400': {
+                  description: 'Bad Request',
+                  content: {
+                    'application/json': {
+                      schema: { $ref: '#/components/schemas/ErrorResponse' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+
+      expect(result).toContain('export type GetItemsError400 = ErrorResponseModel;');
+      expect(result).toContain('export type GetItemsErrors = ApiError<400, GetItemsError400>;');
+    });
+
+    it('renames $ref references in allOf', () => {
+      const doc = createDoc({
+        components: {
+          schemas: {
+            ErrorResponse: {
+              type: 'object',
+              properties: { code: { type: 'integer' } },
+            },
+            DetailedError: {
+              allOf: [
+                { $ref: '#/components/schemas/ErrorResponse' },
+                { type: 'object', properties: { detail: { type: 'string' } } },
+              ],
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+
+      expect(result).toContain('export type DetailedError = ErrorResponseModel &');
+    });
+
+    it('handles multiple reserved name collisions in one spec', () => {
+      const doc = createDoc({
+        components: {
+          schemas: {
+            ErrorResponse: {
+              type: 'object',
+              properties: { message: { type: 'string' } },
+            },
+            StreamResponse: { type: 'string' },
+            ApiError: { type: 'string' },
+            Product: {
+              type: 'object',
+              properties: { name: { type: 'string' } },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+
+      expect(result).toContain('export type ErrorResponseModel = {');
+      expect(result).toContain('export type StreamResponseModel = string;');
+      expect(result).toContain('export type ApiErrorModel = string;');
+      expect(result).toContain('export type Product = {');
+      expect(result).toContain('export class ErrorResponse');
+      expect(result).toContain('export class StreamResponse {');
+      expect(result).toContain('export class ApiError');
+    });
+  });
 });

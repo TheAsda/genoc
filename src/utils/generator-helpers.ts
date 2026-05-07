@@ -1,6 +1,49 @@
 import type { AnalyzedOperation } from '../analyzer/path-analyzer.js';
 
 /**
+ * Reserved type names used by the generated output's built-in classes,
+ * functions, and types. User-defined schema names that collide with these
+ * are automatically renamed with a suffix to prevent duplicate identifiers.
+ */
+export const RESERVED_TYPE_NAMES: ReadonlySet<string> = new Set([
+  // Classes in contracts.ts
+  'StreamResponse',
+  'ErrorResponse',
+  'ApiError',
+  'UnspecifiedApiError',
+  'DefaultApiError',
+  'RequesterFailError',
+  // Functions in contracts.ts
+  'streamResponse',
+  'errorResponse',
+  // Types / functions in client.ts
+  'Requester',
+  'isDefinedError',
+  'decorateWithErrors',
+  'ApiClient',
+  // Interface in contracts.ts (when file uploads present)
+  'FileInput',
+]);
+
+/**
+ * Build a mapping of original schema names → renamed names for any that
+ * collide with reserved type names.
+ */
+export function buildSchemaRenameMap(
+  schemaNames: Iterable<string>,
+  reserved: ReadonlySet<string>,
+  suffix = 'Model'
+): Map<string, string> {
+  const renameMap = new Map<string, string>();
+  for (const name of schemaNames) {
+    if (reserved.has(name)) {
+      renameMap.set(name, `${name}${suffix}`);
+    }
+  }
+  return renameMap;
+}
+
+/**
  * Convert a string to PascalCase, handling camelCase, kebab-case, snake_case,
  * and colon-separated segments.
  */
