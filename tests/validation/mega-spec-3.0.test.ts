@@ -92,11 +92,9 @@ describe('OpenAPI 3.0 Mega-Spec Integration Test', () => {
     expect(result).toBe('');
   });
 
-  it('handles nullable keyword (3.0-specific)', () => {
-  });
+  it('handles nullable keyword (3.0-specific)', () => {});
 
-  it('strips $ref siblings (3.0-specific behavior)', () => {
-  });
+  it('strips $ref siblings (3.0-specific behavior)', () => {});
 
   it('generates parameter types', () => {
     expect(contracts).not.toContain('GetCookiesCookie');
@@ -107,15 +105,13 @@ describe('OpenAPI 3.0 Mega-Spec Integration Test', () => {
     expect(client).not.toContain('Authorization');
   });
 
-  it('handles exclusiveMinimum/exclusiveMaximum as booleans (3.0-specific)', () => {
-  });
+  it('handles exclusiveMinimum/exclusiveMaximum as booleans (3.0-specific)', () => {});
 
   it('uses first content type for request bodies', () => {
     expect(contracts).not.toContain('xml_data');
   });
 
-  it('strips $ref siblings in path operation schemas (3.0-specific)', () => {
-  });
+  it('strips $ref siblings in path operation schemas (3.0-specific)', () => {});
 
   it('does not emit validation constraint keywords in type output', () => {
     expect(contracts).not.toContain('minItems:');

@@ -74,21 +74,19 @@ describe('CLI Entry Point', () => {
   it('shows help when --help flag is used', async () => {
     const { captured, context } = buildContext();
     await run(app, ['--help'], context);
-    expect(captured.stdout).toContain('USAGE');
-    expect(captured.stdout).toContain('output-dir');
-    expect(captured.stdout).toContain('--help');
+    expect(captured.stdout).toMatchSnapshot();
   });
 
   it('shows version when --version flag is used', async () => {
     const { captured, context } = buildContext();
     await run(app, ['--version'], context);
-    expect(captured.stdout).toMatch(/\d+\.\d+\.\d+/);
+    expect(captured.stdout).toMatchSnapshot();
   });
 
   it('errors when spec positional is missing', async () => {
     const { captured, context } = buildContext();
     await run(app, ['--output-dir', OUTPUT_DIR], context);
-    expect(captured.stderr).toContain('spec');
+    expect(captured.stderr).toMatchSnapshot();
     expect(context.process.exitCode).not.toBe(0);
   });
 
@@ -97,7 +95,7 @@ describe('CLI Entry Point', () => {
     const specPath = join(SPECS_DIR, 'test.json');
     writeFileSync(specPath, JSON.stringify(createTestSpec(), null, 2));
     await run(app, [specPath], context);
-    expect(captured.stderr).toContain('output-dir');
+    expect(captured.stderr).toMatchSnapshot();
     expect(context.process.exitCode).not.toBe(0);
   });
 
@@ -110,7 +108,7 @@ describe('CLI Entry Point', () => {
       [specPath, '--output-dir', OUTPUT_DIR, '--method-name-strategy', 'invalid'],
       context
     );
-    expect(captured.stderr).toContain('path-based');
+    expect(captured.stderr).toMatchSnapshot();
     expect(context.process.exitCode).not.toBe(0);
   });
 
@@ -122,9 +120,7 @@ describe('CLI Entry Point', () => {
     const { captured, context } = buildContext();
     await run(app, [specPath, '--output-dir', OUTPUT_DIR], context);
 
-    expect(captured.stdout).toContain('Loading spec');
-    expect(captured.stdout).toContain('Generating client');
-    expect(captured.stdout).toContain('Success! Generated client files:');
+    expect(captured.stdout).toMatchSnapshot();
     expect(existsSync(join(OUTPUT_DIR, 'contracts.ts'))).toBe(true);
     expect(existsSync(join(OUTPUT_DIR, 'client.ts'))).toBe(true);
   });
@@ -159,12 +155,12 @@ describe('CLI Entry Point', () => {
       context
     );
 
-    expect(captured.stdout).toContain('Success! Generated client files:');
+    expect(captured.stdout).toMatchSnapshot();
     expect(existsSync(join(OUTPUT_DIR, 'contracts.ts'))).toBe(true);
     expect(existsSync(join(OUTPUT_DIR, 'client.ts'))).toBe(true);
 
     const clientFile = readFileSync(join(OUTPUT_DIR, 'client.ts'), 'utf-8');
-    expect(clientFile).toContain('getTest');
+    expect(clientFile).toMatchSnapshot();
   });
 
   it('generates files with operationId-with-fallback strategy', async () => {
@@ -197,12 +193,12 @@ describe('CLI Entry Point', () => {
       context
     );
 
-    expect(captured.stdout).toContain('Success! Generated client files:');
+    expect(captured.stdout).toMatchSnapshot();
     expect(existsSync(join(OUTPUT_DIR, 'contracts.ts'))).toBe(true);
     expect(existsSync(join(OUTPUT_DIR, 'client.ts'))).toBe(true);
 
     const clientFile = readFileSync(join(OUTPUT_DIR, 'client.ts'), 'utf-8');
-    expect(clientFile).toContain('getTest');
+    expect(clientFile).toMatchSnapshot();
   });
 
   it('handles invalid OpenAPI version', async () => {
@@ -218,7 +214,7 @@ describe('CLI Entry Point', () => {
     const { captured, context } = buildContext();
     await run(app, [specPath, '--output-dir', OUTPUT_DIR], context);
 
-    expect(captured.stderr).toContain('Unsupported OpenAPI version');
+    expect(captured.stderr).toMatchSnapshot();
     expect(context.process.exitCode).not.toBe(0);
   });
 
@@ -233,7 +229,7 @@ describe('CLI Entry Point', () => {
     const { captured, context } = buildContext();
     await run(app, [specPath, '--output-dir', OUTPUT_DIR], context);
 
-    expect(captured.stderr).toContain('Invalid OpenAPI specification');
+    expect(captured.stderr).toMatchSnapshot();
     expect(context.process.exitCode).not.toBe(0);
   });
 

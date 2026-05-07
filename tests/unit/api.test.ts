@@ -71,58 +71,10 @@ describe('Programmatic API', () => {
 
       await expect(generateClient(config)).resolves.not.toThrow();
 
-      // Check that output files contain expected content
       const clientFile = path.join(tempDir, 'client.ts');
       const clientContent = await fs.readFile(clientFile, 'utf-8');
 
-      expect(clientContent).toContain('export function createClient');
-      expect(clientContent).toContain('getApiV1Products');
-      expect(clientContent).toContain('postApiV1Products');
-    });
-
-    it('throws error for invalid OpenAPI specification', async () => {
-      const invalidSpecPath = path.join(FIXTURES, 'invalid-version.json');
-      const config: GeneratorConfig = {
-        input: invalidSpecPath,
-        outputDir: tempDir,
-      };
-
-      await expect(generateClient(config)).rejects.toThrow('Unsupported OpenAPI version');
-    });
-
-    it('generates client with operations spec', async () => {
-      const config: GeneratorConfig = {
-        input: operationsSpecPath,
-        outputDir: tempDir,
-        methodNameStrategy: 'path-based',
-      };
-
-      await expect(generateClient(config)).resolves.not.toThrow();
-
-      // Check that output files contain expected content
-      const clientFile = path.join(tempDir, 'client.ts');
-      const clientContent = await fs.readFile(clientFile, 'utf-8');
-
-      expect(clientContent).toContain('export function createClient');
-      expect(clientContent).toContain('getApiV1Products');
-      expect(clientContent).toContain('postApiV1Products');
-    });
-
-    it('generates client with operations spec', async () => {
-      const config: GeneratorConfig = {
-        input: operationsSpecPath,
-        outputDir: tempDir,
-        methodNameStrategy: 'path-based',
-      };
-
-      await expect(generateClient(config)).resolves.not.toThrow();
-
-      const clientFile = path.join(tempDir, 'client.ts');
-      const clientContent = await fs.readFile(clientFile, 'utf-8');
-
-      expect(clientContent).toContain('export function createClient');
-      expect(clientContent).toContain('getApiV1Products');
-      expect(clientContent).toContain('postApiV1Products');
+      expect(clientContent).toMatchSnapshot();
     });
   });
 

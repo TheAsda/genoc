@@ -72,7 +72,7 @@ describe('cross-version equivalence', () => {
       const output31 = generateOutput(spec31, false);
 
       expect(stripHeader(output30)).toBe(stripHeader(output31));
-      expect(output30).toContain('export type NullableString = string | null;');
+      expect(output30).toMatchSnapshot();
     });
   });
 
@@ -97,7 +97,7 @@ describe('cross-version equivalence', () => {
       const output31 = generateOutput(spec31, false);
 
       expect(stripHeader(output30)).toBe(stripHeader(output31));
-      expect(output30).toContain('export type Score = number;');
+      expect(output30).toMatchSnapshot();
     });
   });
 
@@ -115,7 +115,7 @@ describe('cross-version equivalence', () => {
       const output31 = generateOutput(spec31, false);
 
       expect(stripHeader(output30)).toBe(stripHeader(output31));
-      expect(output30).toContain('export type Label = string;');
+      expect(output30).toMatchSnapshot();
     });
   });
 
@@ -160,14 +160,13 @@ describe('cross-version equivalence', () => {
 
       // With preserveRefSiblings:false, the sibling description is ignored
       // and the target's "Original target description" is used for JSDoc.
-      expect(output30Mode).toContain('/** Original target description */');
       expect(output30Mode).not.toContain('/** Override from sibling */');
-
-      // With preserveRefSiblings:true, the sibling description overrides.
-      expect(output31Mode).toContain('/** Override from sibling */');
 
       // The two outputs must be DIFFERENT — this is the expected divergence.
       expect(stripHeader(output30Mode)).not.toBe(stripHeader(output31Mode));
+
+      expect(output30Mode).toMatchSnapshot();
+      expect(output31Mode).toMatchSnapshot();
     });
   });
 
@@ -209,11 +208,7 @@ describe('cross-version equivalence', () => {
 
       expect(stripHeader(output30)).toBe(stripHeader(output31));
 
-      // Verify key type outputs
-      expect(output30).toContain('export type Widget = {');
-      expect(output30).toContain('name: string | null;');
-      expect(output30).toContain('score: number;');
-      expect(output30).toContain('label?: string;');
+      expect(output30).toMatchSnapshot();
     });
   });
 });
