@@ -245,7 +245,7 @@ describe('Components Object examples', () => {
       const resolver = new RefResolver(doc);
       const contracts = generateContracts(doc, resolver);
 
-      expect(contracts).toContain('export type GetItemsError400 = ErrorResponse;');
+      expect(contracts).toContain('export type GetItemsError400 = ErrorResponseModel;');
       expect(contracts).toContain('export type GetItemsErrors = ApiError<400, GetItemsError400>;');
     });
   });
