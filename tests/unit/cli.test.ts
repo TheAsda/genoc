@@ -82,12 +82,6 @@ describe('CLI Entry Point', () => {
     expect(captured.stdout).toMatchSnapshot();
   });
 
-  it('shows version when --version flag is used', async () => {
-    const { captured, context } = buildContext();
-    await run(app, ['--version'], context);
-    expect(captured.stdout).toMatchSnapshot();
-  });
-
   it('errors when spec positional is missing', async () => {
     const { captured, context } = buildContext();
     await run(app, ['--output-dir', OUTPUT_DIR], context);

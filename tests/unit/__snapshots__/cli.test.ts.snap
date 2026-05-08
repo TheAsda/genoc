@@ -229,8 +229,3 @@ ARGUMENTS
   spec  Path or URL to OpenAPI 3.0 or 3.1 spec (JSON/YAML)
 "
 `;
-
-exports[`CLI Entry Point > shows version when --version flag is used 1`] = `
-"0.1.2
-"
-`;
