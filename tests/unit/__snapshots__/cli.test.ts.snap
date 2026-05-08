@@ -16,22 +16,22 @@ exports[`CLI Entry Point > errors when spec positional is missing 1`] = `
 `;
 
 exports[`CLI Entry Point > generates files from JSON spec 1`] = `
-"Loading spec from /home/andrey/openapi-client-generator/tmp-test/specs/test.json...
+"Loading spec from <TEMP_DIR>/specs/test.json...
 Loaded OpenAPI 3.1.0 spec
 Generating client...
 ✅ Success! Generated client files:
-  - /home/andrey/openapi-client-generator/tmp-test/output/contracts.ts
-  - /home/andrey/openapi-client-generator/tmp-test/output/client.ts
+  - <TEMP_DIR>/output/contracts.ts
+  - <TEMP_DIR>/output/client.ts
 "
 `;
 
 exports[`CLI Entry Point > generates files with operationId strategy 1`] = `
-"Loading spec from /home/andrey/openapi-client-generator/tmp-test/specs/test.json...
+"Loading spec from <TEMP_DIR>/specs/test.json...
 Loaded OpenAPI 3.1.0 spec
 Generating client...
 ✅ Success! Generated client files:
-  - /home/andrey/openapi-client-generator/tmp-test/output/contracts.ts
-  - /home/andrey/openapi-client-generator/tmp-test/output/client.ts
+  - <TEMP_DIR>/output/contracts.ts
+  - <TEMP_DIR>/output/client.ts
 "
 `;
 
@@ -112,12 +112,12 @@ export type ApiClient = ReturnType<typeof createClient>;"
 `;
 
 exports[`CLI Entry Point > generates files with operationId-with-fallback strategy 1`] = `
-"Loading spec from /home/andrey/openapi-client-generator/tmp-test/specs/test.json...
+"Loading spec from <TEMP_DIR>/specs/test.json...
 Loaded OpenAPI 3.1.0 spec
 Generating client...
 ✅ Success! Generated client files:
-  - /home/andrey/openapi-client-generator/tmp-test/output/contracts.ts
-  - /home/andrey/openapi-client-generator/tmp-test/output/client.ts
+  - <TEMP_DIR>/output/contracts.ts
+  - <TEMP_DIR>/output/client.ts
 "
 `;
 

@@ -1,4 +1,5 @@
-import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, mkdtempSync } from 'fs';
+import { tmpdir } from 'os';
 import { join } from 'path';
 
 import { run } from '@stricli/core';
@@ -6,9 +7,14 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 import { app } from '../../src/cli/app.js';
 
-const TEST_DIR = join(process.cwd(), 'tmp-test');
-const OUTPUT_DIR = join(TEST_DIR, 'output');
-const SPECS_DIR = join(TEST_DIR, 'specs');
+let TEST_DIR: string;
+let OUTPUT_DIR: string;
+let SPECS_DIR: string;
+
+/** Replace the temp directory path with a stable placeholder for deterministic snapshots. */
+function normalizePaths(output: string): string {
+  return output.replaceAll(TEST_DIR, '<TEMP_DIR>');
+}
 
 function createTestSpec(spec = {}) {
   return {
@@ -58,11 +64,10 @@ function buildContext() {
 
 describe('CLI Entry Point', () => {
   beforeEach(() => {
-    if (existsSync(TEST_DIR)) {
-      rmSync(TEST_DIR, { recursive: true });
-    }
+    TEST_DIR = mkdtempSync(join(tmpdir(), 'genoc-cli-test-'));
+    OUTPUT_DIR = join(TEST_DIR, 'output');
+    SPECS_DIR = join(TEST_DIR, 'specs');
     mkdirSync(SPECS_DIR, { recursive: true });
-    mkdirSync(OUTPUT_DIR, { recursive: true });
   });
 
   afterEach(() => {
@@ -86,7 +91,7 @@ describe('CLI Entry Point', () => {
   it('errors when spec positional is missing', async () => {
     const { captured, context } = buildContext();
     await run(app, ['--output-dir', OUTPUT_DIR], context);
-    expect(captured.stderr).toMatchSnapshot();
+    expect(normalizePaths(captured.stderr)).toMatchSnapshot();
     expect(context.process.exitCode).not.toBe(0);
   });
 
@@ -95,7 +100,7 @@ describe('CLI Entry Point', () => {
     const specPath = join(SPECS_DIR, 'test.json');
     writeFileSync(specPath, JSON.stringify(createTestSpec(), null, 2));
     await run(app, [specPath], context);
-    expect(captured.stderr).toMatchSnapshot();
+    expect(normalizePaths(captured.stderr)).toMatchSnapshot();
     expect(context.process.exitCode).not.toBe(0);
   });
 
@@ -108,7 +113,7 @@ describe('CLI Entry Point', () => {
       [specPath, '--output-dir', OUTPUT_DIR, '--method-name-strategy', 'invalid'],
       context
     );
-    expect(captured.stderr).toMatchSnapshot();
+    expect(normalizePaths(captured.stderr)).toMatchSnapshot();
     expect(context.process.exitCode).not.toBe(0);
   });
 
@@ -120,7 +125,7 @@ describe('CLI Entry Point', () => {
     const { captured, context } = buildContext();
     await run(app, [specPath, '--output-dir', OUTPUT_DIR], context);
 
-    expect(captured.stdout).toMatchSnapshot();
+    expect(normalizePaths(captured.stdout)).toMatchSnapshot();
     expect(existsSync(join(OUTPUT_DIR, 'contracts.ts'))).toBe(true);
     expect(existsSync(join(OUTPUT_DIR, 'client.ts'))).toBe(true);
   });
@@ -155,7 +160,7 @@ describe('CLI Entry Point', () => {
       context
     );
 
-    expect(captured.stdout).toMatchSnapshot();
+    expect(normalizePaths(captured.stdout)).toMatchSnapshot();
     expect(existsSync(join(OUTPUT_DIR, 'contracts.ts'))).toBe(true);
     expect(existsSync(join(OUTPUT_DIR, 'client.ts'))).toBe(true);
 
@@ -193,7 +198,7 @@ describe('CLI Entry Point', () => {
       context
     );
 
-    expect(captured.stdout).toMatchSnapshot();
+    expect(normalizePaths(captured.stdout)).toMatchSnapshot();
     expect(existsSync(join(OUTPUT_DIR, 'contracts.ts'))).toBe(true);
     expect(existsSync(join(OUTPUT_DIR, 'client.ts'))).toBe(true);
 
@@ -214,7 +219,7 @@ describe('CLI Entry Point', () => {
     const { captured, context } = buildContext();
     await run(app, [specPath, '--output-dir', OUTPUT_DIR], context);
 
-    expect(captured.stderr).toMatchSnapshot();
+    expect(normalizePaths(captured.stderr)).toMatchSnapshot();
     expect(context.process.exitCode).not.toBe(0);
   });
 
@@ -229,7 +234,7 @@ describe('CLI Entry Point', () => {
     const { captured, context } = buildContext();
     await run(app, [specPath, '--output-dir', OUTPUT_DIR], context);
 
-    expect(captured.stderr).toMatchSnapshot();
+    expect(normalizePaths(captured.stderr)).toMatchSnapshot();
     expect(context.process.exitCode).not.toBe(0);
   });
 
