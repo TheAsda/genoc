@@ -30,11 +30,10 @@ export class DefaultApiError<TData> extends Error {
  * Produces:
  * 1. `ApiError<TStatus, TData>` class
  * 2. `UnspecifiedApiError` class (extends ApiError, for status codes not in spec)
- * 3. `isError` type guard function
- * 4. Per-operation error union types (e.g. `GetApiV1ProductsErrors`)
- * 5. Per-operation per-status error type aliases (e.g. `GetApiV1ProductsError400`)
- * 6. `DefaultErrorBody` type for `default` responses
- * 7. Catch-all `UnspecifiedApiError` in error unions for unexpected status codes
+ * 3. Per-operation error union types (e.g. `GetApiV1ProductsErrors`)
+ * 4. Per-operation per-status error type aliases (e.g. `GetApiV1ProductsError400`)
+ * 5. `DefaultErrorBody` type for `default` responses
+ * 6. Catch-all `UnspecifiedApiError` in error unions for unexpected status codes
  */
 export function generateErrorTypes(operations: AnalyzedOperation[]): string {
   const lines: string[] = [];
@@ -64,13 +63,6 @@ export function generateErrorTypes(operations: AnalyzedOperation[]): string {
 }`);
 
   lines.push('');
-
-  lines.push(`export function isError<T extends { status: number }, S extends number>(
-  response: T,
-  status: S,
-): response is Extract<T, { status: S }> {
-  return response.status === status;
-}`);
 
   let needsDefaultErrorBody = false;
 
