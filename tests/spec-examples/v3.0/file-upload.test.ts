@@ -44,7 +44,7 @@ describe('OpenAPI 3.0 — file upload (format: binary / byte)', () => {
         },
       });
       const result = generateContracts(doc, makeResolver(doc));
-      expect(result).toContain('export type FileData = string;');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates string type for format: byte', () => {
@@ -56,7 +56,7 @@ describe('OpenAPI 3.0 — file upload (format: binary / byte)', () => {
         },
       });
       const result = generateContracts(doc, makeResolver(doc));
-      expect(result).toContain('export type Base64Data = string;');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates string type for nullable binary format', () => {
@@ -68,7 +68,7 @@ describe('OpenAPI 3.0 — file upload (format: binary / byte)', () => {
         },
       });
       const result = generateContracts(doc, makeResolver(doc));
-      expect(result).toContain('export type OptionalFile = string | null;');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -102,10 +102,7 @@ describe('OpenAPI 3.0 — file upload (format: binary / byte)', () => {
         },
       });
       const result = generateContracts(doc, makeResolver(doc));
-      expect(result).toContain('export type PostUploadBody =');
-      expect(result).toContain('export interface FileInput {');
-      expect(result).toContain('file: FileInput;');
-      expect(result).toContain('description?: string;');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates body type with multiple binary fields', () => {
@@ -136,11 +133,7 @@ describe('OpenAPI 3.0 — file upload (format: binary / byte)', () => {
         },
       });
       const result = generateContracts(doc, makeResolver(doc));
-      expect(result).toContain('export type PostBatchUploadBody =');
-      expect(result).toContain('avatar: FileInput;');
-      expect(result).toContain('document?: FileInput;');
-      expect(result).toContain('thumbnail?: FileInput;');
-      expect(result).toContain('name?: string;');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -176,7 +169,7 @@ describe('OpenAPI 3.0 — file upload (format: binary / byte)', () => {
         },
       });
       const result = generateContracts(doc, makeResolver(doc));
-      expect(result).toContain('export type GetFilesIdResponse = StreamResponse;');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -209,8 +202,7 @@ describe('OpenAPI 3.0 — file upload (format: binary / byte)', () => {
         },
       });
       const result = generateContracts(doc, makeResolver(doc));
-      expect(result).toContain('export type PostDataBody =');
-      expect(result).toContain('payload: string;');
+      expect(result).toMatchSnapshot();
     });
   });
 });

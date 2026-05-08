@@ -63,10 +63,10 @@ describe('Responses spec examples', () => {
       const resolver = new RefResolver(doc);
       const contracts = generateContracts(doc, resolver);
 
-      expect(contracts).toContain('export type GetUsersUserIdResponse = User;');
+      expect(contracts).toMatchSnapshot();
 
       const { client } = generateClient(doc, createConfig());
-      expect(client).toContain('requester<GetUsersUserIdResponse>');
+      expect(client).toMatchSnapshot();
     });
 
     it('generates array response type for list endpoints', () => {
@@ -106,7 +106,7 @@ describe('Responses spec examples', () => {
       const resolver = new RefResolver(doc);
       const contracts = generateContracts(doc, resolver);
 
-      expect(contracts).toContain('export type GetPetsResponse = Pet[];');
+      expect(contracts).toMatchSnapshot();
     });
   });
 
@@ -184,15 +184,10 @@ describe('Responses spec examples', () => {
       const resolver = new RefResolver(doc);
       const contracts = generateContracts(doc, resolver);
 
-      expect(contracts).toContain('export type GetOrdersOrderIdResponse = Order;');
-      expect(contracts).toContain('export type GetOrdersOrderIdError400 = ValidationError;');
-      expect(contracts).toContain('export type GetOrdersOrderIdError404 = NotFoundError;');
-      expect(contracts).toContain(
-        'export type GetOrdersOrderIdErrors = ApiError<400, GetOrdersOrderIdError400> | ApiError<404, GetOrdersOrderIdError404>;'
-      );
+      expect(contracts).toMatchSnapshot();
 
       const { client } = generateClient(doc, createConfig());
-      expect(client).toContain('requester<GetOrdersOrderIdResponse>');
+      expect(client).toMatchSnapshot();
     });
   });
 
@@ -219,7 +214,8 @@ describe('Responses spec examples', () => {
       expect(contracts).not.toContain('Errors =');
 
       const { client } = generateClient(doc, createConfig());
-      expect(client).toContain('requester<void>');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
 
     it('default response alongside explicit error codes keeps explicit errors only', () => {
@@ -239,8 +235,7 @@ describe('Responses spec examples', () => {
       const resolver = new RefResolver(doc);
       const contracts = generateContracts(doc, resolver);
 
-      expect(contracts).toContain('export type GetTasksError401 = unknown;');
-      expect(contracts).toContain('export type GetTasksErrors = ApiError<401, GetTasksError401>;');
+      expect(contracts).toMatchSnapshot();
       expect(contracts).not.toContain('ErrorDefault');
     });
   });
@@ -283,8 +278,7 @@ describe('Responses spec examples', () => {
       const resolver = new RefResolver(doc);
       const contracts = generateContracts(doc, resolver);
 
-      expect(contracts).toContain('export type GetDownloadResponse =');
-      expect(contracts).toContain('url: string');
+      expect(contracts).toMatchSnapshot();
     });
   });
 
@@ -303,8 +297,7 @@ describe('Responses spec examples', () => {
       });
       const { client } = generateClient(doc, createConfig());
 
-      expect(client).toContain('Promise<void>');
-      expect(client).toContain('requester<void>');
+      expect(client).toMatchSnapshot();
     });
   });
 
@@ -362,7 +355,7 @@ describe('Responses spec examples', () => {
       const resolver = new RefResolver(doc);
       const contracts = generateContracts(doc, resolver);
 
-      expect(contracts).toContain('export type PostJobsResponse = AsyncTask | AsyncTask;');
+      expect(contracts).toMatchSnapshot();
     });
   });
 });

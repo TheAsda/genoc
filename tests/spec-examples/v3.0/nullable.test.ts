@@ -48,28 +48,28 @@ describe('OpenAPI 3.0 — nullable', () => {
       const result = generate({
         NullableString: { type: 'string', nullable: true },
       });
-      expect(result).toContain('export type NullableString = string | null;');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates number | null for nullable integer', () => {
       const result = generate({
         NullableInt: { type: 'integer', nullable: true },
       });
-      expect(result).toContain('export type NullableInt = number | null;');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates number | null for nullable number', () => {
       const result = generate({
         NullableNumber: { type: 'number', nullable: true },
       });
-      expect(result).toContain('export type NullableNumber = number | null;');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates boolean | null for nullable boolean', () => {
       const result = generate({
         NullableBool: { type: 'boolean', nullable: true },
       });
-      expect(result).toContain('export type NullableBool = boolean | null;');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -85,7 +85,7 @@ describe('OpenAPI 3.0 — nullable', () => {
           nullable: true,
         },
       });
-      expect(result).toContain('export type NullableArray = string[] | null;');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates Array<T | null> | null for nullable array with nullable items', () => {
@@ -96,7 +96,7 @@ describe('OpenAPI 3.0 — nullable', () => {
           nullable: true,
         },
       });
-      expect(result).toContain('export type NullableArrayItems = Array<string | null> | null;');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -123,8 +123,7 @@ describe('OpenAPI 3.0 — nullable', () => {
         },
       });
 
-      expect(result).toContain('export type Extended = (Base &');
-      expect(result).toContain(') | null');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates union type wrapped with | null for nullable oneOf', () => {
@@ -135,7 +134,7 @@ describe('OpenAPI 3.0 — nullable', () => {
         },
       });
 
-      expect(result).toContain('export type NullableOneOf = (string | number) | null;');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates union type wrapped with | null for nullable anyOf', () => {
@@ -146,7 +145,7 @@ describe('OpenAPI 3.0 — nullable', () => {
         },
       });
 
-      expect(result).toContain('export type NullableAnyOf = (string | boolean) | null;');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -163,9 +162,7 @@ describe('OpenAPI 3.0 — nullable', () => {
         },
       });
 
-      expect(result).toContain(
-        "export type NullableStatus = 'active' | 'inactive' | 'pending' | null;"
-      );
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -186,10 +183,7 @@ describe('OpenAPI 3.0 — nullable', () => {
         },
       });
 
-      expect(result).toContain('export type User = {');
-      expect(result).toContain('name: string;');
-      expect(result).toContain('nickname: string | null;');
-      expect(result).toContain('age: number;');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates nullable property on nested object', () => {
@@ -208,8 +202,7 @@ describe('OpenAPI 3.0 — nullable', () => {
         },
       });
 
-      expect(result).toContain('export type Outer = {');
-      expect(result).toContain('inner?: { value?: string; } | null;');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -221,7 +214,7 @@ describe('OpenAPI 3.0 — nullable', () => {
       const result = generate({
         NotNullable: { type: 'string', nullable: false },
       });
-      expect(result).toContain('export type NotNullable = string;');
+      expect(result).toMatchSnapshot();
       expect(result).not.toContain('NotNullable = string | null');
     });
 
@@ -229,7 +222,7 @@ describe('OpenAPI 3.0 — nullable', () => {
       const result = generate({
         RegularString: { type: 'string' },
       });
-      expect(result).toContain('export type RegularString = string;');
+      expect(result).toMatchSnapshot();
       expect(result).not.toContain('RegularString = string | null');
     });
   });
@@ -242,8 +235,7 @@ describe('OpenAPI 3.0 — nullable', () => {
       const result = generate({
         NullableUntyped: { nullable: true },
       });
-      // Without a type, the schema maps to unknown; nullable is ignored
-      expect(result).toContain('export type NullableUntyped = unknown;');
+      expect(result).toMatchSnapshot();
     });
   });
 });

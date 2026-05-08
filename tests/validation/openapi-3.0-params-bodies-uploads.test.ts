@@ -71,14 +71,8 @@ describe('OpenAPI 3.0 — Parameters (3.0-#33-#40)', () => {
               "200": { description: OK }
     `);
 
-    // Header params generate a Headers type with quoted keys
-    expect(contracts).toContain('export type GetDataHeaders = {');
-    expect(contracts).toContain('"X-Api-Key"?: string');
-    expect(contracts).toContain('"X-Request-Id": string');
-    // Client: headers appear in method signature (required because X-Request-Id is required)
-    expect(client).toContain('getData: decorateWithErrors<');
-    expect(client).toContain('(headers: GetDataHeaders) => Promise');
-    expect(client).toContain('{ headers }');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     expect(client).not.toContain('xApiKey');
     expect(client).not.toContain('xRequestId');
   });
@@ -99,20 +93,19 @@ describe('OpenAPI 3.0 — Parameters (3.0-#33-#40)', () => {
               "200": { description: OK }
     `);
 
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     // Cookie params do NOT generate operation-specific Query or Headers types
     expect(contracts).not.toContain('GetSessionQuery');
     // Must check against operation-specific Headers, not StreamResponse class
     expect(contracts).not.toContain('GetSessionHeaders');
-    // Client: no arguments
-    expect(client).toContain('getSession: decorateWithErrors<');
-    expect(client).toContain('() => Promise');
     expect(client).not.toContain('session_id');
   });
 
   // 3.0-#35: required/optional parameters — Tier 1
   describe('3.0-#35: required vs optional parameters', () => {
     it('marks required params without ? and optional params with ?', () => {
-      const { contracts } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.0.3"
         info: { title: Test, version: "1.0.0" }
         paths:
@@ -134,17 +127,14 @@ describe('OpenAPI 3.0 — Parameters (3.0-#33-#40)', () => {
                 "200": { description: OK }
       `);
 
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
       // required: true → non-optional
-      expect(contracts).toContain('q: string');
       expect(contracts).not.toMatch(/q\?:/);
-      // required: false → optional
-      expect(contracts).toContain('sort?: string');
-      // required absent → optional
-      expect(contracts).toContain('filter?: string');
     });
 
     it('makes path params always required regardless of explicit setting', () => {
-      const { client } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.0.3"
         info: { title: Test, version: "1.0.0" }
         paths:
@@ -158,9 +148,8 @@ describe('OpenAPI 3.0 — Parameters (3.0-#33-#40)', () => {
                 "200": { description: OK }
       `);
 
-      // Path params are always required in the method signature
-      expect(client).toContain('getItemsByItemId: decorateWithErrors<');
-      expect(client).toContain('(itemId: string)');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
   });
 
@@ -192,11 +181,8 @@ describe('OpenAPI 3.0 — Parameters (3.0-#33-#40)', () => {
                 "200": { description: OK }
       `);
 
-      // No crash — query type is still generated normally
-      expect(contracts).toContain('export type GetSearchQuery = {');
-      expect(contracts).toContain('q?: string');
-      expect(contracts).toContain('ids?: number[]');
-
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
       // style/explode/allowEmptyValue are NOT emitted in any output
       expect(contracts).not.toContain('style');
       expect(contracts).not.toContain('explode');
@@ -229,13 +215,8 @@ describe('OpenAPI 3.0 — Parameters (3.0-#33-#40)', () => {
               "200": { description: OK }
     `);
 
-    // No crash — query type is generated normally
-    expect(contracts).toContain('export type GetItemsQuery = {');
-    expect(contracts).toContain('oldParam?: string');
-    expect(contracts).toContain('newParam?: string');
-
-    // Parameter-level @deprecated IS emitted as @deprecated tags
-    expect(client).toContain('@deprecated oldParam — This parameter is deprecated');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#40: description (param) — Tier 1 doc, Tier 2 actual
@@ -257,14 +238,9 @@ describe('OpenAPI 3.0 — Parameters (3.0-#33-#40)', () => {
               "200": { description: OK }
     `);
 
-    // No crash — query type generated normally
-    expect(contracts).toContain('export type GetSearchQuery = {');
-    expect(contracts).toContain('q?: string');
-
-    // Parameter description IS emitted in client JSDoc as @param tags
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     expect(contracts).not.toContain('search query string');
-    expect(client).toContain('@param q — The search query string');
-    expect(client).toContain('@param');
   });
 });
 
@@ -293,14 +269,8 @@ describe('OpenAPI 3.0 — Request Bodies (3.0-#41-#47)', () => {
               "201": { description: Created }
     `);
 
-    expect(contracts).toContain('export type PostUsersBody =');
-    expect(contracts).toContain('name: string');
-    expect(contracts).toContain('email: string');
-    expect(contracts).toContain('age?: number');
-    // Client: body is optional (required not set on requestBody)
-    expect(client).toContain('postUsers: decorateWithErrors<');
-    expect(client).toContain('(body?: PostUsersBody)');
-    expect(client).toContain('{ body }');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#42: multipart/form-data — Tier 1
@@ -325,14 +295,8 @@ describe('OpenAPI 3.0 — Request Bodies (3.0-#41-#47)', () => {
               "201": { description: Created }
     `);
 
-    // Contracts: FileInput interface + body type with FileInput
-    expect(contracts).toContain('export interface FileInput {');
-    expect(contracts).toContain('file: FileInput');
-    expect(contracts).toContain('name?: string');
-    // Client: FormData construction
-    expect(client).toContain('const formData = new FormData()');
-    expect(client).toContain('formData.append("file"');
-    expect(client).toContain('body: formData');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#43: application/x-www-form-urlencoded — Tier 1
@@ -357,13 +321,8 @@ describe('OpenAPI 3.0 — Request Bodies (3.0-#41-#47)', () => {
               "200": { description: OK }
     `);
 
-    // Body type is generated with properties
-    expect(contracts).toContain('export type PostLoginBody =');
-    expect(contracts).toContain('username: string');
-    expect(contracts).toContain('password: string');
-    // Client: required body arg
-    expect(client).toContain('postLogin: decorateWithErrors<');
-    expect(client).toContain('(body: PostLoginBody)');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#44: application/octet-stream — Tier 1
@@ -385,16 +344,13 @@ describe('OpenAPI 3.0 — Request Bodies (3.0-#41-#47)', () => {
               "200": { description: OK }
     `);
 
-    // Binary content type (octet-stream) maps to Blob type
-    expect(contracts).toContain('export type PostBinaryBody = Blob;');
-    // Client: required body arg passed as { body }
-    expect(client).toContain('postBinary: decorateWithErrors<');
-    expect(client).toContain('(body: PostBinaryBody)');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#45: content negotiation — Tier 1
   it('3.0-#45: multiple content types picks first content type schema', () => {
-    const { contracts } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.3"
       info: { title: Test, version: "1.0.0" }
       paths:
@@ -419,9 +375,8 @@ describe('OpenAPI 3.0 — Request Bodies (3.0-#41-#47)', () => {
               "200": { description: OK }
     `);
 
-    // Uses first content type (application/json) schema
-    expect(contracts).toContain('export type PostDataBody =');
-    expect(contracts).toContain('jsonField: string');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     // Should NOT contain the second content type's properties
     expect(contracts).not.toContain('fileField');
     // No FileInput since first content type is not multipart
@@ -431,7 +386,7 @@ describe('OpenAPI 3.0 — Request Bodies (3.0-#41-#47)', () => {
   // 3.0-#46: required/optional body — Tier 1
   describe('3.0-#46: required vs optional request body', () => {
     it('non-optional body arg when required: true', () => {
-      const { client } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.0.3"
         info: { title: Test, version: "1.0.0" }
         paths:
@@ -450,12 +405,12 @@ describe('OpenAPI 3.0 — Request Bodies (3.0-#41-#47)', () => {
                 "201": { description: Created }
       `);
 
-      expect(client).toContain('postOrders: decorateWithErrors<');
-      expect(client).toContain('(body: PostOrdersBody)');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
 
     it('optional body arg when required is false or absent', () => {
-      const { client } = generateClientFromYaml(`
+      const { contracts, client } = generateClientFromYaml(`
         openapi: "3.0.3"
         info: { title: Test, version: "1.0.0" }
         paths:
@@ -473,8 +428,8 @@ describe('OpenAPI 3.0 — Request Bodies (3.0-#41-#47)', () => {
                 "200": { description: Updated }
       `);
 
-      expect(client).toContain('patchProfile: decorateWithErrors<');
-      expect(client).toContain('(body?: PatchProfileBody)');
+      expect(contracts).toMatchSnapshot();
+      expect(client).toMatchSnapshot();
     });
   });
 
@@ -501,10 +456,8 @@ describe('OpenAPI 3.0 — Request Bodies (3.0-#41-#47)', () => {
               "201": { description: Created }
     `);
 
-    // No crash — body type generated normally
-    expect(contracts).toContain('export type PostUsersBody =');
-    expect(contracts).toContain('name: string');
-
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     // Examples are NOT emitted in output
     expect(contracts).not.toContain('John');
     expect(client).not.toContain('John');
@@ -544,22 +497,17 @@ describe('OpenAPI 3.0 — File Uploads (3.0-#48-#52)', () => {
   it('3.0-#48: format: binary in multipart generates FileInput type', () => {
     const { contracts, client } = generateClientFromYaml(uploadSpec);
 
-    // Binary fields become FileInput
-    expect(contracts).toContain('avatar: FileInput');
-    // Client: binary field uses .data and .filename
-    expect(client).toContain('body.avatar.data');
-    expect(client).toContain('body.avatar.filename');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#49: format: byte — Tier 1
   it('3.0-#49: format: byte in multipart generates string type (not FileInput)', () => {
     const { contracts, client } = generateClientFromYaml(uploadSpec);
 
-    // Byte fields become string (only binary gets FileInput in multipart)
-    expect(contracts).toContain('document?: string');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     expect(contracts).not.toContain('document?: FileInput');
-    // Client: byte field is appended directly, not as FileInput
-    expect(client).toContain('formData.append("document"');
     expect(client).not.toContain('body.document.data');
     expect(client).not.toContain('body.document.filename');
   });
@@ -568,28 +516,16 @@ describe('OpenAPI 3.0 — File Uploads (3.0-#48-#52)', () => {
   it('3.0-#50: multiple binary fields and binary array generate FileInput entries', () => {
     const { contracts, client } = generateClientFromYaml(uploadSpec);
 
-    // Multiple binary fields: avatar (single) and gallery (array)
-    expect(contracts).toContain('avatar: FileInput');
-    expect(contracts).toContain('gallery?: FileInput[]');
-    // Client: gallery array iterates with for..of
-    expect(client).toContain('body.gallery');
-    // Each gallery file uses .data and .filename
-    expect(client).toContain('file.data');
-    expect(client).toContain('file.filename');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#51: file metadata — Tier 1
   it('3.0-#51: FileInput interface includes data (Blob) and filename (string)', () => {
     const { contracts, client } = generateClientFromYaml(uploadSpec);
 
-    // FileInput interface has data and filename fields
-    expect(contracts).toContain('export interface FileInput {');
-    expect(contracts).toContain('data: Blob');
-    expect(contracts).toContain('filename: string');
-    // Client: uses both .data and .filename when appending
-    expect(client).toMatch(
-      /formData\.append\("avatar",\s*body\.avatar\.data,\s*body\.avatar\.filename\)/
-    );
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#52: file validation — Tier 2 (not supported)
@@ -619,8 +555,8 @@ describe('OpenAPI 3.0 — File Uploads (3.0-#48-#52)', () => {
               "201": { description: Created }
     `);
 
-    // No crash — body type generated normally with FileInput
-    expect(contracts).toContain('file: FileInput');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
     // Validation constraints are NOT emitted as code
     expect(contracts).not.toContain('1048576');
     expect(contracts).not.toContain('maxLength');
@@ -659,12 +595,8 @@ describe('OpenAPI 3.0 — Initial Responses (3.0-#53-#54)', () => {
                         required: [id, name]
     `);
 
-    // Response type is generated
-    expect(contracts).toContain('export type GetUsersResponse =');
-    expect(contracts).toContain('id: string');
-    expect(contracts).toContain('name: string');
-    // Client: returns the response type
-    expect(client).toContain('getUsers: decorateWithErrors<');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   it('3.0-#53: 201 Created generates typed response', () => {
@@ -696,8 +628,8 @@ describe('OpenAPI 3.0 — Initial Responses (3.0-#53-#54)', () => {
                       required: [id, name]
     `);
 
-    expect(contracts).toContain('export type PostUsersResponse =');
-    expect(contracts).toContain('id: string');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   // 3.0-#54: 4xx/5xx error codes — Tier 1
@@ -744,21 +676,12 @@ describe('OpenAPI 3.0 — Initial Responses (3.0-#53-#54)', () => {
                       required: [error]
     `);
 
-    // Error types generated for each error status code
-    expect(contracts).toContain('export type GetUsersUserIdError400 =');
-    expect(contracts).toContain('message: string');
-    expect(contracts).toContain('export type GetUsersUserIdError404 =');
-    expect(contracts).toContain('error: string');
-    // Error union type
-    expect(contracts).toContain('GetUsersUserIdErrors =');
-    expect(contracts).toContain('ApiError<400');
-    expect(contracts).toContain('ApiError<404');
-    // Client: throws ApiError for error responses
-    expect(client).toContain('ApiError');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 
   it('3.0-#54: 5xx error responses generate typed error types', () => {
-    const { contracts } = generateClientFromYaml(`
+    const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.3"
       info: { title: Test, version: "1.0.0" }
       paths:
@@ -780,10 +703,7 @@ describe('OpenAPI 3.0 — Initial Responses (3.0-#53-#54)', () => {
                 description: Service unavailable
     `);
 
-    expect(contracts).toContain('export type GetHealthError500 =');
-    expect(contracts).toContain('detail: string');
-    expect(contracts).toContain('GetHealthErrors =');
-    expect(contracts).toContain('ApiError<500');
-    expect(contracts).toContain('ApiError<503');
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 });

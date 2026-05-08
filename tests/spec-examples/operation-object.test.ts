@@ -37,7 +37,7 @@ describe('Operation Object examples', () => {
       });
 
       const { client } = generateClient(doc, makeConfig());
-      expect(client).toContain('getUsers');
+      expect(client).toMatchSnapshot();
       expect(client).not.toContain('listUsers');
     });
 
@@ -54,7 +54,7 @@ describe('Operation Object examples', () => {
       });
 
       const { client } = generateClient(doc, makeConfig({ methodNameStrategy: 'operationId' }));
-      expect(client).toContain('listUsers');
+      expect(client).toMatchSnapshot();
     });
 
     it('falls back to path-based when operationId-with-fallback and no operationId', () => {
@@ -72,7 +72,7 @@ describe('Operation Object examples', () => {
         doc,
         makeConfig({ methodNameStrategy: 'operationId-with-fallback' })
       );
-      expect(client).toContain('getUsers');
+      expect(client).toMatchSnapshot();
     });
 
     it('prefers operationId with operationId-with-fallback strategy when available', () => {
@@ -91,7 +91,7 @@ describe('Operation Object examples', () => {
         doc,
         makeConfig({ methodNameStrategy: 'operationId-with-fallback' })
       );
-      expect(client).toContain('listUsers');
+      expect(client).toMatchSnapshot();
     });
 
     it('throws when operationId strategy is used without operationId', () => {
@@ -126,7 +126,7 @@ describe('Operation Object examples', () => {
       });
 
       const { client } = generateClient(doc, makeConfig());
-      expect(client).toContain('@deprecated');
+      expect(client).toMatchSnapshot();
     });
 
     it('does not include @deprecated for non-deprecated operations', () => {
@@ -142,6 +142,7 @@ describe('Operation Object examples', () => {
       });
 
       const { client } = generateClient(doc, makeConfig());
+      expect(client).toMatchSnapshot();
       expect(client).not.toContain('@deprecated');
     });
 
@@ -219,8 +220,7 @@ describe('Operation Object examples', () => {
       });
 
       const { client } = generateClient(doc, makeConfig());
-      expect(client).toContain('List all users');
-      expect(client).toContain('Returns a paginated list of all registered users in the system.');
+      expect(client).toMatchSnapshot();
     });
 
     it('includes only summary in JSDoc when description is absent', () => {
@@ -236,7 +236,7 @@ describe('Operation Object examples', () => {
       });
 
       const { client } = generateClient(doc, makeConfig());
-      expect(client).toContain('List all users');
+      expect(client).toMatchSnapshot();
     });
 
     it('includes only description in JSDoc when summary is absent', () => {
@@ -252,7 +252,7 @@ describe('Operation Object examples', () => {
       });
 
       const { client } = generateClient(doc, makeConfig());
-      expect(client).toContain('Returns all registered users.');
+      expect(client).toMatchSnapshot();
     });
 
     it('preserves summary and description in analyzed operation', () => {
@@ -289,6 +289,8 @@ describe('Operation Object examples', () => {
       });
 
       const { client } = generateClient(doc, makeConfig());
+
+      expect(client).toMatchSnapshot();
 
       const pingBlock = client.substring(
         client.indexOf('Health check'),

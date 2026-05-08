@@ -42,17 +42,17 @@ describe('Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples', () => {
   describe('Primitive Sample', () => {
     it('generates type alias for a string primitive schema', () => {
       const result = generate({ Status: { type: 'string' } });
-      expect(result).toContain('export type Status = string;');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates type alias for an integer primitive schema', () => {
       const result = generate({ Count: { type: 'integer' } });
-      expect(result).toContain('export type Count = number;');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates type alias for a boolean primitive schema', () => {
       const result = generate({ Active: { type: 'boolean' } });
-      expect(result).toContain('export type Active = boolean;');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -72,10 +72,7 @@ describe('Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples', () => {
         },
       });
 
-      expect(result).toContain('export type User = {');
-      expect(result).toContain('name: string;');
-      expect(result).toContain('age?: number;');
-      expect(result).toContain('}');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -91,8 +88,7 @@ describe('Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples', () => {
         },
       });
 
-      expect(result).toContain('export type IntMap = {');
-      expect(result).toContain('[key: string]: number');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates Record type for anonymous map without name (inline)', () => {
@@ -108,7 +104,7 @@ describe('Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples', () => {
         },
       });
 
-      expect(result).toContain('Record<string, string>');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates index signature alongside named properties', () => {
@@ -123,9 +119,7 @@ describe('Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples', () => {
         },
       });
 
-      expect(result).toContain('export type ExtendedMap = {');
-      expect(result).toContain('id: string;');
-      expect(result).toContain('[key: string]: number');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -145,9 +139,7 @@ describe('Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples', () => {
         },
       });
 
-      expect(result).toContain('export type Pet = {');
-      expect(result).toContain('name?: string;');
-      expect(result).toContain('tag?: string;');
+      expect(result).toMatchSnapshot();
     });
 
     it('does not crash when schema includes `examples` array (OpenAPI 3.1 style)', () => {
@@ -158,7 +150,7 @@ describe('Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples', () => {
         },
       });
 
-      expect(result).toContain('export type Color = string;');
+      expect(result).toMatchSnapshot();
     });
 
     it('preserves description in JSDoc alongside example', () => {
@@ -173,8 +165,7 @@ describe('Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples', () => {
         },
       });
 
-      expect(result).toContain('/** A product in the catalog */');
-      expect(result).toContain('export type Product = {');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -205,7 +196,8 @@ describe('Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples', () => {
         },
       });
 
-      expect(result).toContain('export type ExtendedError = ErrorBase &');
+      expect(result).toMatchSnapshot();
+
       const basePos = result.indexOf('export type ErrorBase');
       const extPos = result.indexOf('export type ExtendedError');
       expect(basePos).toBeLessThan(extPos);
@@ -227,8 +219,7 @@ describe('Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples', () => {
         },
       });
 
-      expect(result).toContain('export type Combined =');
-      expect(result).toContain('&');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -251,7 +242,7 @@ describe('Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples', () => {
         },
       });
 
-      expect(result).toContain('export type Pet = Cat | Dog;');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates union type for oneOf with inline primitive schemas', () => {
@@ -261,7 +252,7 @@ describe('Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples', () => {
         },
       });
 
-      expect(result).toContain('export type StringOrNumber = string | number;');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -284,7 +275,7 @@ describe('Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples', () => {
         },
       });
 
-      expect(result).toContain('export type Media = Photo | Video;');
+      expect(result).toMatchSnapshot();
     });
 
     it('generates union type for anyOf with mixed inline schemas', () => {
@@ -294,7 +285,7 @@ describe('Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples', () => {
         },
       });
 
-      expect(result).toContain('export type Flexible = string | number | boolean;');
+      expect(result).toMatchSnapshot();
     });
   });
 
@@ -334,11 +325,7 @@ describe('Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples', () => {
         },
       });
 
-      expect(result).toContain('export type PetBase = {');
-      expect(result).toContain('petType: string;');
-      expect(result).toContain('export type Cat = PetBase &');
-      expect(result).toContain('export type Dog = PetBase &');
-      expect(result).toContain('export type Pet = Cat | Dog;');
+      expect(result).toMatchSnapshot();
 
       // Verify topological ordering: base before subtypes, subtypes before union
       const baseIdx = result.indexOf('export type PetBase');

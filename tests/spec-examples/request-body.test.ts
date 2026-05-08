@@ -48,15 +48,10 @@ describe('Request Body spec examples', () => {
       const resolver = new RefResolver(doc);
       const contracts = generateContracts(doc, resolver);
 
-      expect(contracts).toContain('export type PostUsersBody =');
-      expect(contracts).toContain('name: string');
-      expect(contracts).toContain('email: string');
-      expect(contracts).toContain('age?: number');
+      expect(contracts).toMatchSnapshot();
 
       const { client } = generateClient(doc, createConfig());
-      expect(client).toContain('postUsers: decorateWithErrors<');
-      expect(client).toContain('(body?: PostUsersBody)');
-      expect(client).toContain('{ body }');
+      expect(client).toMatchSnapshot();
     });
 
     it('generates body type from $ref schema', () => {
@@ -91,7 +86,7 @@ describe('Request Body spec examples', () => {
       const resolver = new RefResolver(doc);
       const contracts = generateContracts(doc, resolver);
 
-      expect(contracts).toContain('export type PostRegisterBody = CreateUser;');
+      expect(contracts).toMatchSnapshot();
     });
   });
 
@@ -123,8 +118,7 @@ describe('Request Body spec examples', () => {
       });
       const { client } = generateClient(doc, createConfig());
 
-      expect(client).toContain('postOrders: decorateWithErrors<');
-      expect(client).toContain('(body: PostOrdersBody)');
+      expect(client).toMatchSnapshot();
     });
 
     it('optional body arg when required is false or absent', () => {
@@ -152,8 +146,7 @@ describe('Request Body spec examples', () => {
       });
       const { client } = generateClient(doc, createConfig());
 
-      expect(client).toContain('patchProfile: decorateWithErrors<');
-      expect(client).toContain('(body?: PatchProfileBody)');
+      expect(client).toMatchSnapshot();
     });
   });
 
@@ -195,11 +188,7 @@ describe('Request Body spec examples', () => {
       const resolver = new RefResolver(doc);
       const contracts = generateContracts(doc, resolver);
 
-      // Should use the first content type (application/json) schema
-      expect(contracts).toContain('export type PostUploadBody =');
-      expect(contracts).toContain('url: string');
-      expect(contracts).toContain('metadata?: string');
-
+      expect(contracts).toMatchSnapshot();
       // Should NOT contain form-data specific properties
       expect(contracts).not.toContain('FileInput');
     });
@@ -242,13 +231,10 @@ describe('Request Body spec examples', () => {
       const resolver = new RefResolver(doc);
       const contracts = generateContracts(doc, resolver);
 
-      expect(contracts).toContain('export type PutUsersUserIdBody =');
-      expect(contracts).toContain('name: string');
-      expect(contracts).toContain('email: string');
+      expect(contracts).toMatchSnapshot();
 
       const { client } = generateClient(doc, createConfig());
-      expect(client).toContain('putUsersByUserId: decorateWithErrors<');
-      expect(client).toContain('(userId: string, body: PutUsersUserIdBody)');
+      expect(client).toMatchSnapshot();
     });
   });
 });
