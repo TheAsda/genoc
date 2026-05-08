@@ -1,5 +1,13 @@
 # genoc
 
+## 0.1.3
+
+### Patch Changes
+
+- 418e5cd: Handle dotted contracts
+- 6dfe0dc: Remove isError utility
+- 3ba7344: Handle name collision
+
 ## 0.1.2
 
 ### Patch Changes
