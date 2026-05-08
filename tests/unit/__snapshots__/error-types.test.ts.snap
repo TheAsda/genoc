@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`generateErrorTypes > always produces ApiError, UnspecifiedApiError classes and isError even with empty operations 1`] = `
+exports[`generateErrorTypes > always produces ApiError and UnspecifiedApiError classes even with empty operations 1`] = `
 "export class ApiError<TStatus extends number, TData> extends Error {
   constructor(
     public readonly status: TStatus,
@@ -22,13 +22,7 @@ export class UnspecifiedApiError extends ApiError<number, unknown> {
     this.name = "UnspecifiedApiError";
   }
 }
-
-export function isError<T extends { status: number }, S extends number>(
-  response: T,
-  status: S,
-): response is Extract<T, { status: S }> {
-  return response.status === status;
-}"
+"
 `;
 
 exports[`generateErrorTypes > does not emit DefaultErrorBody when no operation uses default response 1`] = `
@@ -54,12 +48,6 @@ export class UnspecifiedApiError extends ApiError<number, unknown> {
   }
 }
 
-export function isError<T extends { status: number }, S extends number>(
-  response: T,
-  status: S,
-): response is Extract<T, { status: S }> {
-  return response.status === status;
-}
 
 export type getApiV1ItemsError404 = NotFoundError;
 export type getApiV1ItemsErrors = ApiError<404, getApiV1ItemsError404>
@@ -89,12 +77,6 @@ export class UnspecifiedApiError extends ApiError<number, unknown> {
   }
 }
 
-export function isError<T extends { status: number }, S extends number>(
-  response: T,
-  status: S,
-): response is Extract<T, { status: S }> {
-  return response.status === status;
-}
 
 export type getApiV1StatusError500 = ServerError;
 export type getApiV1StatusErrors = ApiError<500, getApiV1StatusError500>
@@ -124,12 +106,6 @@ export class UnspecifiedApiError extends ApiError<number, unknown> {
   }
 }
 
-export function isError<T extends { status: number }, S extends number>(
-  response: T,
-  status: S,
-): response is Extract<T, { status: S }> {
-  return response.status === status;
-}
 
 export type getApiV1OrdersError400 = BadRequest;
 export type getApiV1OrdersError401 = Unauthorized;
@@ -162,13 +138,7 @@ export class UnspecifiedApiError extends ApiError<number, unknown> {
     this.name = "UnspecifiedApiError";
   }
 }
-
-export function isError<T extends { status: number }, S extends number>(
-  response: T,
-  status: S,
-): response is Extract<T, { status: S }> {
-  return response.status === status;
-}"
+"
 `;
 
 exports[`generateErrorTypes > generates UnspecifiedApiError class 1`] = `
@@ -193,13 +163,7 @@ export class UnspecifiedApiError extends ApiError<number, unknown> {
     this.name = "UnspecifiedApiError";
   }
 }
-
-export function isError<T extends { status: number }, S extends number>(
-  response: T,
-  status: S,
-): response is Extract<T, { status: S }> {
-  return response.status === status;
-}"
+"
 `;
 
 exports[`generateErrorTypes > generates error types for multiple operations 1`] = `
@@ -225,12 +189,6 @@ export class UnspecifiedApiError extends ApiError<number, unknown> {
   }
 }
 
-export function isError<T extends { status: number }, S extends number>(
-  response: T,
-  status: S,
-): response is Extract<T, { status: S }> {
-  return response.status === status;
-}
 
 export type getApiV1ProductsError404 = NotFoundError;
 export type getApiV1ProductsErrors = ApiError<404, getApiV1ProductsError404>
@@ -266,12 +224,6 @@ export class UnspecifiedApiError extends ApiError<number, unknown> {
   }
 }
 
-export function isError<T extends { status: number }, S extends number>(
-  response: T,
-  status: S,
-): response is Extract<T, { status: S }> {
-  return response.status === status;
-}
 
 export type getApiV1ProductsError400 = BadRequestError;
 export type getApiV1ProductsError404 = NotFoundError;
@@ -280,37 +232,6 @@ export type getApiV1ProductsErrors = ApiError<400, getApiV1ProductsError400>
   | ApiError<404, getApiV1ProductsError404>
   | ApiError<500, getApiV1ProductsError500>
   | UnspecifiedApiError;"
-`;
-
-exports[`generateErrorTypes > generates isError type guard 1`] = `
-"export class ApiError<TStatus extends number, TData> extends Error {
-  constructor(
-    public readonly status: TStatus,
-    public readonly data: TData,
-    message: string,
-  ) {
-    super(message);
-    this.name = "ApiError";
-  }
-}
-
-export class UnspecifiedApiError extends ApiError<number, unknown> {
-  constructor(
-    status: number,
-    data: unknown,
-    message: string,
-  ) {
-    super(status, data, message);
-    this.name = "UnspecifiedApiError";
-  }
-}
-
-export function isError<T extends { status: number }, S extends number>(
-  response: T,
-  status: S,
-): response is Extract<T, { status: S }> {
-  return response.status === status;
-}"
 `;
 
 exports[`generateErrorTypes > handles default response with DefaultErrorBody 1`] = `
@@ -336,12 +257,6 @@ export class UnspecifiedApiError extends ApiError<number, unknown> {
   }
 }
 
-export function isError<T extends { status: number }, S extends number>(
-  response: T,
-  status: S,
-): response is Extract<T, { status: S }> {
-  return response.status === status;
-}
 
 export type postApiV1UsersError400 = ValidationError;
 export type postApiV1UsersErrors = ApiError<400, postApiV1UsersError400>
@@ -374,12 +289,6 @@ export class UnspecifiedApiError extends ApiError<number, unknown> {
   }
 }
 
-export function isError<T extends { status: number }, S extends number>(
-  response: T,
-  status: S,
-): response is Extract<T, { status: S }> {
-  return response.status === status;
-}
 
 export type patchApiV1SettingsErrors = ApiError<number, DefaultErrorBody>
   | UnspecifiedApiError;
@@ -410,12 +319,6 @@ export class UnspecifiedApiError extends ApiError<number, unknown> {
   }
 }
 
-export function isError<T extends { status: number }, S extends number>(
-  response: T,
-  status: S,
-): response is Extract<T, { status: S }> {
-  return response.status === status;
-}
 
 export type deleteApiV1ProductsError404 = NotFoundError;
 export type deleteApiV1ProductsErrors = ApiError<404, deleteApiV1ProductsError404>
@@ -444,13 +347,7 @@ export class UnspecifiedApiError extends ApiError<number, unknown> {
     this.name = "UnspecifiedApiError";
   }
 }
-
-export function isError<T extends { status: number }, S extends number>(
-  response: T,
-  status: S,
-): response is Extract<T, { status: S }> {
-  return response.status === status;
-}"
+"
 `;
 
 exports[`generateErrorTypes > skips operations with only success responses and default 1`] = `
@@ -475,13 +372,7 @@ export class UnspecifiedApiError extends ApiError<number, unknown> {
     this.name = "UnspecifiedApiError";
   }
 }
-
-export function isError<T extends { status: number }, S extends number>(
-  response: T,
-  status: S,
-): response is Extract<T, { status: S }> {
-  return response.status === status;
-}"
+"
 `;
 
 exports[`generateErrorTypes > uses methodName as prefix for error type names 1`] = `
@@ -507,12 +398,6 @@ export class UnspecifiedApiError extends ApiError<number, unknown> {
   }
 }
 
-export function isError<T extends { status: number }, S extends number>(
-  response: T,
-  status: S,
-): response is Extract<T, { status: S }> {
-  return response.status === status;
-}
 
 export type deleteApiV1UsersByUserIdError404 = UserNotFoundError;
 export type deleteApiV1UsersByUserIdErrors = ApiError<404, deleteApiV1UsersByUserIdError404>
@@ -542,12 +427,6 @@ export class UnspecifiedApiError extends ApiError<number, unknown> {
   }
 }
 
-export function isError<T extends { status: number }, S extends number>(
-  response: T,
-  status: S,
-): response is Extract<T, { status: S }> {
-  return response.status === status;
-}
 
 export type putApiV1ConfigError400 = unknown;
 export type putApiV1ConfigErrors = ApiError<400, putApiV1ConfigError400>

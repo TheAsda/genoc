@@ -36,12 +36,6 @@ describe('generateErrorTypes', () => {
     expect(output).toMatchSnapshot();
   });
 
-  it('generates isError type guard', () => {
-    const output = generateErrorTypes([]);
-
-    expect(output).toMatchSnapshot();
-  });
-
   it('generates error union for operation with multiple error status codes', () => {
     const op = makeOp({
       methodName: 'getApiV1Products',
@@ -386,7 +380,7 @@ describe('generateErrorTypes', () => {
     expect(output).toMatchSnapshot();
   });
 
-  it('always produces ApiError, UnspecifiedApiError classes and isError even with empty operations', () => {
+  it('always produces ApiError and UnspecifiedApiError classes even with empty operations', () => {
     const output = generateErrorTypes([]);
 
     expect(output).toMatchSnapshot();

@@ -584,7 +584,7 @@ describe('OpenAPI 3.1 — Error Handling (3.1-#63-#69)', () => {
     expect(client).toMatchSnapshot();
   });
 
-  // 3.1-#65: isError / isDefinedError type guard — Tier 1
+  // 3.1-#65: isDefinedError type guard — Tier 1
   it('3.1-#65: generates isDefinedError type guard in client', () => {
     const { contracts, client } = generateClientFromYaml(`
       openapi: "3.1.0"
