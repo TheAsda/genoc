@@ -167,11 +167,22 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Pet = { id: string; name: string; tag?: string; status?: 'available' | 'pending' | 'sold'; };
+export type Pet = {
+  id: string;
+  name: string;
+  tag?: string;
+  status?: 'available' | 'pending' | 'sold';
+};
 
-export type NewPet = { name: string; tag?: string; };
+export type NewPet = {
+  name: string;
+  tag?: string;
+};
 
-export type Error = { code: number; message: string; };
+export type Error = {
+  code: number;
+  message: string;
+};
 
 export type GetPetsQuery = { limit?: number; tags?: string[]; };
 

@@ -13,9 +13,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Address = { city: string; };
+export type Address = {
+  city: string;
+};
 
-export type Person = { address: Address; };"
+export type Person = {
+  address: Address;
+};"
 `;
 
 exports[`Schema Object — OpenAPI 3.0.3 > allOf composition > generates intersection type with referenced and inline schemas 1`] = `
@@ -31,9 +35,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Base = { id: string; };
+export type Base = {
+  id: string;
+};
 
-export type Extended = Base & { label?: string; };"
+export type Extended = Base & {
+  label?: string;
+};"
 `;
 
 exports[`Schema Object — OpenAPI 3.0.3 > anyOf composition > generates union type for referenced schemas 1`] = `
@@ -49,9 +57,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Photo = { url?: string; };
+export type Photo = {
+  url?: string;
+};
 
-export type Video = { duration?: number; };
+export type Video = {
+  duration?: number;
+};
 
 export type Media = Photo | Video;"
 `;
@@ -69,7 +81,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Users = Array<{ email?: string; }>;"
+export type Users = Array<{
+  email?: string;
+}>;"
 `;
 
 exports[`Schema Object — OpenAPI 3.0.3 > array type > generates array type alias with typed items 1`] = `
@@ -101,7 +115,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type User = { id: string; name: string; };"
+export type User = {
+  id: string;
+  name: string;
+};"
 `;
 
 exports[`Schema Object — OpenAPI 3.0.3 > basic object > generates optional properties when not in required array 1`] = `
@@ -117,7 +134,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Item = { id: string; label?: string; };"
+export type Item = {
+  id: string;
+  label?: string;
+};"
 `;
 
 exports[`Schema Object — OpenAPI 3.0.3 > enum values > generates number literal union for numeric enum 1`] = `
@@ -165,7 +185,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Order = { id: string; shipping: { address: string; city?: string; }; };"
+export type Order = {
+  id: string;
+  shipping: {
+    address: string;
+    city?: string;
+  };
+};"
 `;
 
 exports[`Schema Object — OpenAPI 3.0.3 > oneOf composition > generates union type for inline primitives 1`] = `
@@ -197,9 +223,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Cat = { meow?: boolean; };
+export type Cat = {
+  meow?: boolean;
+};
 
-export type Dog = { bark?: boolean; };
+export type Dog = {
+  bark?: boolean;
+};
 
 export type Pet = Cat | Dog;"
 `;
@@ -281,7 +311,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Entity = { id: string; createdAt: string; };"
+export type Entity = {
+  id: string;
+  createdAt: string;
+};"
 `;
 
 exports[`Schema Object — OpenAPI 3.0.3 > required vs optional > marks unlisted properties as optional 1`] = `
@@ -297,7 +330,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Entity = { id: string; nickname?: string; };"
+export type Entity = {
+  id: string;
+  nickname?: string;
+};"
 `;
 
 exports[`Schema Object — OpenAPI 3.0.3 > required vs optional > treats all properties as optional when required is absent 1`] = `
@@ -313,5 +349,8 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Entity = { a?: string; b?: number; };"
+export type Entity = {
+  a?: string;
+  b?: number;
+};"
 `;

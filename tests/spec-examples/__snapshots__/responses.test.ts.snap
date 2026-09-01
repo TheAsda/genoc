@@ -13,7 +13,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Pet = { id: number; name: string; };
+export type Pet = {
+  id: number;
+  name: string;
+};
 
 export type GetPetsResponse = Pet[];"
 `;
@@ -31,7 +34,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type User = { id: string; name: string; email?: string; };
+export type User = {
+  id: string;
+  name: string;
+  email?: string;
+};
 
 export type GetUsersUserIdResponse = User;"
 `;
@@ -199,11 +206,19 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Order = { id: string; total: number; };
+export type Order = {
+  id: string;
+  total: number;
+};
 
-export type ValidationError = { field: string; message: string; };
+export type ValidationError = {
+  field: string;
+  message: string;
+};
 
-export type NotFoundError = { resource: string; };
+export type NotFoundError = {
+  resource: string;
+};
 
 export type GetOrdersOrderIdResponse = Order;
 
@@ -266,9 +281,14 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type AsyncTask = { taskId: string; status: string; };
+export type AsyncTask = {
+  taskId: string;
+  status: string;
+};
 
-export type PostJobsBody = { command: string; };
+export type PostJobsBody = {
+  command: string;
+};
 
 export type PostJobsResponse = AsyncTask | AsyncTask;"
 `;
@@ -286,5 +306,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetDownloadResponse = { url: string; };"
+export type GetDownloadResponse = {
+  url: string;
+};"
 `;

@@ -355,7 +355,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetUsersResponse = Array<{ id: string; name: string; }>;"
+export type GetUsersResponse = Array<{
+  id: string;
+  name: string;
+}>;"
 `;
 
 exports[`OpenAPI 3.0 — Initial Responses (3.0-#53-#54) > 3.0-#53: 2xx success responses generate typed response types 2`] = `
@@ -408,9 +411,14 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostUsersBody = { name: string; };
+export type PostUsersBody = {
+  name: string;
+};
 
-export type PostUsersResponse = { id: string; name: string; };"
+export type PostUsersResponse = {
+  id: string;
+  name: string;
+};"
 `;
 
 exports[`OpenAPI 3.0 — Initial Responses (3.0-#53-#54) > 3.0-#53: 201 Created generates typed response 2`] = `
@@ -466,11 +474,18 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetUsersUserIdResponse = { id: string; name?: string; };
+export type GetUsersUserIdResponse = {
+  id: string;
+  name?: string;
+};
 
-export type GetUsersUserIdError400 = { message: string; };
+export type GetUsersUserIdError400 = {
+  message: string;
+};
 
-export type GetUsersUserIdError404 = { error: string; };
+export type GetUsersUserIdError404 = {
+  error: string;
+};
 
 export type GetUsersUserIdErrors = ApiError<400, GetUsersUserIdError400> | ApiError<404, GetUsersUserIdError404>;"
 `;
@@ -529,7 +544,9 @@ export {
 
 export type GetHealthResponse = void;
 
-export type GetHealthError500 = { detail: string; };
+export type GetHealthError500 = {
+  detail: string;
+};
 
 export type GetHealthError503 = unknown;
 
@@ -973,7 +990,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostUsersBody = { name: string; email: string; age?: number; };
+export type PostUsersBody = {
+  name: string;
+  email: string;
+  age?: number;
+};
 
 export type PostUsersResponse = void;"
 `;
@@ -1098,7 +1119,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostLoginBody = { username: string; password: string; };
+export type PostLoginBody = {
+  username: string;
+  password: string;
+};
 
 export type PostLoginResponse = void;"
 `;
@@ -1214,7 +1238,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostDataBody = { jsonField: string; };
+export type PostDataBody = {
+  jsonField: string;
+};
 
 export type PostDataResponse = void;"
 `;
@@ -1272,7 +1298,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostOrdersBody = { productId: string; };
+export type PostOrdersBody = {
+  productId: string;
+};
 
 export type PostOrdersResponse = void;"
 `;
@@ -1330,7 +1358,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PatchProfileBody = { bio?: string; };
+export type PatchProfileBody = {
+  bio?: string;
+};
 
 export type PatchProfileResponse = void;"
 `;
@@ -1388,7 +1418,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostUsersBody = { name: string; };
+export type PostUsersBody = {
+  name: string;
+};
 
 export type PostUsersResponse = void;"
 `;

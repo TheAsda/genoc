@@ -143,7 +143,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { name?: string; };
+export type Product = {
+  name?: string;
+};
 
 export type GetApiV1ProductsQuery = { page?: number; };
 
@@ -163,7 +165,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { name?: string; };"
+export type Product = {
+  name?: string;
+};"
 `;
 
 exports[`generateClient > error narrowing utilities > generates decorateWithErrors function 1`] = `
@@ -483,11 +487,21 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { id: string; name: string; price: number; };
+export type Product = {
+  id: string;
+  name: string;
+  price: number;
+};
 
-export type CreateProductInput = { name: string; price: number; };
+export type CreateProductInput = {
+  name: string;
+  price: number;
+};
 
-export type ErrorBody = { code: number; message: string; };
+export type ErrorBody = {
+  code: number;
+  message: string;
+};
 
 export type GetApiV1ProductsQuery = { page?: number; };
 

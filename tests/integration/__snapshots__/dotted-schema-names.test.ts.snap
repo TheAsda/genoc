@@ -77,13 +77,27 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ModelsUser = { id: string; name: string; email?: string; };
+export type ModelsUser = {
+  id: string;
+  name: string;
+  email?: string;
+};
 
-export type ModelsAddress = { street: string; city: string; zip?: string; };
+export type ModelsAddress = {
+  street: string;
+  city: string;
+  zip?: string;
+};
 
-export type ApiErrorModel = { code: number; message: string; };
+export type ApiErrorModel = {
+  code: number;
+  message: string;
+};
 
-export type NamespaceNamespace2ErrorDetail = { field: string; reason?: string; };
+export type NamespaceNamespace2ErrorDetail = {
+  field: string;
+  reason?: string;
+};
 
 export type GetUsersResponse = ModelsUser[];
 

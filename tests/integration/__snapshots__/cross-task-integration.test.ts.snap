@@ -125,9 +125,16 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { id: string; name: string; price?: number; };
+export type Product = {
+  id: string;
+  name: string;
+  price?: number;
+};
 
-export type ErrorBody = { code: number; message: string; };
+export type ErrorBody = {
+  code: number;
+  message: string;
+};
 
 export type OAuth2ImplicitAuth = { type: "oauth2"; flows: { implicit: { authorizationUrl: "https://auth.example.com/authorize"; scopes: { "read:products": "Read products"; "write:products": "Write products" } } } };
 

@@ -14,7 +14,9 @@ export {
 } from 'genoc/runtime';
 
 /** Original target description */
-export type Target = { value?: string; };
+export type Target = {
+  value?: string;
+};
 
 /** Original target description */
 export type RefWithSibling = Target;"
@@ -34,7 +36,9 @@ export {
 } from 'genoc/runtime';
 
 /** Original target description */
-export type Target = { value?: string; };
+export type Target = {
+  value?: string;
+};
 
 /** Override from sibling */
 export type RefWithSibling = Target;"
@@ -53,7 +57,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type FreeForm = { name?: string; } & { [key: string]: unknown; };"
+export type FreeForm = {
+  name?: string;
+} & {
+  [key: string]: unknown;
+};"
 `;
 
 exports[`OpenAPI 3.0 — AdditionalProperties & Required (3.0-#20-#21) > 3.0-#20: generates index signature for additionalProperties with type 1`] = `
@@ -69,7 +77,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type StringMap = { [key: string]: string; };"
+export type StringMap = {
+  [key: string]: string;
+};"
 `;
 
 exports[`OpenAPI 3.0 — AdditionalProperties & Required (3.0-#20-#21) > 3.0-#21: all properties optional when required is absent 1`] = `
@@ -85,7 +95,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Flexible = { a?: string; b?: number; };"
+export type Flexible = {
+  a?: string;
+  b?: number;
+};"
 `;
 
 exports[`OpenAPI 3.0 — AdditionalProperties & Required (3.0-#20-#21) > 3.0-#21: marks required properties without ?, optional properties with ? 1`] = `
@@ -101,7 +114,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Profile = { username: string; email: string; bio?: string; };"
+export type Profile = {
+  username: string;
+  email: string;
+  bio?: string;
+};"
 `;
 
 exports[`OpenAPI 3.0 — Composition & Discriminator (3.0-#8-#11) > 3.0-#8: generates intersection type (&) for allOf 1`] = `
@@ -117,13 +134,23 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Pet = { "petType": string; };
+export type Pet = {
+  "petType": string;
+};
 
-export type Cat = Pet & { meow?: boolean; } & { petType: 'cat' };
+export type Cat = Pet & {
+  meow?: boolean;
+} & { petType: 'cat' };
 
-export type Dog = Pet & { bark?: boolean; } & { petType: 'dog' };
+export type Dog = Pet & {
+  bark?: boolean;
+} & { petType: 'dog' };
 
-export type PetVariant = ({ petType: 'cat' } & Pet & { meow?: boolean; } & { petType: 'cat' }) | ({ petType: 'dog' } & Pet & { bark?: boolean; } & { petType: 'dog' });
+export type PetVariant = ({ petType: 'cat' } & Pet & {
+  meow?: boolean;
+} & { petType: 'cat' }) | ({ petType: 'dog' } & Pet & {
+  bark?: boolean;
+} & { petType: 'dog' });
 
 export type MixedUnion = string | number;
 
@@ -145,9 +172,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Cat = { meow?: boolean; };
+export type Cat = {
+  meow?: boolean;
+};
 
-export type Dog = { bark?: boolean; };
+export type Dog = {
+  bark?: boolean;
+};
 
 export type Pet = Cat | Dog;"
 `;
@@ -165,13 +196,23 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Pet = { "petType": string; };
+export type Pet = {
+  "petType": string;
+};
 
-export type Cat = Pet & { meow?: boolean; } & { petType: 'cat' };
+export type Cat = Pet & {
+  meow?: boolean;
+} & { petType: 'cat' };
 
-export type Dog = Pet & { bark?: boolean; } & { petType: 'dog' };
+export type Dog = Pet & {
+  bark?: boolean;
+} & { petType: 'dog' };
 
-export type PetVariant = ({ petType: 'cat' } & Pet & { meow?: boolean; } & { petType: 'cat' }) | ({ petType: 'dog' } & Pet & { bark?: boolean; } & { petType: 'dog' });
+export type PetVariant = ({ petType: 'cat' } & Pet & {
+  meow?: boolean;
+} & { petType: 'cat' }) | ({ petType: 'dog' } & Pet & {
+  bark?: boolean;
+} & { petType: 'dog' });
 
 export type MixedUnion = string | number;
 
@@ -193,13 +234,23 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Pet = { "petType": string; };
+export type Pet = {
+  "petType": string;
+};
 
-export type Cat = Pet & { meow?: boolean; } & { petType: 'cat' };
+export type Cat = Pet & {
+  meow?: boolean;
+} & { petType: 'cat' };
 
-export type Dog = Pet & { bark?: boolean; } & { petType: 'dog' };
+export type Dog = Pet & {
+  bark?: boolean;
+} & { petType: 'dog' };
 
-export type PetVariant = ({ petType: 'cat' } & Pet & { meow?: boolean; } & { petType: 'cat' }) | ({ petType: 'dog' } & Pet & { bark?: boolean; } & { petType: 'dog' });
+export type PetVariant = ({ petType: 'cat' } & Pet & {
+  meow?: boolean;
+} & { petType: 'cat' }) | ({ petType: 'dog' } & Pet & {
+  bark?: boolean;
+} & { petType: 'dog' });
 
 export type MixedUnion = string | number;
 
@@ -301,7 +352,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type User = { name: string; age?: number; };"
+export type User = {
+  name: string;
+  age?: number;
+};"
 `;
 
 exports[`OpenAPI 3.0 — Default & Description (3.0-#14-#15) > 3.0-#14: does not crash with default value — property is correctly typed 1`] = `
@@ -317,7 +371,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Config = { name: string; timeout?: number; };"
+export type Config = {
+  name: string;
+  /** @default 30 */
+  timeout?: number;
+};"
 `;
 
 exports[`OpenAPI 3.0 — Default & Description (3.0-#14-#15) > 3.0-#15: generates JSDoc comment from description on individual type alias 1`] = `
@@ -351,7 +409,9 @@ export {
 } from 'genoc/runtime';
 
 /** A product in the catalog */
-export type Product = { name?: string; };"
+export type Product = {
+  name?: string;
+};"
 `;
 
 exports[`OpenAPI 3.0 — Deprecated (3.0-#18) > 3.0-#18: does not crash for schema with deprecated flag 1`] = `
@@ -599,7 +659,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Config = { priority: number; };"
+export type Config = {
+  priority: number;
+};"
 `;
 
 exports[`OpenAPI 3.0 — Exclusive Bounds, Tier 3 (3.0-#29-#30) > 3.0-#29-#30: exclusive bounds with nullable produce correct type 1`] = `
@@ -765,9 +827,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Base = { id: string; };
+export type Base = {
+  id: string;
+};
 
-export type Extended = (Base & { extra?: string; }) | null;"
+export type Extended = (Base & {
+  extra?: string;
+}) | null;"
 `;
 
 exports[`OpenAPI 3.0 — Null via nullable (3.0-#7) > 3.0-#7: nullable inside oneOf produces union | null 1`] = `
@@ -895,7 +961,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type User = { name: string; nickname: string | null; };"
+export type User = {
+  name: string;
+  nickname: string | null;
+};"
 `;
 
 exports[`OpenAPI 3.0 — Null via nullable (3.0-#7) > 3.0-#7: nullable: true on string produces string | null 1`] = `
@@ -927,9 +996,15 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostItemsBody = { name: string; password: string; };
+export type PostItemsBody = {
+  name: string;
+  password: string;
+};
 
-export type PostItemsResponse = { name: string; id: string; };"
+export type PostItemsResponse = {
+  name: string;
+  id: string;
+};"
 `;
 
 exports[`OpenAPI 3.0 — ReadOnly & WriteOnly (3.0-#16-#17) > 3.0-#16: excludes readOnly properties from request body type 2`] = `
@@ -985,9 +1060,15 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostItemsBody = { name: string; password: string; };
+export type PostItemsBody = {
+  name: string;
+  password: string;
+};
 
-export type PostItemsResponse = { name: string; id: string; };"
+export type PostItemsResponse = {
+  name: string;
+  id: string;
+};"
 `;
 
 exports[`OpenAPI 3.0 — ReadOnly & WriteOnly (3.0-#16-#17) > 3.0-#16: includes readOnly properties in response type 2`] = `
@@ -1043,9 +1124,15 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostItemsBody = { name: string; password: string; };
+export type PostItemsBody = {
+  name: string;
+  password: string;
+};
 
-export type PostItemsResponse = { name: string; id: string; };"
+export type PostItemsResponse = {
+  name: string;
+  id: string;
+};"
 `;
 
 exports[`OpenAPI 3.0 — ReadOnly & WriteOnly (3.0-#16-#17) > 3.0-#17: excludes writeOnly properties from response type 2`] = `
@@ -1101,9 +1188,15 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostItemsBody = { name: string; password: string; };
+export type PostItemsBody = {
+  name: string;
+  password: string;
+};
 
-export type PostItemsResponse = { name: string; id: string; };"
+export type PostItemsResponse = {
+  name: string;
+  id: string;
+};"
 `;
 
 exports[`OpenAPI 3.0 — ReadOnly & WriteOnly (3.0-#16-#17) > 3.0-#17: includes writeOnly properties in request body type 2`] = `
@@ -1303,5 +1396,8 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { name?: string; price?: number; };"
+export type Product = {
+  name?: string;
+  price?: number;
+};"
 `;

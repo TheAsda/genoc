@@ -14,7 +14,9 @@ export {
 } from 'genoc/runtime';
 
 /** A product in the catalog */
-export type Product = { name?: string; };"
+export type Product = {
+  name?: string;
+};"
 `;
 
 exports[`generateContracts > Section 1: Schema types from components/schemas > generates array type alias 1`] = `
@@ -48,7 +50,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { name: string; price: number; };"
+export type Product = {
+  name: string;
+  price: number;
+};"
 `;
 
 exports[`generateContracts > Section 1: Schema types from components/schemas > generates intersection type for allOf 1`] = `
@@ -64,9 +69,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Base = { id: string; };
+export type Base = {
+  id: string;
+};
 
-export type Extended = Base & { name: string; };"
+export type Extended = Base & {
+  name: string;
+};"
 `;
 
 exports[`generateContracts > Section 1: Schema types from components/schemas > generates nullable type 1`] = `
@@ -146,9 +155,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Cat = { meow?: boolean; };
+export type Cat = {
+  meow?: boolean;
+};
 
-export type Dog = { bark?: boolean; };
+export type Dog = {
+  bark?: boolean;
+};
 
 export type Pet = Cat | Dog;"
 `;
@@ -166,9 +179,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Success = { data?: string; };
+export type Success = {
+  data?: string;
+};
 
-export type Error = { message?: string; };
+export type Error = {
+  message?: string;
+};
 
 export type Result = Success | Error;"
 `;
@@ -186,7 +203,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Plain = { value?: string; };"
+export type Plain = {
+  value?: string;
+};"
 `;
 
 exports[`generateContracts > Section 1: Schema types from components/schemas > produces no schema types when components.schemas is empty 1`] = `
@@ -216,9 +235,15 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { name: string; price: number; };
+export type Product = {
+  name: string;
+  price: number;
+};
 
-export type OrderItem = { product: Product; quantity: number; };"
+export type OrderItem = {
+  product: Product;
+  quantity: number;
+};"
 `;
 
 exports[`generateContracts > Section 1b: Security scheme types > does not generate SecuritySchemes union for a single scheme 1`] = `
@@ -656,7 +681,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type CreateProduct = { name: string; };
+export type CreateProduct = {
+  name: string;
+};
 
 export type PostProductsBody = CreateProduct;
 
@@ -676,7 +703,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostApiV1ProductsBody = { name: string; price: number; };
+export type PostApiV1ProductsBody = {
+  name: string;
+  price: number;
+};
 
 export type PostApiV1ProductsResponse = void;"
 `;
@@ -732,11 +762,17 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { name?: string; };
+export type Product = {
+  name?: string;
+};
 
-export type BadRequestError = { message?: string; };
+export type BadRequestError = {
+  message?: string;
+};
 
-export type NotFoundError = { message?: string; };
+export type NotFoundError = {
+  message?: string;
+};
 
 export type GetApiV1ProductsProductIdResponse = Product;
 
@@ -782,7 +818,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { name?: string; };
+export type Product = {
+  name?: string;
+};
 
 export type GetApiV1ProductsResponse = Product[];"
 `;
@@ -800,7 +838,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ErrorBody = { message?: string; };
+export type ErrorBody = {
+  message?: string;
+};
 
 export type GetItemsResponse = void;
 
@@ -820,7 +860,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { name?: string; };
+export type Product = {
+  name?: string;
+};
 
 export type GetApiV1AsyncOperationsOperationIdRecallResponse = Product;"
 `;
@@ -1007,11 +1049,21 @@ export {
 } from 'genoc/runtime';
 
 /** A product */
-export type Product = { id: string; name: string; price: number; };
+export type Product = {
+  id: string;
+  name: string;
+  price: number;
+};
 
-export type CreateProductInput = { name: string; price: number; };
+export type CreateProductInput = {
+  name: string;
+  price: number;
+};
 
-export type ErrorBody = { code: number; message: string; };
+export type ErrorBody = {
+  code: number;
+  message: string;
+};
 
 export type ProductStatus = 'available' | 'discontinued';
 
@@ -1075,7 +1127,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { name?: string; };"
+export type Product = {
+  name?: string;
+};"
 `;
 
 exports[`generateContracts > reserved name collision handling > handles multiple reserved name collisions in one spec 1`] = `
@@ -1091,13 +1145,17 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ErrorResponseModel = { message?: string; };
+export type ErrorResponseModel = {
+  message?: string;
+};
 
 export type StreamResponseModel = string;
 
 export type ApiErrorModel = string;
 
-export type Product = { name?: string; };"
+export type Product = {
+  name?: string;
+};"
 `;
 
 exports[`generateContracts > reserved name collision handling > renames $ref references in allOf 1`] = `
@@ -1113,9 +1171,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ErrorResponseModel = { code?: number; };
+export type ErrorResponseModel = {
+  code?: number;
+};
 
-export type DetailedError = ErrorResponseModel & { detail?: string; };"
+export type DetailedError = ErrorResponseModel & {
+  detail?: string;
+};"
 `;
 
 exports[`generateContracts > reserved name collision handling > renames $ref references to collided schemas in response types 1`] = `
@@ -1131,7 +1193,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ErrorResponseModel = { message?: string; };
+export type ErrorResponseModel = {
+  message?: string;
+};
 
 export type GetItemsResponse = void;
 
@@ -1153,7 +1217,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ApiErrorModel = { detail?: string; };"
+export type ApiErrorModel = {
+  detail?: string;
+};"
 `;
 
 exports[`generateContracts > reserved name collision handling > renames user schema that collides with ErrorResponse 1`] = `
@@ -1169,7 +1235,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ErrorResponseModel = { code: number; message: string; };"
+export type ErrorResponseModel = {
+  code: number;
+  message: string;
+};"
 `;
 
 exports[`generateContracts > reserved name collision handling > renames user schema that collides with StreamResponse 1`] = `

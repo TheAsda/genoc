@@ -15,7 +15,9 @@ export {
 
 export type GetUsersResponse = void;
 
-export type PostUsersBody = { name?: string; };
+export type PostUsersBody = {
+  name?: string;
+};
 
 export type PostUsersResponse = void;"
 `;

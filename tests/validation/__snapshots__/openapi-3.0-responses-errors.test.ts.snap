@@ -13,11 +13,15 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostItemsBody = { name: string; };
+export type PostItemsBody = {
+  name: string;
+};
 
 export type PostItemsResponse = void;
 
-export type PostItemsError400 = { error: string; };
+export type PostItemsError400 = {
+  error: string;
+};
 
 export type PostItemsErrors = ApiError<400, PostItemsError400>;"
 `;
@@ -304,7 +308,9 @@ export {
 
 export type DeleteUsersUserIdResponse = void;
 
-export type DeleteUsersUserIdError400 = { msg: string; };
+export type DeleteUsersUserIdError400 = {
+  msg: string;
+};
 
 export type DeleteUsersUserIdError404 = unknown;
 
@@ -363,7 +369,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetHealthResponse = { status: string; };"
+export type GetHealthResponse = {
+  status: string;
+};"
 `;
 
 exports[`OpenAPI 3.0 — Error Handling (3.0-#61-#67) > 3.0-#64: operation with no error responses has no error types 2`] = `
@@ -416,7 +424,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostItemsBody = { name?: string; };
+export type PostItemsBody = {
+  name?: string;
+};
 
 export type PostItemsResponse = void;
 
@@ -481,17 +491,25 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostSubmitBody = { data: string; };
+export type PostSubmitBody = {
+  data: string;
+};
 
-export type PostSubmitResponse = { id: string; };
+export type PostSubmitResponse = {
+  id: string;
+};
 
-export type PostSubmitError400 = { errors?: string[]; };
+export type PostSubmitError400 = {
+  errors?: string[];
+};
 
 export type PostSubmitError401 = unknown;
 
 export type PostSubmitError403 = unknown;
 
-export type PostSubmitError429 = { retryAfter?: number; };
+export type PostSubmitError429 = {
+  retryAfter?: number;
+};
 
 export type PostSubmitErrors = ApiError<400, PostSubmitError400> | ApiError<401, PostSubmitError401> | ApiError<403, PostSubmitError403> | ApiError<429, PostSubmitError429>;"
 `;
@@ -611,9 +629,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetOrdersOrderIdResponse = { id: string; };
+export type GetOrdersOrderIdResponse = {
+  id: string;
+};
 
-export type GetOrdersOrderIdError400 = { msg: string; };
+export type GetOrdersOrderIdError400 = {
+  msg: string;
+};
 
 export type GetOrdersOrderIdError404 = unknown;
 
@@ -784,7 +806,9 @@ export {
 
 export type GetExportFormatResponse = StreamResponse;
 
-export type GetExportFormatError400 = { error: string; };
+export type GetExportFormatError400 = {
+  error: string;
+};
 
 export type GetExportFormatError404 = unknown;
 
@@ -843,7 +867,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { id: string; name: string; };
+export type Product = {
+  id: string;
+  name: string;
+};
 
 export type GetProductsResponse = Product[];"
 `;
@@ -898,9 +925,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Task = { id: string; };
+export type Task = {
+  id: string;
+};
 
-export type PostTasksBody = { cmd: string; };
+export type PostTasksBody = {
+  cmd: string;
+};
 
 export type PostTasksResponse = Task | Task;"
 `;
@@ -958,9 +989,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetOrdersOrderIdResponse = { total: number; };
+export type GetOrdersOrderIdResponse = {
+  total: number;
+};
 
-export type GetOrdersOrderIdError400 = { msg: string; };
+export type GetOrdersOrderIdError400 = {
+  msg: string;
+};
 
 export type GetOrdersOrderIdError404 = unknown;
 
@@ -1022,11 +1057,18 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ValidationError = { field: string; message: string; };
+export type ValidationError = {
+  field: string;
+  message: string;
+};
 
-export type PostItemsBody = { name: string; };
+export type PostItemsBody = {
+  name: string;
+};
 
-export type PostItemsResponse = { id: string; };
+export type PostItemsResponse = {
+  id: string;
+};
 
 export type PostItemsError400 = ValidationError;
 
@@ -1087,9 +1129,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetHealthResponse = { status: string; };
+export type GetHealthResponse = {
+  status: string;
+};
 
-export type GetHealthError500 = { error: string; };
+export type GetHealthError500 = {
+  error: string;
+};
 
 export type GetHealthErrors = ApiError<500, GetHealthError500>;"
 `;
@@ -1470,7 +1516,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetDataResponse = { jsonField: string; };"
+export type GetDataResponse = {
+  jsonField: string;
+};"
 `;
 
 exports[`OpenAPI 3.0 — Responses (3.0-#53-#60) > 3.0-#58: uses first content type schema for response 2`] = `
@@ -1576,7 +1624,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetDownloadResponse = { url: string; };"
+export type GetDownloadResponse = {
+  url: string;
+};"
 `;
 
 exports[`OpenAPI 3.0 — Responses (3.0-#53-#60) > 3.0-#59: response headers do not prevent response type generation 2`] = `
@@ -1629,7 +1679,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetStatusResponse = { healthy: boolean; };"
+export type GetStatusResponse = {
+  healthy: boolean;
+};"
 `;
 
 exports[`OpenAPI 3.0 — Responses (3.0-#53-#60) > 3.0-#60: response examples (3.0 \`example\` keyword) are parsed but not emitted 2`] = `

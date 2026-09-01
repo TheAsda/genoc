@@ -61,9 +61,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Base = { id: string; };
+export type Base = {
+  id: string;
+};
 
-export type Extended = (Base & ({ extra?: string | null; })) | null;"
+export type Extended = (Base & ({
+  extra?: string | null;
+})) | null;"
 `;
 
 exports[`OpenAPI 3.0 — nullable > nullable inside composition > generates union type wrapped with | null for nullable anyOf 1`] = `
@@ -111,7 +115,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Outer = { inner?: { value?: string; } | null; };"
+export type Outer = {
+  inner?: {
+    value?: string;
+  } | null;
+};"
 `;
 
 exports[`OpenAPI 3.0 — nullable > nullable on object properties > generates nullable property type inside interface 1`] = `
@@ -127,7 +135,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type User = { name: string; nickname: string | null; age: number; };"
+export type User = {
+  name: string;
+  nickname: string | null;
+  age: number;
+};"
 `;
 
 exports[`OpenAPI 3.0 — nullable > nullable primitives > generates boolean | null for nullable boolean 1`] = `

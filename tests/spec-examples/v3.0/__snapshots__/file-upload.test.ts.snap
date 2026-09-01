@@ -75,7 +75,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostDataBody = { payload: string; };
+export type PostDataBody = {
+  payload: string;
+};
 
 export type PostDataResponse = void;"
 `;

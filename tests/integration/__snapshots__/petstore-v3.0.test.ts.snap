@@ -134,11 +134,24 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Pet = { id: string; name: string; tag?: string | null; status?: 'available' | 'pending' | 'sold'; };
+export type Pet = {
+  id: string;
+  /** @example "Fido" */
+  name: string;
+  tag?: string | null;
+  status?: 'available' | 'pending' | 'sold';
+};
 
-export type NewPet = { name: string; tag?: string | null; };
+export type NewPet = {
+  /** @example "Buddy" */
+  name: string;
+  tag?: string | null;
+};
 
-export type Error = { code: number; message: string; };
+export type Error = {
+  code: number;
+  message: string;
+};
 
 export type GetPetsQuery = { limit?: number; tags?: string[]; };
 

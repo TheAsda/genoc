@@ -84,7 +84,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type NewItem = { label: string; };
+export type NewItem = {
+  label: string;
+};
 
 export type PostItemsBody = NewItem;
 
@@ -104,7 +106,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ErrorResponseModel = { code: number; message: string; };
+export type ErrorResponseModel = {
+  code: number;
+  message: string;
+};
 
 export type GetItemsResponse = void;
 
@@ -126,9 +131,15 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type User = { id: string; name: string; };
+export type User = {
+  id: string;
+  name: string;
+};
 
-export type Product = { id: string; price: number; };
+export type Product = {
+  id: string;
+  price: number;
+};
 
 export type Status = 'active' | 'inactive';"
 `;
@@ -146,7 +157,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { name: string; };
+export type Product = {
+  name: string;
+};
 
-export type Order = { id: string; product: Product; };"
+export type Order = {
+  id: string;
+  product: Product;
+};"
 `;

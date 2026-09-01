@@ -13,7 +13,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { id: string; name: string; };
+export type Product = {
+  id: string;
+  name: string;
+};
 
 export type GetProductsResponse = Product[];"
 `;
@@ -68,9 +71,15 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Address = { city: string; zip?: string; };
+export type Address = {
+  city: string;
+  zip?: string;
+};
 
-export type Person = { name: string; address: Address; };"
+export type Person = {
+  name: string;
+  address: Address;
+};"
 `;
 
 exports[`OpenAPI 3.0 — $ref Resolution (3.0-#68-#73) > 3.0-#69: chained refs > resolves chained refs through intermediate object schemas 1`] = `
@@ -86,7 +95,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type BaseError = { code: number; message: string; };
+export type BaseError = {
+  code: number;
+  message: string;
+};
 
 export type DetailedError = BaseError;
 
@@ -169,7 +181,9 @@ export {
 } from 'genoc/runtime';
 
 /** Original target description */
-export type Target = { id?: string; };
+export type Target = {
+  id?: string;
+};
 
 /** Original target description */
 export type RefWithSibling = Target;"
@@ -209,7 +223,9 @@ export {
 } from 'genoc/runtime';
 
 /** Original target description */
-export type Target = { id?: string; };
+export type Target = {
+  id?: string;
+};
 
 /** Override from sibling */
 export type RefWithSibling = Target;"
@@ -228,7 +244,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type CreateItem = { name: string; };
+export type CreateItem = {
+  name: string;
+};
 
 export type PostItemsBody = CreateItem;
 
@@ -288,7 +306,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Item = { id: string; };
+export type Item = {
+  id: string;
+};
 
 export type GetItemsIdResponse = Item;"
 `;
@@ -343,7 +363,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type User = { id: string; name: string; email?: string; };
+export type User = {
+  id: string;
+  name: string;
+  email?: string;
+};
 
 export type Status = 'active' | 'inactive' | 'pending';"
 `;
@@ -361,9 +385,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Base = { id: string; };
+export type Base = {
+  id: string;
+};
 
-export type Extended = Base & { extra?: string; };"
+export type Extended = Base & {
+  extra?: string;
+};"
 `;
 
 exports[`OpenAPI 3.0 — Components (3.0-#74-#82) > 3.0-#74: components/schemas > sorts schemas topologically when one references another via $ref 1`] = `
@@ -379,9 +407,14 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { name: string; };
+export type Product = {
+  name: string;
+};
 
-export type Order = { id: string; product: Product; };"
+export type Order = {
+  id: string;
+  product: Product;
+};"
 `;
 
 exports[`OpenAPI 3.0 — Components (3.0-#74-#82) > 3.0-#75: components/responses > resolves $ref to reusable response in error codes 1`] = `
@@ -397,7 +430,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ErrorBody = { code: number; message: string; };
+export type ErrorBody = {
+  code: number;
+  message: string;
+};
 
 export type GetItemsResponse = void;
 
@@ -460,7 +496,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ErrorDetail = { msg: string; };
+export type ErrorDetail = {
+  msg: string;
+};
 
 export type GetAResponse = void;
 
@@ -653,7 +691,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type NewUser = { name: string; email: string; };
+export type NewUser = {
+  name: string;
+  email: string;
+};
 
 export type PostUsersBody = NewUser;
 
@@ -713,7 +754,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ItemInput = { label: string; };
+export type ItemInput = {
+  label: string;
+};
 
 export type PostItemsBody = ItemInput;
 
@@ -1122,7 +1165,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetUsersResponse = Array<{ id?: string; name?: string; }>;"
+export type GetUsersResponse = Array<{
+  id?: string;
+  name?: string;
+}>;"
 `;
 
 exports[`OpenAPI 3.0 — Components (3.0-#74-#82) > 3.0-#82: components/examples > spec with components/examples does not crash 2`] = `

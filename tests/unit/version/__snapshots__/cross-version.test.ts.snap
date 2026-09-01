@@ -14,7 +14,9 @@ export {
 } from 'genoc/runtime';
 
 /** Original target description */
-export type Target = { id?: string; };
+export type Target = {
+  id?: string;
+};
 
 /** Original target description */
 export type RefWithSibling = Target;
@@ -36,7 +38,9 @@ export {
 } from 'genoc/runtime';
 
 /** Original target description */
-export type Target = { id?: string; };
+export type Target = {
+  id?: string;
+};
 
 /** Override from sibling */
 export type RefWithSibling = Target;
@@ -93,7 +97,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Widget = { name: string | null; score: number; label?: string; };
+export type Widget = {
+  name: string | null;
+  score: number;
+  /** @example "default" */
+  label?: string;
+};
 
 export type GetTestResponse = Record<string, unknown>;"
 `;

@@ -13,7 +13,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PutUsersUserIdBody = { name: string; email: string; };
+export type PutUsersUserIdBody = {
+  name: string;
+  email: string;
+};
 
 export type PutUsersUserIdResponse = void;"
 `;
@@ -71,7 +74,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostUsersBody = { name: string; email: string; age?: number; };
+export type PostUsersBody = {
+  name: string;
+  email: string;
+  age?: number;
+};
 
 export type PostUsersResponse = void;"
 `;
@@ -129,7 +136,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type CreateUser = { username: string; password: string; };
+export type CreateUser = {
+  username: string;
+  password: string;
+};
 
 export type PostRegisterBody = CreateUser;
 
@@ -149,7 +159,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostUploadBody = { url: string; metadata?: string; };
+export type PostUploadBody = {
+  url: string;
+  metadata?: string;
+};
 
 export type PostUploadResponse = void;"
 `;

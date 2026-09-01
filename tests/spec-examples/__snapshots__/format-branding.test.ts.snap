@@ -39,11 +39,21 @@ export type CustomFormat = MyCustomFormatString;
 
 export type NullableDate = DateTimeString | null;
 
-export type Item = { id: string; createdAt: DateTimeString; email: EmailString; score?: DoubleNumber; };
+export type Item = {
+  id: string;
+  createdAt: DateTimeString;
+  email: EmailString;
+  score?: DoubleNumber;
+};
 
-export type GetItemsResponse = Array<{ id: string; createdAt: DateTimeString; }>;
+export type GetItemsResponse = Array<{
+  id: string;
+  createdAt: DateTimeString;
+}>;
 
-export type PostItemsBody = { email: 'user@example.com' | 'test@example.org'; };
+export type PostItemsBody = {
+  email: 'user@example.com' | 'test@example.org';
+};
 
 export type PostItemsResponse = Item;
 
@@ -89,11 +99,21 @@ export type CustomFormat = MyCustomFormatString;
 
 export type NullableDate = DateTimeString | null;
 
-export type Item = { id: string; createdAt: DateTimeString; email: EmailString; score?: DoubleNumber; };
+export type Item = {
+  id: string;
+  createdAt: DateTimeString;
+  email: EmailString;
+  score?: DoubleNumber;
+};
 
-export type GetItemsResponse = Array<{ id: string; createdAt: DateTimeString; }>;
+export type GetItemsResponse = Array<{
+  id: string;
+  createdAt: DateTimeString;
+}>;
 
-export type PostItemsBody = { email: 'user@example.com' | 'test@example.org'; };
+export type PostItemsBody = {
+  email: 'user@example.com' | 'test@example.org';
+};
 
 export type PostItemsResponse = Item;
 
@@ -139,11 +159,21 @@ export type CustomFormat = MyCustomFormatString;
 
 export type NullableDate = DateTimeString | null;
 
-export type Item = { id: string; createdAt: DateTimeString; email: EmailString; score?: DoubleNumber; };
+export type Item = {
+  id: string;
+  createdAt: DateTimeString;
+  email: EmailString;
+  score?: DoubleNumber;
+};
 
-export type GetItemsResponse = Array<{ id: string; createdAt: DateTimeString; }>;
+export type GetItemsResponse = Array<{
+  id: string;
+  createdAt: DateTimeString;
+}>;
 
-export type PostItemsBody = { email: 'user@example.com' | 'test@example.org'; };
+export type PostItemsBody = {
+  email: 'user@example.com' | 'test@example.org';
+};
 
 export type PostItemsResponse = Item;
 
@@ -189,11 +219,21 @@ export type CustomFormat = MyCustomFormatString;
 
 export type NullableDate = DateTimeString | null;
 
-export type Item = { id: string; createdAt: DateTimeString; email: EmailString; score?: DoubleNumber; };
+export type Item = {
+  id: string;
+  createdAt: DateTimeString;
+  email: EmailString;
+  score?: DoubleNumber;
+};
 
-export type GetItemsResponse = Array<{ id: string; createdAt: DateTimeString; }>;
+export type GetItemsResponse = Array<{
+  id: string;
+  createdAt: DateTimeString;
+}>;
 
-export type PostItemsBody = { email: 'user@example.com' | 'test@example.org'; };
+export type PostItemsBody = {
+  email: 'user@example.com' | 'test@example.org';
+};
 
 export type PostItemsResponse = Item;
 
@@ -239,11 +279,21 @@ export type CustomFormat = MyCustomFormatString;
 
 export type NullableDate = DateTimeString | null;
 
-export type Item = { id: string; createdAt: DateTimeString; email: EmailString; score?: DoubleNumber; };
+export type Item = {
+  id: string;
+  createdAt: DateTimeString;
+  email: EmailString;
+  score?: DoubleNumber;
+};
 
-export type GetItemsResponse = Array<{ id: string; createdAt: DateTimeString; }>;
+export type GetItemsResponse = Array<{
+  id: string;
+  createdAt: DateTimeString;
+}>;
 
-export type PostItemsBody = { email: 'user@example.com' | 'test@example.org'; };
+export type PostItemsBody = {
+  email: 'user@example.com' | 'test@example.org';
+};
 
 export type PostItemsResponse = Item;
 
@@ -289,11 +339,21 @@ export type CustomFormat = MyCustomFormatString;
 
 export type NullableDate = DateTimeString | null;
 
-export type Item = { id: string; createdAt: DateTimeString; email: EmailString; score?: DoubleNumber; };
+export type Item = {
+  id: string;
+  createdAt: DateTimeString;
+  email: EmailString;
+  score?: DoubleNumber;
+};
 
-export type GetItemsResponse = Array<{ id: string; createdAt: DateTimeString; }>;
+export type GetItemsResponse = Array<{
+  id: string;
+  createdAt: DateTimeString;
+}>;
 
-export type PostItemsBody = { email: 'user@example.com' | 'test@example.org'; };
+export type PostItemsBody = {
+  email: 'user@example.com' | 'test@example.org';
+};
 
 export type PostItemsResponse = Item;
 

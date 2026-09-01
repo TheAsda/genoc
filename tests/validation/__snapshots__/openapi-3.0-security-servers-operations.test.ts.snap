@@ -265,9 +265,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostItemsBody = { name: string; };
+export type PostItemsBody = {
+  name: string;
+};
 
-export type PostItemsResponse = { id: string; };"
+export type PostItemsResponse = {
+  id: string;
+};"
 `;
 
 exports[`OpenAPI 3.0 — HTTP Methods (3.0-#100-#107) > 3.0-#101: POST operation generates client method with body parameter 2`] = `
@@ -323,7 +327,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PutItemsIdBody = { name?: string; };
+export type PutItemsIdBody = {
+  name?: string;
+};
 
 export type PutItemsIdResponse = void;"
 `;
@@ -381,7 +387,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PatchItemsIdBody = { name?: string; };
+export type PatchItemsIdBody = {
+  name?: string;
+};
 
 export type PatchItemsIdResponse = void;"
 `;
@@ -1168,7 +1176,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetUsersUserIdPostsPostIdResponse = { title?: string; };"
+export type GetUsersUserIdPostsPostIdResponse = {
+  title?: string;
+};"
 `;
 
 exports[`OpenAPI 3.0 — Operation Metadata (3.0-#108-#113) > 3.0-#113: path templating generates correct path params and URL encoding 2`] = `

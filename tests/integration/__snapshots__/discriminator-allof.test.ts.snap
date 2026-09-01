@@ -75,11 +75,19 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Pet = { "$type": string; name?: string; age?: number; };
+export type Pet = {
+  "$type": string;
+  name?: string;
+  age?: number;
+};
 
-export type Cat = Pet & { meow?: string; } & { $type: 'Cat' };
+export type Cat = Pet & {
+  meow?: string;
+} & { $type: 'Cat' };
 
-export type Dog = Pet & { bark?: string; } & { $type: 'Dog' };
+export type Dog = Pet & {
+  bark?: string;
+} & { $type: 'Dog' };
 
 export type PetVariant = Cat | Dog;
 

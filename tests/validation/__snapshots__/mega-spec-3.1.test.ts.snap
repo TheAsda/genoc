@@ -31,7 +31,10 @@ export type BooleanType = boolean;
 export type ArrayType = string[];
 
 /** Object type */
-export type ObjectType = { name: string; value?: number; };
+export type ObjectType = {
+  name: string;
+  value?: number;
+};
 
 /** Null type */
 export type NullType = string | null;
@@ -49,7 +52,10 @@ export type OneOfSchema = string | number;
 export type AnyOfSchema = string | number;
 
 /** Discriminator schema */
-export type DiscriminatorSchema = { "type": string; value?: string; };
+export type DiscriminatorSchema = {
+  "type": string;
+  value?: string;
+};
 
 /** Enum schema */
 export type EnumSchema = 'option1' | 'option2' | 'option3';
@@ -58,17 +64,28 @@ export type EnumSchema = 'option1' | 'option2' | 'option3';
 export type ConstSchema = string;
 
 /** Default schema */
-export type DefaultSchema = { name?: string; count?: number; };
+export type DefaultSchema = {
+  /** @default "default-name" */
+  name?: string;
+  /** @default 42 */
+  count?: number;
+};
 
 /** This has a detailed description for testing JSDoc generation. This is a longer description that should trigger JSDoc generation with proper formatting and multiple lines of content to test how the generator handles verbose documentation in schema definitions with various metadata and configuration options.
  */
 export type DescriptionSchema = string;
 
 /** ReadOnly schema */
-export type ReadOnlySchema = { readonly_field: string; normal_field: string; };
+export type ReadOnlySchema = {
+  readonly_field: string;
+  normal_field: string;
+};
 
 /** WriteOnly schema */
-export type WriteOnlySchema = { writeonly_field: string; normal_field: string; };
+export type WriteOnlySchema = {
+  writeonly_field: string;
+  normal_field: string;
+};
 
 /** Deprecated schema */
 export type DeprecatedSchema = string;
@@ -77,25 +94,54 @@ export type DeprecatedSchema = string;
 export type FormatSchema = DateTimeString;
 
 /** Additional properties schema */
-export type AdditionalPropertiesSchema = { known_prop?: string; } & { [key: string]: number; };
+export type AdditionalPropertiesSchema = {
+  known_prop?: string;
+} & {
+  [key: string]: number;
+};
 
 /** Required schema */
-export type RequiredSchema = { required_field: string; optional_field?: string; };
+export type RequiredSchema = {
+  required_field: string;
+  optional_field?: string;
+};
 
 /** Validation constraints (should be stored but not emitted) */
 export type ValidationConstraintsSchema = string;
 
 /** File upload schema */
-export type FileUpload = { file: string; text_file: string; regular_file?: string; };
+export type FileUpload = {
+  file: string;
+  text_file: string;
+  regular_file?: string;
+};
 
 /** Nested schema with refs and composition */
-export type NestedSchema = { data: ObjectType; metadata?: { tags?: string[]; config?: DefaultSchema & { extra: string; }; }; files?: FileUpload[]; };
+export type NestedSchema = {
+  /** Object type */
+  data: ObjectType;
+  metadata?: {
+    tags?: string[];
+    config?: DefaultSchema & {
+      extra: string;
+    };
+  };
+  files?: FileUpload[];
+};
 
 /** Circular reference B */
-export type CircularB = { value: number; reference?: CircularA; };
+export type CircularB = {
+  value: number;
+  /** Circular reference A */
+  reference?: CircularA;
+};
 
 /** Circular reference A */
-export type CircularA = { name: string; reference?: CircularB; };
+export type CircularA = {
+  name: string;
+  /** Circular reference B */
+  reference?: CircularB;
+};
 
 export type DiscriminatorSchemaVariant = StringType | NumberType;
 
@@ -148,103 +194,211 @@ export interface FileInput {
   filename: string;
 }
 
-export type GetStringResponse = { result: string; status?: number; };
+export type GetStringResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetStringError400 = { error: string; code?: number; };
+export type GetStringError400 = {
+  error: string;
+  code?: number;
+};
 
-export type GetStringError500 = { error: string; code?: number; };
+export type GetStringError500 = {
+  error: string;
+  code?: number;
+};
 
 export type GetStringErrors = ApiError<400, GetStringError400> | ApiError<500, GetStringError500>;
 
 export type GetNumberQuery = { limit?: number; };
 
-export type GetNumberResponse = { result: string; status?: number; };
+export type GetNumberResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetIntegerResponse = { result: string; status?: number; };
+export type GetIntegerResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetBooleanResponse = { result: string; status?: number; };
+export type GetBooleanResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetArrayResponse = { result: string; status?: number; };
+export type GetArrayResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetObjectResponse = { result: string; status?: number; };
+export type GetObjectResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetNullResponse = { result: string; status?: number; };
+export type GetNullResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetTypeArrayResponse = { result: string; status?: number; };
+export type GetTypeArrayResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetAllofResponse = { result: string; status?: number; };
+export type GetAllofResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetOneofResponse = { result: string; status?: number; };
+export type GetOneofResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetAnyofResponse = { result: string; status?: number; };
+export type GetAnyofResponse = {
+  result: string;
+  status?: number;
+};
 
 export type PostDiscriminatorBody = DiscriminatorSchema;
 
-export type PostDiscriminatorResponse = { result: string; status?: number; };
+export type PostDiscriminatorResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetEnumResponse = { result: string; status?: number; };
+export type GetEnumResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetConstResponse = { result: string; status?: number; };
+export type GetConstResponse = {
+  result: string;
+  status?: number;
+};
 
 export type PostDefaultBody = DefaultSchema;
 
-export type PostDefaultResponse = { result: string; status?: number; };
+export type PostDefaultResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetDescriptionResponse = { result: string; status?: number; };
+export type GetDescriptionResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetReadonlyResponse = { result: string; status?: number; };
+export type GetReadonlyResponse = {
+  result: string;
+  status?: number;
+};
 
 export type PostWriteonlyBody = WriteOnlySchema;
 
-export type PostWriteonlyResponse = { result: string; status?: number; };
+export type PostWriteonlyResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetDeprecatedResponse = { result: string; status?: number; };
+export type GetDeprecatedResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetFormatResponse = { result: string; status?: number; };
+export type GetFormatResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetAdditionalPropertiesResponse = { result: string; status?: number; };
+export type GetAdditionalPropertiesResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetRequiredResponse = { result: string; status?: number; };
+export type GetRequiredResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetValidationConstraintsResponse = { result: string; status?: number; };
+export type GetValidationConstraintsResponse = {
+  result: string;
+  status?: number;
+};
 
 export type PostUploadBody = { text_field: string; file_field: FileInput; text_file?: string; array_field?: string; };
 
-export type PostUploadResponse = { result: string; status?: number; };
+export type PostUploadResponse = {
+  result: string;
+  status?: number;
+};
 
-export type PostUploadError400 = { error: string; code?: number; };
+export type PostUploadError400 = {
+  error: string;
+  code?: number;
+};
 
 export type PostUploadErrors = ApiError<400, PostUploadError400>;
 
 export type GetBinaryResponseResponse = StreamResponse;
 
-export type GetBinaryResponseError400 = { error: string; code?: number; };
+export type GetBinaryResponseError400 = {
+  error: string;
+  code?: number;
+};
 
 export type GetBinaryResponseErrors = ApiError<400, GetBinaryResponseError400>;
 
 export type GetEmptyResponseResponse = void;
 
-export type GetEmptyResponseError400 = { error: string; code?: number; };
+export type GetEmptyResponseError400 = {
+  error: string;
+  code?: number;
+};
 
 export type GetEmptyResponseErrors = ApiError<400, GetEmptyResponseError400>;
 
 export type PostNestedSchemaBody = NestedSchema;
 
-export type PostNestedSchemaResponse = { result: string; status?: number; };
+export type PostNestedSchemaResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetAllMethodsResponse = { result: string; status?: number; };
+export type GetAllMethodsResponse = {
+  result: string;
+  status?: number;
+};
 
-export type PostAllMethodsBody = { data: string; };
+export type PostAllMethodsBody = {
+  data: string;
+};
 
-export type PostAllMethodsResponse = { result: string; status?: number; };
+export type PostAllMethodsResponse = {
+  result: string;
+  status?: number;
+};
 
-export type PutAllMethodsBody = { data: string; };
+export type PutAllMethodsBody = {
+  data: string;
+};
 
-export type PutAllMethodsResponse = { result: string; status?: number; };
+export type PutAllMethodsResponse = {
+  result: string;
+  status?: number;
+};
 
-export type PatchAllMethodsBody = { data: string; };
+export type PatchAllMethodsBody = {
+  data: string;
+};
 
-export type PatchAllMethodsResponse = { result: string; status?: number; };
+export type PatchAllMethodsResponse = {
+  result: string;
+  status?: number;
+};
 
 export type DeleteAllMethodsResponse = void;
 
@@ -252,65 +406,136 @@ export type OptionsAllMethodsResponse = void;
 
 export type HeadAllMethodsResponse = void;
 
-export type TraceAllMethodsResponse = { result: string; status?: number; };
+export type TraceAllMethodsResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetPathIdResponse = { result: string; status?: number; };
+export type GetPathIdResponse = {
+  result: string;
+  status?: number;
+};
 
 export type GetQueryQuery = { limit?: number; offset?: number; filter?: string; };
 
-export type GetQueryResponse = { result: string; status?: number; };
+export type GetQueryResponse = {
+  result: string;
+  status?: number;
+};
 
 export type GetHeadersHeaders = { "X-Custom-Header": string; "X-Trace-ID": string; };
 
-export type GetHeadersResponse = { result: string; status?: number; };
+export type GetHeadersResponse = {
+  result: string;
+  status?: number;
+};
 
-export type PostJsonBodyBody = { name: string; value?: number; };
+export type PostJsonBodyBody = {
+  name: string;
+  value?: number;
+};
 
-export type PostJsonBodyResponse = { result: string; status?: number; };
+export type PostJsonBodyResponse = {
+  result: string;
+  status?: number;
+};
 
-export type PostFormBodyBody = { field1: string; field2?: number; };
+export type PostFormBodyBody = {
+  field1: string;
+  field2?: number;
+};
 
-export type PostFormBodyResponse = { result: string; status?: number; };
+export type PostFormBodyResponse = {
+  result: string;
+  status?: number;
+};
 
 export type PostBinaryBodyBody = Blob;
 
-export type PostBinaryBodyResponse = { result: string; status?: number; };
+export type PostBinaryBodyResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetErrorHandlingResponse = { result: string; status?: number; };
+export type GetErrorHandlingResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetErrorHandlingError400 = { error: string; code?: number; };
+export type GetErrorHandlingError400 = {
+  error: string;
+  code?: number;
+};
 
-export type GetErrorHandlingError401 = { error: string; };
+export type GetErrorHandlingError401 = {
+  error: string;
+};
 
-export type GetErrorHandlingError403 = { error: string; code?: number; };
+export type GetErrorHandlingError403 = {
+  error: string;
+  code?: number;
+};
 
-export type GetErrorHandlingError404 = { message: string; };
+export type GetErrorHandlingError404 = {
+  message: string;
+};
 
-export type GetErrorHandlingError500 = { error: string; code?: number; };
+export type GetErrorHandlingError500 = {
+  error: string;
+  code?: number;
+};
 
-export type GetErrorHandlingDefaultError = { message: string; };
+export type GetErrorHandlingDefaultError = {
+  message: string;
+};
 
 export type GetErrorHandlingErrors = ApiError<400, GetErrorHandlingError400> | ApiError<401, GetErrorHandlingError401> | ApiError<403, GetErrorHandlingError403> | ApiError<404, GetErrorHandlingError404> | ApiError<500, GetErrorHandlingError500>;
 
-export type GetSecurityTestResponse = { result: string; status?: number; };
+export type GetSecurityTestResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetOauthTestResponse = { result: string; status?: number; };
+export type GetOauthTestResponse = {
+  result: string;
+  status?: number;
+};
 
 export type GetCircularTestResponse = CircularA;
 
-export type GetRefSiblingsTestResponse = { ref_with_sibling: DescriptionSchema & { extra_field: string; }; normal_ref: DescriptionSchema; };
+export type GetRefSiblingsTestResponse = {
+  ref_with_sibling: DescriptionSchema & {
+    /** Extra field from sibling */
+    extra_field: string;
+  };
+  /**
+   * This has a detailed description for testing JSDoc generation. This is a longer description that should trigger JSDoc generation with proper formatting and multiple lines of content to test how the generator handles verbose documentation in schema definitions with various metadata and configuration options.
+   *
+   * @deprecated
+   */
+  normal_ref: DescriptionSchema;
+};
 
 export type GetTier2ParamsQuery = { style_test?: string; empty_value_test?: string; };
 
-export type GetTier2ParamsResponse = { result: string; status?: number; };
+export type GetTier2ParamsResponse = {
+  result: string;
+  status?: number;
+};
 
 export type GetTier2ValidationQuery = { min_items?: string[]; max_length?: string; pattern_test?: string; };
 
-export type GetTier2ValidationResponse = { result: string; status?: number; };
+export type GetTier2ValidationResponse = {
+  result: string;
+  status?: number;
+};
 
 export type GetExclusiveMinMaxQuery = { exclusive_min?: number; exclusive_max?: number; };
 
-export type GetExclusiveMinMaxResponse = { result: string; status?: number; };"
+export type GetExclusiveMinMaxResponse = {
+  result: string;
+  status?: number;
+};"
 `;
 
 exports[`OpenAPI 3.1 Mega-Spec Integration Test > Full output pipeline > writes contracts.ts and client.ts to disk 2`] = `
@@ -1716,7 +1941,10 @@ export type BooleanType = boolean;
 export type ArrayType = string[];
 
 /** Object type */
-export type ObjectType = { name: string; value?: number; };
+export type ObjectType = {
+  name: string;
+  value?: number;
+};
 
 /** Null type */
 export type NullType = string | null;
@@ -1734,7 +1962,10 @@ export type OneOfSchema = string | number;
 export type AnyOfSchema = string | number;
 
 /** Discriminator schema */
-export type DiscriminatorSchema = { "type": string; value?: string; };
+export type DiscriminatorSchema = {
+  "type": string;
+  value?: string;
+};
 
 /** Enum schema */
 export type EnumSchema = 'option1' | 'option2' | 'option3';
@@ -1743,17 +1974,28 @@ export type EnumSchema = 'option1' | 'option2' | 'option3';
 export type ConstSchema = string;
 
 /** Default schema */
-export type DefaultSchema = { name?: string; count?: number; };
+export type DefaultSchema = {
+  /** @default "default-name" */
+  name?: string;
+  /** @default 42 */
+  count?: number;
+};
 
 /** This has a detailed description for testing JSDoc generation. This is a longer description that should trigger JSDoc generation with proper formatting and multiple lines of content to test how the generator handles verbose documentation in schema definitions with various metadata and configuration options.
  */
 export type DescriptionSchema = string;
 
 /** ReadOnly schema */
-export type ReadOnlySchema = { readonly_field: string; normal_field: string; };
+export type ReadOnlySchema = {
+  readonly_field: string;
+  normal_field: string;
+};
 
 /** WriteOnly schema */
-export type WriteOnlySchema = { writeonly_field: string; normal_field: string; };
+export type WriteOnlySchema = {
+  writeonly_field: string;
+  normal_field: string;
+};
 
 /** Deprecated schema */
 export type DeprecatedSchema = string;
@@ -1762,25 +2004,54 @@ export type DeprecatedSchema = string;
 export type FormatSchema = DateTimeString;
 
 /** Additional properties schema */
-export type AdditionalPropertiesSchema = { known_prop?: string; } & { [key: string]: number; };
+export type AdditionalPropertiesSchema = {
+  known_prop?: string;
+} & {
+  [key: string]: number;
+};
 
 /** Required schema */
-export type RequiredSchema = { required_field: string; optional_field?: string; };
+export type RequiredSchema = {
+  required_field: string;
+  optional_field?: string;
+};
 
 /** Validation constraints (should be stored but not emitted) */
 export type ValidationConstraintsSchema = string;
 
 /** File upload schema */
-export type FileUpload = { file: string; text_file: string; regular_file?: string; };
+export type FileUpload = {
+  file: string;
+  text_file: string;
+  regular_file?: string;
+};
 
 /** Nested schema with refs and composition */
-export type NestedSchema = { data: ObjectType; metadata?: { tags?: string[]; config?: DefaultSchema & { extra: string; }; }; files?: FileUpload[]; };
+export type NestedSchema = {
+  /** Object type */
+  data: ObjectType;
+  metadata?: {
+    tags?: string[];
+    config?: DefaultSchema & {
+      extra: string;
+    };
+  };
+  files?: FileUpload[];
+};
 
 /** Circular reference B */
-export type CircularB = { value: number; reference?: CircularA; };
+export type CircularB = {
+  value: number;
+  /** Circular reference A */
+  reference?: CircularA;
+};
 
 /** Circular reference A */
-export type CircularA = { name: string; reference?: CircularB; };
+export type CircularA = {
+  name: string;
+  /** Circular reference B */
+  reference?: CircularB;
+};
 
 export type DiscriminatorSchemaVariant = StringType | NumberType;
 
@@ -1833,103 +2104,211 @@ export interface FileInput {
   filename: string;
 }
 
-export type GetStringResponse = { result: string; status?: number; };
+export type GetStringResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetStringError400 = { error: string; code?: number; };
+export type GetStringError400 = {
+  error: string;
+  code?: number;
+};
 
-export type GetStringError500 = { error: string; code?: number; };
+export type GetStringError500 = {
+  error: string;
+  code?: number;
+};
 
 export type GetStringErrors = ApiError<400, GetStringError400> | ApiError<500, GetStringError500>;
 
 export type GetNumberQuery = { limit?: number; };
 
-export type GetNumberResponse = { result: string; status?: number; };
+export type GetNumberResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetIntegerResponse = { result: string; status?: number; };
+export type GetIntegerResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetBooleanResponse = { result: string; status?: number; };
+export type GetBooleanResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetArrayResponse = { result: string; status?: number; };
+export type GetArrayResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetObjectResponse = { result: string; status?: number; };
+export type GetObjectResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetNullResponse = { result: string; status?: number; };
+export type GetNullResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetTypeArrayResponse = { result: string; status?: number; };
+export type GetTypeArrayResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetAllofResponse = { result: string; status?: number; };
+export type GetAllofResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetOneofResponse = { result: string; status?: number; };
+export type GetOneofResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetAnyofResponse = { result: string; status?: number; };
+export type GetAnyofResponse = {
+  result: string;
+  status?: number;
+};
 
 export type PostDiscriminatorBody = DiscriminatorSchema;
 
-export type PostDiscriminatorResponse = { result: string; status?: number; };
+export type PostDiscriminatorResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetEnumResponse = { result: string; status?: number; };
+export type GetEnumResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetConstResponse = { result: string; status?: number; };
+export type GetConstResponse = {
+  result: string;
+  status?: number;
+};
 
 export type PostDefaultBody = DefaultSchema;
 
-export type PostDefaultResponse = { result: string; status?: number; };
+export type PostDefaultResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetDescriptionResponse = { result: string; status?: number; };
+export type GetDescriptionResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetReadonlyResponse = { result: string; status?: number; };
+export type GetReadonlyResponse = {
+  result: string;
+  status?: number;
+};
 
 export type PostWriteonlyBody = WriteOnlySchema;
 
-export type PostWriteonlyResponse = { result: string; status?: number; };
+export type PostWriteonlyResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetDeprecatedResponse = { result: string; status?: number; };
+export type GetDeprecatedResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetFormatResponse = { result: string; status?: number; };
+export type GetFormatResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetAdditionalPropertiesResponse = { result: string; status?: number; };
+export type GetAdditionalPropertiesResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetRequiredResponse = { result: string; status?: number; };
+export type GetRequiredResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetValidationConstraintsResponse = { result: string; status?: number; };
+export type GetValidationConstraintsResponse = {
+  result: string;
+  status?: number;
+};
 
 export type PostUploadBody = { text_field: string; file_field: FileInput; text_file?: string; array_field?: string; };
 
-export type PostUploadResponse = { result: string; status?: number; };
+export type PostUploadResponse = {
+  result: string;
+  status?: number;
+};
 
-export type PostUploadError400 = { error: string; code?: number; };
+export type PostUploadError400 = {
+  error: string;
+  code?: number;
+};
 
 export type PostUploadErrors = ApiError<400, PostUploadError400>;
 
 export type GetBinaryResponseResponse = StreamResponse;
 
-export type GetBinaryResponseError400 = { error: string; code?: number; };
+export type GetBinaryResponseError400 = {
+  error: string;
+  code?: number;
+};
 
 export type GetBinaryResponseErrors = ApiError<400, GetBinaryResponseError400>;
 
 export type GetEmptyResponseResponse = void;
 
-export type GetEmptyResponseError400 = { error: string; code?: number; };
+export type GetEmptyResponseError400 = {
+  error: string;
+  code?: number;
+};
 
 export type GetEmptyResponseErrors = ApiError<400, GetEmptyResponseError400>;
 
 export type PostNestedSchemaBody = NestedSchema;
 
-export type PostNestedSchemaResponse = { result: string; status?: number; };
+export type PostNestedSchemaResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetAllMethodsResponse = { result: string; status?: number; };
+export type GetAllMethodsResponse = {
+  result: string;
+  status?: number;
+};
 
-export type PostAllMethodsBody = { data: string; };
+export type PostAllMethodsBody = {
+  data: string;
+};
 
-export type PostAllMethodsResponse = { result: string; status?: number; };
+export type PostAllMethodsResponse = {
+  result: string;
+  status?: number;
+};
 
-export type PutAllMethodsBody = { data: string; };
+export type PutAllMethodsBody = {
+  data: string;
+};
 
-export type PutAllMethodsResponse = { result: string; status?: number; };
+export type PutAllMethodsResponse = {
+  result: string;
+  status?: number;
+};
 
-export type PatchAllMethodsBody = { data: string; };
+export type PatchAllMethodsBody = {
+  data: string;
+};
 
-export type PatchAllMethodsResponse = { result: string; status?: number; };
+export type PatchAllMethodsResponse = {
+  result: string;
+  status?: number;
+};
 
 export type DeleteAllMethodsResponse = void;
 
@@ -1937,65 +2316,136 @@ export type OptionsAllMethodsResponse = void;
 
 export type HeadAllMethodsResponse = void;
 
-export type TraceAllMethodsResponse = { result: string; status?: number; };
+export type TraceAllMethodsResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetPathIdResponse = { result: string; status?: number; };
+export type GetPathIdResponse = {
+  result: string;
+  status?: number;
+};
 
 export type GetQueryQuery = { limit?: number; offset?: number; filter?: string; };
 
-export type GetQueryResponse = { result: string; status?: number; };
+export type GetQueryResponse = {
+  result: string;
+  status?: number;
+};
 
 export type GetHeadersHeaders = { "X-Custom-Header": string; "X-Trace-ID": string; };
 
-export type GetHeadersResponse = { result: string; status?: number; };
+export type GetHeadersResponse = {
+  result: string;
+  status?: number;
+};
 
-export type PostJsonBodyBody = { name: string; value?: number; };
+export type PostJsonBodyBody = {
+  name: string;
+  value?: number;
+};
 
-export type PostJsonBodyResponse = { result: string; status?: number; };
+export type PostJsonBodyResponse = {
+  result: string;
+  status?: number;
+};
 
-export type PostFormBodyBody = { field1: string; field2?: number; };
+export type PostFormBodyBody = {
+  field1: string;
+  field2?: number;
+};
 
-export type PostFormBodyResponse = { result: string; status?: number; };
+export type PostFormBodyResponse = {
+  result: string;
+  status?: number;
+};
 
 export type PostBinaryBodyBody = Blob;
 
-export type PostBinaryBodyResponse = { result: string; status?: number; };
+export type PostBinaryBodyResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetErrorHandlingResponse = { result: string; status?: number; };
+export type GetErrorHandlingResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetErrorHandlingError400 = { error: string; code?: number; };
+export type GetErrorHandlingError400 = {
+  error: string;
+  code?: number;
+};
 
-export type GetErrorHandlingError401 = { error: string; };
+export type GetErrorHandlingError401 = {
+  error: string;
+};
 
-export type GetErrorHandlingError403 = { error: string; code?: number; };
+export type GetErrorHandlingError403 = {
+  error: string;
+  code?: number;
+};
 
-export type GetErrorHandlingError404 = { message: string; };
+export type GetErrorHandlingError404 = {
+  message: string;
+};
 
-export type GetErrorHandlingError500 = { error: string; code?: number; };
+export type GetErrorHandlingError500 = {
+  error: string;
+  code?: number;
+};
 
-export type GetErrorHandlingDefaultError = { message: string; };
+export type GetErrorHandlingDefaultError = {
+  message: string;
+};
 
 export type GetErrorHandlingErrors = ApiError<400, GetErrorHandlingError400> | ApiError<401, GetErrorHandlingError401> | ApiError<403, GetErrorHandlingError403> | ApiError<404, GetErrorHandlingError404> | ApiError<500, GetErrorHandlingError500>;
 
-export type GetSecurityTestResponse = { result: string; status?: number; };
+export type GetSecurityTestResponse = {
+  result: string;
+  status?: number;
+};
 
-export type GetOauthTestResponse = { result: string; status?: number; };
+export type GetOauthTestResponse = {
+  result: string;
+  status?: number;
+};
 
 export type GetCircularTestResponse = CircularA;
 
-export type GetRefSiblingsTestResponse = { ref_with_sibling: DescriptionSchema & { extra_field: string; }; normal_ref: DescriptionSchema; };
+export type GetRefSiblingsTestResponse = {
+  ref_with_sibling: DescriptionSchema & {
+    /** Extra field from sibling */
+    extra_field: string;
+  };
+  /**
+   * This has a detailed description for testing JSDoc generation. This is a longer description that should trigger JSDoc generation with proper formatting and multiple lines of content to test how the generator handles verbose documentation in schema definitions with various metadata and configuration options.
+   *
+   * @deprecated
+   */
+  normal_ref: DescriptionSchema;
+};
 
 export type GetTier2ParamsQuery = { style_test?: string; empty_value_test?: string; };
 
-export type GetTier2ParamsResponse = { result: string; status?: number; };
+export type GetTier2ParamsResponse = {
+  result: string;
+  status?: number;
+};
 
 export type GetTier2ValidationQuery = { min_items?: string[]; max_length?: string; pattern_test?: string; };
 
-export type GetTier2ValidationResponse = { result: string; status?: number; };
+export type GetTier2ValidationResponse = {
+  result: string;
+  status?: number;
+};
 
 export type GetExclusiveMinMaxQuery = { exclusive_min?: number; exclusive_max?: number; };
 
-export type GetExclusiveMinMaxResponse = { result: string; status?: number; };"
+export type GetExclusiveMinMaxResponse = {
+  result: string;
+  status?: number;
+};"
 `;
 
 exports[`OpenAPI 3.1 Mega-Spec Integration Test > loads mega-spec.yaml and produces contracts and client strings 2`] = `

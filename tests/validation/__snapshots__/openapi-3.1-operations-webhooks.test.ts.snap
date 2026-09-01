@@ -265,9 +265,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostItemsBody = { name: string; };
+export type PostItemsBody = {
+  name: string;
+};
 
-export type PostItemsResponse = { id: string; };"
+export type PostItemsResponse = {
+  id: string;
+};"
 `;
 
 exports[`OpenAPI 3.1 — HTTP Methods (3.1-#102-#109) > 3.1-#103: POST operation generates client method with body parameter 2`] = `
@@ -323,7 +327,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PutItemsIdBody = { name?: string; };
+export type PutItemsIdBody = {
+  name?: string;
+};
 
 export type PutItemsIdResponse = void;"
 `;
@@ -381,7 +387,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PatchItemsIdBody = { name?: string; };
+export type PatchItemsIdBody = {
+  name?: string;
+};
 
 export type PatchItemsIdResponse = void;"
 `;

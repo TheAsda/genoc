@@ -172,6 +172,8 @@ components:
                 type: string
                 description: 'Branch display name.'
     ComposedItem:
+      title: Composed Item
+      description: 'Named allOf composition carrying parent-level metadata.'
       allOf:
         - $ref: '#/components/schemas/CatalogItem'
         - type: object
