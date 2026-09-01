@@ -13,8 +13,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PutUsersUserIdBody = { name: string; email: string; };
+export type PutUsersUserIdBody = {
+  name: string;
+  email: string;
+};
 
+/** Updated */
 export type PutUsersUserIdResponse = void;"
 `;
 
@@ -31,6 +35,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Updated
+     *
      * @param body — request body
      */
     putUsersByUserId: decorateWithErrors<(userId: string, body: PutUsersUserIdBody) => Promise<void>, never>(
@@ -71,8 +77,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostUsersBody = { name: string; email: string; age?: number; };
+export type PostUsersBody = {
+  name: string;
+  email: string;
+  age?: number;
+};
 
+/** Created */
 export type PostUsersResponse = void;"
 `;
 
@@ -89,6 +100,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postUsers: decorateWithErrors<(body?: PostUsersBody) => Promise<void>, never>(
@@ -129,10 +142,14 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type CreateUser = { username: string; password: string; };
+export type CreateUser = {
+  username: string;
+  password: string;
+};
 
 export type PostRegisterBody = CreateUser;
 
+/** Registered */
 export type PostRegisterResponse = void;"
 `;
 
@@ -149,8 +166,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostUploadBody = { url: string; metadata?: string; };
+export type PostUploadBody = {
+  url: string;
+  metadata?: string;
+};
 
+/** Uploaded */
 export type PostUploadResponse = void;"
 `;
 
@@ -167,6 +188,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Order created
+     *
      * @param body — request body
      */
     postOrders: decorateWithErrors<(body: PostOrdersBody) => Promise<void>, never>(
@@ -207,6 +230,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Updated
+     *
      * @param body — request body
      */
     patchProfile: decorateWithErrors<(body?: PatchProfileBody) => Promise<void>, never>(

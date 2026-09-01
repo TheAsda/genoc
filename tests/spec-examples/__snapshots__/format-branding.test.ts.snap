@@ -39,14 +39,27 @@ export type CustomFormat = MyCustomFormatString;
 
 export type NullableDate = DateTimeString | null;
 
-export type Item = { id: string; createdAt: DateTimeString; email: EmailString; score?: DoubleNumber; };
+export type Item = {
+  id: string;
+  createdAt: DateTimeString;
+  email: EmailString;
+  score?: DoubleNumber;
+};
 
-export type GetItemsResponse = Array<{ id: string; createdAt: DateTimeString; }>;
+/** List of items */
+export type GetItemsResponse = Array<{
+  id: string;
+  createdAt: DateTimeString;
+}>;
 
-export type PostItemsBody = { email: 'user@example.com' | 'test@example.org'; };
+export type PostItemsBody = {
+  email: 'user@example.com' | 'test@example.org';
+};
 
+/** Item created */
 export type PostItemsResponse = Item;
 
+/** Records with dynamic formatted properties */
 export type GetRecordsResponse = Record<string, DateTimeString>;"
 `;
 
@@ -89,14 +102,27 @@ export type CustomFormat = MyCustomFormatString;
 
 export type NullableDate = DateTimeString | null;
 
-export type Item = { id: string; createdAt: DateTimeString; email: EmailString; score?: DoubleNumber; };
+export type Item = {
+  id: string;
+  createdAt: DateTimeString;
+  email: EmailString;
+  score?: DoubleNumber;
+};
 
-export type GetItemsResponse = Array<{ id: string; createdAt: DateTimeString; }>;
+/** List of items */
+export type GetItemsResponse = Array<{
+  id: string;
+  createdAt: DateTimeString;
+}>;
 
-export type PostItemsBody = { email: 'user@example.com' | 'test@example.org'; };
+export type PostItemsBody = {
+  email: 'user@example.com' | 'test@example.org';
+};
 
+/** Item created */
 export type PostItemsResponse = Item;
 
+/** Records with dynamic formatted properties */
 export type GetRecordsResponse = Record<string, DateTimeString>;"
 `;
 
@@ -139,14 +165,27 @@ export type CustomFormat = MyCustomFormatString;
 
 export type NullableDate = DateTimeString | null;
 
-export type Item = { id: string; createdAt: DateTimeString; email: EmailString; score?: DoubleNumber; };
+export type Item = {
+  id: string;
+  createdAt: DateTimeString;
+  email: EmailString;
+  score?: DoubleNumber;
+};
 
-export type GetItemsResponse = Array<{ id: string; createdAt: DateTimeString; }>;
+/** List of items */
+export type GetItemsResponse = Array<{
+  id: string;
+  createdAt: DateTimeString;
+}>;
 
-export type PostItemsBody = { email: 'user@example.com' | 'test@example.org'; };
+export type PostItemsBody = {
+  email: 'user@example.com' | 'test@example.org';
+};
 
+/** Item created */
 export type PostItemsResponse = Item;
 
+/** Records with dynamic formatted properties */
 export type GetRecordsResponse = Record<string, DateTimeString>;"
 `;
 
@@ -189,14 +228,27 @@ export type CustomFormat = MyCustomFormatString;
 
 export type NullableDate = DateTimeString | null;
 
-export type Item = { id: string; createdAt: DateTimeString; email: EmailString; score?: DoubleNumber; };
+export type Item = {
+  id: string;
+  createdAt: DateTimeString;
+  email: EmailString;
+  score?: DoubleNumber;
+};
 
-export type GetItemsResponse = Array<{ id: string; createdAt: DateTimeString; }>;
+/** List of items */
+export type GetItemsResponse = Array<{
+  id: string;
+  createdAt: DateTimeString;
+}>;
 
-export type PostItemsBody = { email: 'user@example.com' | 'test@example.org'; };
+export type PostItemsBody = {
+  email: 'user@example.com' | 'test@example.org';
+};
 
+/** Item created */
 export type PostItemsResponse = Item;
 
+/** Records with dynamic formatted properties */
 export type GetRecordsResponse = Record<string, DateTimeString>;"
 `;
 
@@ -239,14 +291,27 @@ export type CustomFormat = MyCustomFormatString;
 
 export type NullableDate = DateTimeString | null;
 
-export type Item = { id: string; createdAt: DateTimeString; email: EmailString; score?: DoubleNumber; };
+export type Item = {
+  id: string;
+  createdAt: DateTimeString;
+  email: EmailString;
+  score?: DoubleNumber;
+};
 
-export type GetItemsResponse = Array<{ id: string; createdAt: DateTimeString; }>;
+/** List of items */
+export type GetItemsResponse = Array<{
+  id: string;
+  createdAt: DateTimeString;
+}>;
 
-export type PostItemsBody = { email: 'user@example.com' | 'test@example.org'; };
+export type PostItemsBody = {
+  email: 'user@example.com' | 'test@example.org';
+};
 
+/** Item created */
 export type PostItemsResponse = Item;
 
+/** Records with dynamic formatted properties */
 export type GetRecordsResponse = Record<string, DateTimeString>;"
 `;
 
@@ -289,13 +354,26 @@ export type CustomFormat = MyCustomFormatString;
 
 export type NullableDate = DateTimeString | null;
 
-export type Item = { id: string; createdAt: DateTimeString; email: EmailString; score?: DoubleNumber; };
+export type Item = {
+  id: string;
+  createdAt: DateTimeString;
+  email: EmailString;
+  score?: DoubleNumber;
+};
 
-export type GetItemsResponse = Array<{ id: string; createdAt: DateTimeString; }>;
+/** List of items */
+export type GetItemsResponse = Array<{
+  id: string;
+  createdAt: DateTimeString;
+}>;
 
-export type PostItemsBody = { email: 'user@example.com' | 'test@example.org'; };
+export type PostItemsBody = {
+  email: 'user@example.com' | 'test@example.org';
+};
 
+/** Item created */
 export type PostItemsResponse = Item;
 
+/** Records with dynamic formatted properties */
 export type GetRecordsResponse = Record<string, DateTimeString>;"
 `;

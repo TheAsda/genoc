@@ -1445,4 +1445,453 @@ describe('generateContracts', () => {
       expect(result).toMatchSnapshot();
     });
   });
+
+  describe('JSDoc metadata wiring: named component types', () => {
+    it('emits all five metadata segments in frozen order above named types', () => {
+      const doc = createDoc({
+        components: {
+          schemas: {
+            Status: {
+              type: 'string',
+              description: 'Named type description.',
+              deprecated: true,
+              default: 'active',
+              example: 'active',
+              title: 'Status',
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+      expect(result).toMatchSnapshot();
+      expect(result).toContain(`/**
+ * Named type description.
+ *
+ * @deprecated
+ *
+ * @default "active"
+ *
+ * @example "active"
+ *
+ * @title Status
+ */
+export type Status = string;`);
+    });
+
+    it('emits one @example line per 3.1 examples array entry', () => {
+      const doc = createDoc({
+        components: {
+          schemas: {
+            Color: { type: 'string', examples: ['red', 'blue'] },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+      expect(result).toMatchSnapshot();
+      expect(result).toContain(`/**
+ * @example "red"
+ *
+ * @example "blue"
+ */
+export type Color = string;`);
+    });
+  });
+
+  describe('JSDoc metadata wiring: parameter merge rule (query)', () => {
+    it('renders multi-line body with 2-space indent and parameter-level description winning', () => {
+      const doc = createDoc({
+        paths: {
+          '/items': {
+            get: {
+              parameters: [
+                {
+                  name: 'filter',
+                  in: 'query',
+                  description: 'Param-level filter description.',
+                  schema: {
+                    type: 'string',
+                    description: 'Schema-level filter description.',
+                  },
+                },
+              ],
+              responses: { '200': { description: '' } },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+      expect(result).toMatchSnapshot();
+      expect(result).toContain(`export type GetItemsQuery = {
+  /** Param-level filter description. */
+  filter?: string;
+};`);
+      expect(result).not.toContain('Schema-level filter description.');
+    });
+
+    it('falls back to schema-level description when the parameter has none', () => {
+      const doc = createDoc({
+        paths: {
+          '/items': {
+            get: {
+              parameters: [
+                {
+                  name: 'filter',
+                  in: 'query',
+                  schema: { type: 'string', description: 'Schema-level filter description.' },
+                },
+              ],
+              responses: { '200': { description: '' } },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+      expect(result).toMatchSnapshot();
+      expect(result).toContain('  /** Schema-level filter description. */');
+    });
+
+    it('marks deprecated when the parameter OR the schema is deprecated', () => {
+      const doc = createDoc({
+        paths: {
+          '/items': {
+            get: {
+              parameters: [
+                {
+                  name: 'a',
+                  in: 'query',
+                  deprecated: true,
+                  schema: { type: 'string' },
+                },
+                {
+                  name: 'b',
+                  in: 'query',
+                  schema: { type: 'string', deprecated: true },
+                },
+                { name: 'c', in: 'query', schema: { type: 'string' } },
+              ],
+              responses: { '200': { description: '' } },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+      expect(result).toMatchSnapshot();
+      expect(result).toContain(`  /** @deprecated */
+  a?: string;`);
+      expect(result).toContain(`  /** @deprecated */
+  b?: string;`);
+      expect(result).toContain(`  c?: string;
+};`);
+    });
+
+    it('takes @default from the schema and prefers parameter-level example', () => {
+      const doc = createDoc({
+        paths: {
+          '/items': {
+            get: {
+              parameters: [
+                {
+                  name: 'env',
+                  in: 'query',
+                  example: 'param-example',
+                  schema: {
+                    type: 'string',
+                    default: 'prod',
+                    example: 'schema-example',
+                    title: 'Full Param',
+                  },
+                },
+                {
+                  name: 'q',
+                  in: 'query',
+                  schema: { type: 'string', example: 'schema-example' },
+                },
+              ],
+              responses: { '200': { description: '' } },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+      expect(result).toMatchSnapshot();
+      expect(result).toContain(`  /**
+   * @default "prod"
+   *
+   * @example "param-example"
+   *
+   * @title Full Param
+   */
+  env?: string;`);
+      expect(result).toContain(`  /** @example "schema-example" */
+  q?: string;`);
+    });
+  });
+
+  describe('JSDoc metadata wiring: parameter merge rule (header)', () => {
+    it('applies the same merge rule to header params', () => {
+      const doc = createDoc({
+        paths: {
+          '/items': {
+            get: {
+              parameters: [
+                {
+                  name: 'X-Trace-Id',
+                  in: 'header',
+                  description: 'Header param description.',
+                  schema: {
+                    type: 'string',
+                    description: 'Schema-level trace description.',
+                  },
+                },
+              ],
+              responses: { '200': { description: '' } },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+      expect(result).toMatchSnapshot();
+      expect(result).toContain(`export type GetItemsHeaders = {
+  /** Header param description. */
+  "X-Trace-Id"?: string;
+};`);
+      expect(result).not.toContain('Schema-level trace description.');
+    });
+  });
+
+  describe('JSDoc metadata wiring: request body types', () => {
+    it('emits type-level JSDoc from requestBody.description above the body type', () => {
+      const doc = createDoc({
+        paths: {
+          '/items': {
+            post: {
+              requestBody: {
+                description: 'Body-level description.',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: { name: { type: 'string' } },
+                      required: ['name'],
+                    },
+                  },
+                },
+              },
+              responses: { '201': { description: '' } },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+      expect(result).toMatchSnapshot();
+      expect(result).toContain(`/** Body-level description. */
+export type PostItemsBody = {
+  name: string;
+};`);
+    });
+
+    it('emits no body JSDoc when requestBody has no description', () => {
+      const doc = createDoc({
+        paths: {
+          '/items': {
+            post: {
+              requestBody: {
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: { name: { type: 'string' } },
+                      required: ['name'],
+                    },
+                  },
+                },
+              },
+              responses: { '201': { description: '' } },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+      expect(result).toMatchSnapshot();
+      expect(result).toContain('\n\nexport type PostItemsBody = {');
+    });
+
+    it('emits multipart property JSDoc and multi-line body', () => {
+      const doc = createDoc({
+        paths: {
+          '/items': {
+            post: {
+              requestBody: {
+                description: 'Upload payload.',
+                content: {
+                  'multipart/form-data': {
+                    schema: {
+                      type: 'object',
+                      required: ['file'],
+                      properties: {
+                        file: {
+                          type: 'string',
+                          format: 'binary',
+                          description: 'Avatar image file.',
+                        },
+                        caption: { type: 'string', description: 'Optional caption.' },
+                      },
+                    },
+                  },
+                },
+              },
+              responses: { '201': { description: '' } },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+      expect(result).toMatchSnapshot();
+      expect(result).toContain(`/** Upload payload. */
+export type PostItemsBody = {
+  /** Avatar image file. */
+  file: FileInput;
+  /** Optional caption. */
+  caption?: string;
+};`);
+    });
+  });
+
+  describe('JSDoc metadata wiring: response types', () => {
+    it('emits type-level JSDoc from the success response description', () => {
+      const doc = createDoc({
+        paths: {
+          '/items': {
+            get: {
+              responses: {
+                '200': {
+                  description: 'Item details.',
+                  content: {
+                    'application/json': { schema: { type: 'string' } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+      expect(result).toMatchSnapshot();
+      expect(result).toContain(`/** Item details. */
+export type GetItemsResponse = string;`);
+    });
+
+    it('uses the lowest-numbered 2xx description for multi-2xx unions', () => {
+      const doc = createDoc({
+        paths: {
+          '/items': {
+            get: {
+              responses: {
+                '201': {
+                  description: 'Second success description.',
+                  content: {
+                    'application/json': { schema: { type: 'string' } },
+                  },
+                },
+                '200': {
+                  description: 'First success description.',
+                  content: {
+                    'application/json': { schema: { type: 'string' } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+      expect(result).toMatchSnapshot();
+      expect(result).toContain(`/** First success description. */
+export type GetItemsResponse = string | string;`);
+      expect(result).not.toContain('Second success description.');
+    });
+
+    it('emits no response JSDoc when the success response is undescribed', () => {
+      const doc = createDoc({
+        paths: {
+          '/items': {
+            get: {
+              responses: { '200': { description: '' } },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+      expect(result).toMatchSnapshot();
+      expect(result).toContain('\n\nexport type GetItemsResponse = void;');
+    });
+  });
+
+  describe('JSDoc metadata wiring: no metadata anywhere (AC-7)', () => {
+    it('emits no JSDoc blocks for a zero-metadata spec', () => {
+      const doc = createDoc({
+        paths: {
+          '/items': {
+            get: {
+              parameters: [{ name: 'page', in: 'query', schema: { type: 'integer' } }],
+              responses: { '200': { description: '' } },
+            },
+            post: {
+              requestBody: {
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: { name: { type: 'string' } },
+                    },
+                  },
+                },
+              },
+              responses: { '200': { description: '' } },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+      expect(result).toMatchSnapshot();
+      expect(result).not.toContain('/**');
+    });
+  });
+
+  describe('topologicalSort regression: jsDoc must not affect sort order', () => {
+    it('ignores jsDoc text mentioning another type name when computing dependencies', () => {
+      const makeDoc = (orderItemDescription?: string): OpenAPIDocument =>
+        createDoc({
+          components: {
+            schemas: {
+              OrderItem: {
+                type: 'object',
+                description: orderItemDescription,
+                properties: { quantity: { type: 'integer' } },
+                required: ['quantity'],
+              },
+              Product: {
+                type: 'object',
+                properties: { name: { type: 'string' } },
+                required: ['name'],
+              },
+            },
+          },
+        });
+
+      const docWithout = makeDoc(undefined);
+      const docWith = makeDoc('See Product docs for the referenced shape.');
+
+      const withoutJsDoc = generateContracts(docWithout, makeResolver(docWithout));
+      const withJsDoc = generateContracts(docWith, makeResolver(docWith));
+
+      const orderWithout =
+        withoutJsDoc.indexOf('export type OrderItem') < withoutJsDoc.indexOf('export type Product');
+      const orderWith =
+        withJsDoc.indexOf('export type OrderItem') < withJsDoc.indexOf('export type Product');
+      expect(orderWithout).toBe(true);
+      expect(orderWith).toBe(true);
+      expect(withJsDoc).toContain('/** See Product docs for the referenced shape. */');
+    });
+  });
 });

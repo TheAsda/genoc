@@ -189,6 +189,15 @@ genoc <spec> [flags]
 - **`operationId-with-fallback`** — Use `operationId` if present, otherwise
   fall back to path-based naming.
 
+## JSDoc Documentation Output
+
+`description`, `deprecated`, `default`, `example`/`examples`, and `title`
+fields from your spec become JSDoc comments in the generated code — on object
+type properties, named schemas, and client methods. Object types are always
+emitted multi-line, so per-property JSDoc stays aligned at each nesting depth.
+`@deprecated` tags give you editor strikethrough on deprecated fields and
+methods for free.
+
 ## Programmatic API
 
 ```typescript

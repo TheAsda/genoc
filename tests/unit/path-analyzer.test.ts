@@ -242,4 +242,115 @@ describe('analyzePaths', () => {
       expect(resp!.tsType).toBe('unknown');
     });
   });
+
+  describe('requestBody description', () => {
+    it('should carry requestBody.description from the spec', () => {
+      const bodyDescSpec: OpenAPIDocument = {
+        openapi: '3.1.0',
+        info: { title: 'Body Description Test', version: '1.0.0' },
+        paths: {
+          '/items': {
+            post: {
+              requestBody: {
+                description: 'The item to create',
+                required: true,
+                content: {
+                  'application/json': {
+                    schema: { type: 'object' },
+                  },
+                },
+              },
+              responses: { '200': { description: 'OK' } },
+            },
+          },
+        },
+      };
+      const resolver = makeResolver(bodyDescSpec);
+      const ops = analyzePaths(bodyDescSpec, resolver);
+      expect(ops).toHaveLength(1);
+      expect(ops[0].requestBody).toBeDefined();
+      expect(ops[0].requestBody!.description).toBe('The item to create');
+    });
+
+    it('should carry multi-line requestBody.description unchanged', () => {
+      const multilineSpec: OpenAPIDocument = {
+        openapi: '3.1.0',
+        info: { title: 'Body Multiline Test', version: '1.0.0' },
+        paths: {
+          '/items': {
+            post: {
+              requestBody: {
+                description: 'Line one.\nLine two.',
+                content: {
+                  'application/json': {
+                    schema: { type: 'object' },
+                  },
+                },
+              },
+              responses: { '200': { description: 'OK' } },
+            },
+          },
+        },
+      };
+      const resolver = makeResolver(multilineSpec);
+      const ops = analyzePaths(multilineSpec, resolver);
+      expect(ops[0].requestBody!.description).toBe('Line one.\nLine two.');
+    });
+
+    it('should leave description undefined when the spec omits it', () => {
+      const noDescSpec: OpenAPIDocument = {
+        openapi: '3.1.0',
+        info: { title: 'No Body Description Test', version: '1.0.0' },
+        paths: {
+          '/items': {
+            post: {
+              requestBody: {
+                content: {
+                  'application/json': {
+                    schema: { type: 'object' },
+                  },
+                },
+              },
+              responses: { '200': { description: 'OK' } },
+            },
+          },
+        },
+      };
+      const resolver = makeResolver(noDescSpec);
+      const ops = analyzePaths(noDescSpec, resolver);
+      expect(ops[0].requestBody).toBeDefined();
+      expect(ops[0].requestBody!.description).toBeUndefined();
+    });
+
+    it('should carry description resolved through $ref', () => {
+      const refSpec: OpenAPIDocument = {
+        openapi: '3.1.0',
+        info: { title: 'Body Ref Description Test', version: '1.0.0' },
+        components: {
+          requestBodies: {
+            ItemBody: {
+              description: 'Referenced body description',
+              content: {
+                'application/json': {
+                  schema: { type: 'object' },
+                },
+              },
+            },
+          },
+        },
+        paths: {
+          '/items': {
+            post: {
+              requestBody: { $ref: '#/components/requestBodies/ItemBody' },
+              responses: { '200': { description: 'OK' } },
+            },
+          },
+        },
+      };
+      const resolver = makeResolver(refSpec);
+      const ops = analyzePaths(refSpec, resolver);
+      expect(ops[0].requestBody).toBeDefined();
+      expect(ops[0].requestBody!.description).toBe('Referenced body description');
+    });
+  });
 });

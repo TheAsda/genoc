@@ -14,6 +14,8 @@ export function createClient(requester: Requester) {
   return {
     /**
      * List all products
+     *
+     * List of products
      */
     getProducts: decorateWithErrors<(query: GetProductsQuery | undefined, headers: GetProductsHeaders) => Promise<GetProductsResponse>, GetProductsErrors>(
       async (query: GetProductsQuery | undefined, headers: GetProductsHeaders): Promise<GetProductsResponse> => {
@@ -37,6 +39,8 @@ export function createClient(requester: Requester) {
     ),
     /**
      * Create a product
+     *
+     * Product created
      *
      * @param body — request body
      */
@@ -62,6 +66,8 @@ export function createClient(requester: Requester) {
     ),
     /**
      * Get product by ID
+     *
+     * A product
      */
     getProductsByProductId: decorateWithErrors<(productId: string, headers?: GetProductsProductIdHeaders) => Promise<GetProductsProductIdResponse>, GetProductsProductIdErrors>(
       async (productId: string, headers?: GetProductsProductIdHeaders): Promise<GetProductsProductIdResponse> => {
@@ -85,6 +91,8 @@ export function createClient(requester: Requester) {
     ),
     /**
      * Delete product by ID
+     *
+     * Product deleted
      */
     deleteProductsByProductId: decorateWithErrors<(productId: string) => Promise<void>, DeleteProductsProductIdErrors>(
       async (productId: string): Promise<void> => {
@@ -125,9 +133,16 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { id: string; name: string; price?: number; };
+export type Product = {
+  id: string;
+  name: string;
+  price?: number;
+};
 
-export type ErrorBody = { code: number; message: string; };
+export type ErrorBody = {
+  code: number;
+  message: string;
+};
 
 export type OAuth2ImplicitAuth = { type: "oauth2"; flows: { implicit: { authorizationUrl: "https://auth.example.com/authorize"; scopes: { "read:products": "Read products"; "write:products": "Write products" } } } };
 
@@ -135,10 +150,16 @@ export type OAuth2PasswordAuth = { type: "oauth2"; flows: { password: { tokenUrl
 
 export type SecuritySchemes = OAuth2ImplicitAuth | OAuth2PasswordAuth;
 
-export type GetProductsQuery = { limit?: number; };
+export type GetProductsQuery = {
+  limit?: number;
+};
 
-export type GetProductsHeaders = { "X-Request-Id"?: string; "X-Api-Key": string; };
+export type GetProductsHeaders = {
+  "X-Request-Id"?: string;
+  "X-Api-Key": string;
+};
 
+/** List of products */
 export type GetProductsResponse = Product[];
 
 export type GetProductsError400 = ErrorBody;
@@ -147,10 +168,13 @@ export type GetProductsDefaultError = ErrorBody;
 
 export type GetProductsErrors = ApiError<400, GetProductsError400>;
 
-export type PostProductsHeaders = { "X-Idempotency-Key"?: string; };
+export type PostProductsHeaders = {
+  "X-Idempotency-Key"?: string;
+};
 
 export type PostProductsBody = Product;
 
+/** Product created */
 export type PostProductsResponse = Product;
 
 export type PostProductsError400 = ErrorBody;
@@ -159,8 +183,11 @@ export type PostProductsDefaultError = ErrorBody;
 
 export type PostProductsErrors = ApiError<400, PostProductsError400>;
 
-export type GetProductsProductIdHeaders = { "X-Trace-Id"?: string; };
+export type GetProductsProductIdHeaders = {
+  "X-Trace-Id"?: string;
+};
 
+/** A product */
 export type GetProductsProductIdResponse = Product;
 
 export type GetProductsProductIdError404 = ErrorBody;
@@ -169,6 +196,7 @@ export type GetProductsProductIdDefaultError = ErrorBody;
 
 export type GetProductsProductIdErrors = ApiError<404, GetProductsProductIdError404>;
 
+/** Product deleted */
 export type DeleteProductsProductIdResponse = void;
 
 export type DeleteProductsProductIdError404 = ErrorBody;

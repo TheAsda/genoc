@@ -13,6 +13,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** pong */
 export type GetPingResponse = void;"
 `;
 
@@ -29,6 +30,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetHealthResponse = void;"
 `;
 
@@ -45,6 +47,8 @@ export function createClient(requester: Requester) {
   return {
     /**
      * Health check
+     *
+     * OK
      */
     getHealth: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
@@ -84,10 +88,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type NewItem = { label: string; };
+export type NewItem = {
+  label: string;
+};
 
 export type PostItemsBody = NewItem;
 
+/** Created */
 export type PostItemsResponse = void;"
 `;
 
@@ -104,8 +111,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ErrorResponseModel = { code: number; message: string; };
+export type ErrorResponseModel = {
+  code: number;
+  message: string;
+};
 
+/** OK */
 export type GetItemsResponse = void;
 
 export type GetItemsError400 = ErrorResponseModel;
@@ -126,9 +137,15 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type User = { id: string; name: string; };
+export type User = {
+  id: string;
+  name: string;
+};
 
-export type Product = { id: string; price: number; };
+export type Product = {
+  id: string;
+  price: number;
+};
 
 export type Status = 'active' | 'inactive';"
 `;
@@ -146,7 +163,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { name: string; };
+export type Product = {
+  name: string;
+};
 
-export type Order = { id: string; product: Product; };"
+export type Order = {
+  id: string;
+  product: Product;
+};"
 `;

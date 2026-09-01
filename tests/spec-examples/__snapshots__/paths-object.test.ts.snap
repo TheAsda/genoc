@@ -45,6 +45,8 @@ export function createClient(requester: Requester) {
   return {
     /**
      * List users
+     *
+     * OK
      */
     getUsers: decorateWithErrors<() => Promise<GetUsersResponse>, never>(
       async (): Promise<GetUsersResponse> => {
@@ -67,6 +69,8 @@ export function createClient(requester: Requester) {
     ),
     /**
      * List products
+     *
+     * OK
      */
     getProducts: decorateWithErrors<() => Promise<GetProductsResponse>, never>(
       async (): Promise<GetProductsResponse> => {
@@ -106,7 +110,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetUsersResponse = { total?: number; };
+/** OK */
+export type GetUsersResponse = {
+  total?: number;
+};
 
-export type GetProductsResponse = { count?: number; };"
+/** OK */
+export type GetProductsResponse = {
+  count?: number;
+};"
 `;

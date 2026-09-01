@@ -19,6 +19,7 @@ export interface AnalyzedParameter {
   tsType: string;
   description?: string;
   deprecated?: boolean;
+  example?: unknown;
 }
 
 export interface AnalyzedRequestBody {
@@ -27,6 +28,7 @@ export interface AnalyzedRequestBody {
   schema: SchemaObject | ReferenceObject | undefined;
   tsType: string;
   isMultipart: boolean;
+  description?: string;
 }
 
 export interface AnalyzedResponse {
@@ -150,6 +152,7 @@ function analyzeParameter(param: ParameterObject, resolver: RefResolver): Analyz
     tsType: schemaToTsType(param.schema, resolver),
     description: param.description,
     deprecated: param.deprecated,
+    example: param.example,
   };
 }
 
@@ -209,6 +212,7 @@ function analyzeRequestBody(
     schema,
     tsType,
     isMultipart,
+    description: resolved.description,
   };
 }
 

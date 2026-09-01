@@ -13,6 +13,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Session info */
 export type GetSessionResponse = void;"
 `;
 
@@ -27,6 +28,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * Session info
+     */
     getSession: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -65,10 +69,15 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetDataQuery = { page?: number; };
+export type GetDataQuery = {
+  page?: number;
+};
 
-export type GetDataHeaders = { "X-Request-Id"?: string; };
+export type GetDataHeaders = {
+  "X-Request-Id"?: string;
+};
 
+/** OK */
 export type GetDataResponse = void;"
 `;
 
@@ -84,6 +93,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getData: decorateWithErrors<(query?: GetDataQuery, headers?: GetDataHeaders) => Promise<void>, never>(
       async (query?: GetDataQuery, headers?: GetDataHeaders): Promise<void> => {
         try {
@@ -122,10 +134,16 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetOrgsOrgIdUsersUserIdQuery = { include?: string; fields?: string; };
+export type GetOrgsOrgIdUsersUserIdQuery = {
+  include?: string;
+  fields?: string;
+};
 
-export type GetOrgsOrgIdUsersUserIdHeaders = { "X-Api-Key": string; };
+export type GetOrgsOrgIdUsersUserIdHeaders = {
+  "X-Api-Key": string;
+};
 
+/** User details */
 export type GetOrgsOrgIdUsersUserIdResponse = void;"
 `;
 
@@ -141,6 +159,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * User details
+     */
     getOrgsByOrgIdUsersByUserId: decorateWithErrors<(orgId: string, userId: string, query: GetOrgsOrgIdUsersUserIdQuery | undefined, headers: GetOrgsOrgIdUsersUserIdHeaders) => Promise<void>, never>(
       async (orgId: string, userId: string, query: GetOrgsOrgIdUsersUserIdQuery | undefined, headers: GetOrgsOrgIdUsersUserIdHeaders): Promise<void> => {
         try {
@@ -179,6 +200,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** User found */
 export type GetUsersUserIdResponse = void;"
 `;
 
@@ -193,6 +215,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * User found
+     */
     getUsersByUserId: decorateWithErrors<(userId: string) => Promise<void>, never>(
       async (userId: string): Promise<void> => {
         try {
@@ -231,8 +256,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetUsersQuery = { page?: number; limit?: number; };
+export type GetUsersQuery = {
+  page?: number;
+  limit?: number;
+};
 
+/** User list */
 export type GetUsersResponse = void;"
 `;
 
@@ -248,6 +277,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * User list
+     */
     getUsers: decorateWithErrors<(query?: GetUsersQuery) => Promise<void>, never>(
       async (query?: GetUsersQuery): Promise<void> => {
         try {
@@ -284,6 +316,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItemsByItemId: decorateWithErrors<(itemId: string) => Promise<void>, never>(
       async (itemId: string): Promise<void> => {
         try {
@@ -322,8 +357,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetSearchQuery = { q: string; sort?: string; filter?: string; };
+export type GetSearchQuery = {
+  q: string;
+  sort?: string;
+  filter?: string;
+};
 
+/** Search results */
 export type GetSearchResponse = void;"
 `;
 
@@ -339,6 +379,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * Search results
+     */
     getSearch: decorateWithErrors<(query: GetSearchQuery) => Promise<void>, never>(
       async (query: GetSearchQuery): Promise<void> => {
         try {

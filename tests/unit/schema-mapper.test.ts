@@ -94,7 +94,7 @@ describe('SchemaMapper', () => {
           properties: { name: { type: 'string' } },
         },
       });
-      expect(result.tsType).toBe('Array<{ name?: string; }>');
+      expect(result.tsType).toBe('Array<{\n  name?: string;\n}>');
     });
 
     it('maps array without items to unknown[]', () => {
@@ -126,7 +126,7 @@ describe('SchemaMapper', () => {
         },
         required: ['name'],
       });
-      expect(result.tsType).toBe('{ name: string; age?: number; }');
+      expect(result.tsType).toBe('{\n  name: string;\n  age?: number;\n}');
       expect(result.imports).toEqual([]);
     });
 
@@ -142,7 +142,7 @@ describe('SchemaMapper', () => {
         },
         'User'
       );
-      expect(result.tsType).toBe('{ id: string; name: string; }');
+      expect(result.tsType).toBe('{\n  id: string;\n  name: string;\n}');
     });
 
     it('marks optional properties with ?', () => {
@@ -207,7 +207,7 @@ describe('SchemaMapper', () => {
           { type: 'object', properties: { age: { type: 'number' } } },
         ],
       });
-      expect(result.tsType).toBe('{ name?: string; } & { age?: number; }');
+      expect(result.tsType).toBe('{\n  name?: string;\n} & {\n  age?: number;\n}');
     });
 
     it('maps allOf with refs', () => {
@@ -221,7 +221,7 @@ describe('SchemaMapper', () => {
           { type: 'object', properties: { extra: { type: 'string' } } },
         ],
       });
-      expect(result.tsType).toBe('Base & { extra?: string; }');
+      expect(result.tsType).toBe('Base & {\n  extra?: string;\n}');
       expect(result.imports).toEqual(['Base']);
     });
 
@@ -274,7 +274,7 @@ describe('SchemaMapper', () => {
         properties: { name: { type: 'string' } },
         nullable: true,
       });
-      expect(result.tsType).toBe('{ name?: string; } | null');
+      expect(result.tsType).toBe('{\n  name?: string;\n} | null');
     });
 
     it('handles nullable on arrays', () => {
@@ -319,7 +319,7 @@ describe('SchemaMapper', () => {
         properties: { name: { type: 'string' } },
         additionalProperties: true,
       });
-      expect(result.tsType).toBe('{ name?: string; } & { [key: string]: unknown; }');
+      expect(result.tsType).toBe('{\n  name?: string;\n} & {\n  [key: string]: unknown;\n}');
     });
 
     it('omits index signature when additionalProperties: false', () => {
@@ -328,7 +328,7 @@ describe('SchemaMapper', () => {
         properties: { name: { type: 'string' } },
         additionalProperties: false,
       });
-      expect(result.tsType).toBe('{ name?: string; }');
+      expect(result.tsType).toBe('{\n  name?: string;\n}');
     });
 
     it('adds typed index signature for schema additionalProperties', () => {
@@ -355,7 +355,7 @@ describe('SchemaMapper', () => {
         },
         'StringMap'
       );
-      expect(result.tsType).toBe('{ [key: string]: string; }');
+      expect(result.tsType).toBe('{\n  [key: string]: string;\n}');
     });
 
     it('uses Record<string, unknown> for anonymous additionalProperties: true without props', () => {
@@ -401,7 +401,6 @@ describe('SchemaMapper', () => {
 
     it('named interface with context filtering', () => {
       const result = mapper.mapSchema(schema, 'UserDTO', 'response');
-      expect(result.tsType).toContain('{ id: string');
       expect(result.tsType).toContain('id: string');
       expect(result.tsType).toContain('name: string');
       expect(result.tsType).not.toContain('password');
@@ -426,7 +425,7 @@ describe('SchemaMapper', () => {
       const m = new SchemaMapper(r);
       const result = m.mapSchema(nodeSchema, 'Node');
 
-      expect(result.tsType).toBe('{ value: string; children?: Node[]; }');
+      expect(result.tsType).toBe('{\n  value: string;\n  children?: Node[];\n}');
       expect(result.imports).toEqual(['Node']);
     });
   });
@@ -967,7 +966,7 @@ describe('SchemaMapper', () => {
         },
         'Container'
       );
-      expect(result.tsType).toBe('{ items?: Item[]; }');
+      expect(result.tsType).toBe('{\n  items?: Item[];\n}');
       expect(result.imports).toEqual(['Item']);
     });
 
@@ -979,7 +978,7 @@ describe('SchemaMapper', () => {
         ],
         nullable: true,
       });
-      expect(result.tsType).toBe('({ a?: string; } & { b?: number; }) | null');
+      expect(result.tsType).toBe('({\n  a?: string;\n} & {\n  b?: number;\n}) | null');
     });
 
     it('handles type array with only null', () => {
@@ -1000,6 +999,365 @@ describe('SchemaMapper', () => {
       });
       expect(result.tsType).toBe('Record<string, Tag>');
       expect(result.imports).toEqual(['Tag']);
+    });
+  });
+
+  describe('multi-line object rendering and property JSDoc', () => {
+    it('renders flat object multi-line at depth 0', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          a: { type: 'string' },
+          b: { type: 'number' },
+        },
+      });
+      expect(result.tsType).toBe('{\n  a?: string;\n  b?: number;\n}');
+    });
+
+    it('renders nested anonymous objects one indent deeper per level', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          outer: {
+            type: 'object',
+            properties: {
+              inner: { type: 'string' },
+            },
+          },
+        },
+      });
+      expect(result.tsType).toBe('{\n  outer?: {\n    inner?: string;\n  };\n}');
+    });
+
+    it('renders three levels of nesting with cumulative indentation', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          l1: {
+            type: 'object',
+            properties: {
+              l2: {
+                type: 'object',
+                properties: {
+                  l3: {
+                    type: 'object',
+                    properties: {
+                      leaf: { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      expect(result.tsType).toBe(
+        '{\n  l1?: {\n    l2?: {\n      l3?: {\n        leaf?: string;\n      };\n    };\n  };\n}'
+      );
+    });
+
+    it('keeps required vs optional markers in multi-line rendering', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          req: { type: 'string' },
+          opt: { type: 'number' },
+        },
+        required: ['req'],
+      });
+      expect(result.tsType).toBe('{\n  req: string;\n  opt?: number;\n}');
+    });
+
+    it('renders arrays of objects as multi-line Array blocks indented to the property', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          branches: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+              },
+            },
+          },
+        },
+      });
+      expect(result.tsType).toBe('{\n  branches?: Array<{\n    name?: string;\n  }>;\n}');
+    });
+
+    it('aligns single-segment JSDoc at 2-space property indent', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'The name.' },
+        },
+      });
+      expect(result.tsType).toBe('{\n  /** The name. */\n  name?: string;\n}');
+    });
+
+    it('aligns multi-segment JSDoc at 2-space property indent with blank separator lines', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          status: {
+            type: 'string',
+            description: 'Current status.',
+            deprecated: true,
+          },
+        },
+      });
+      expect(result.tsType).toBe(
+        '{\n  /**\n   * Current status.\n   *\n   * @deprecated\n   */\n  status?: string;\n}'
+      );
+    });
+
+    it('aligns JSDoc at 4-space indent for depth-2 properties', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          outer: {
+            type: 'object',
+            properties: {
+              inner: { type: 'string', description: 'Inner doc.' },
+            },
+          },
+        },
+      });
+      expect(result.tsType).toBe(
+        '{\n  outer?: {\n    /** Inner doc. */\n    inner?: string;\n  };\n}'
+      );
+    });
+
+    it('aligns JSDoc at 6-space indent for depth-3 properties', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          l1: {
+            type: 'object',
+            properties: {
+              l2: {
+                type: 'object',
+                properties: {
+                  leaf: { type: 'string', description: 'Deep doc.' },
+                },
+              },
+            },
+          },
+        },
+      });
+      expect(result.tsType).toBe(
+        '{\n  l1?: {\n    l2?: {\n      /** Deep doc. */\n      leaf?: string;\n    };\n  };\n}'
+      );
+    });
+
+    it('renders singular example (3.0 style) as a single @example line', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          count: { type: 'integer', example: 42 },
+        },
+      });
+      expect(result.tsType).toBe('{\n  /** @example 42 */\n  count?: number;\n}');
+    });
+
+    it('renders examples array (3.1 style) as one @example line per value', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          count: { type: 'integer', examples: [1, 2] },
+        },
+      });
+      expect(result.tsType).toBe(
+        '{\n  /**\n   * @example 1\n   *\n   * @example 2\n   */\n  count?: number;\n}'
+      );
+    });
+
+    it('renders all five metadata segments in the frozen order', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          all: {
+            type: 'string',
+            description: 'Full.',
+            deprecated: true,
+            default: 'x',
+            example: 'y',
+            title: 'T',
+          },
+        },
+      });
+      expect(result.tsType).toBe(
+        `{\n  /**\n   * Full.\n   *\n   * @deprecated\n   *\n   * @default "x"\n   *\n   * @example "y"\n   *\n   * @title T\n   */\n  all?: string;\n}`
+      );
+    });
+
+    it('renders zero-metadata objects multi-line with no comment blocks', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          a: { type: 'string' },
+          b: { type: 'number' },
+        },
+      });
+      expect(result.tsType).toBe('{\n  a?: string;\n  b?: number;\n}');
+      expect(result.tsType).not.toContain('/**');
+    });
+
+    it('skips JSDoc for empty and whitespace-only descriptions', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          empty: { type: 'string', description: '' },
+          blank: { type: 'string', description: '   ' },
+        },
+      });
+      expect(result.tsType).toBe('{\n  empty?: string;\n  blank?: string;\n}');
+      expect(result.tsType).not.toContain('/**');
+    });
+
+    it('takes metadata for $ref properties from the resolved target node', () => {
+      const r = createResolver({
+        Target: {
+          type: 'object',
+          description: 'Target-level doc.',
+          properties: { x: { type: 'string' } },
+        },
+      });
+      const m = new SchemaMapper(r);
+      const result = m.mapSchema({
+        type: 'object',
+        properties: {
+          ref: { $ref: '#/components/schemas/Target' },
+        },
+      });
+      expect(result.tsType).toBe('{\n  /** Target-level doc. */\n  ref?: Target;\n}');
+      expect(result.imports).toEqual(['Target']);
+    });
+
+    it('does not recurse metadata through self-referential $ref targets', () => {
+      const r = createResolver({
+        Node: {
+          type: 'object',
+          description: 'Node-level doc.',
+          properties: {
+            child: { $ref: '#/components/schemas/Node' },
+          },
+        },
+      });
+      const m = new SchemaMapper(r);
+      const result = m.mapSchema({
+        type: 'object',
+        properties: {
+          root: { $ref: '#/components/schemas/Node' },
+        },
+      });
+      expect(result.tsType).toBe('{\n  /** Node-level doc. */\n  root?: Node;\n}');
+    });
+
+    it('emits own-node metadata on an inline allOf property', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          composed: {
+            description: 'Parent doc.',
+            allOf: [{ type: 'object', properties: { a: { type: 'string' } } }],
+          },
+        },
+      });
+      expect(result.tsType).toBe(
+        '{\n  /** Parent doc. */\n  composed?: {\n    a?: string;\n  };\n}'
+      );
+    });
+
+    it('drops allOf member metadata silently', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          composed: {
+            allOf: [
+              {
+                type: 'object',
+                description: 'Member doc that must not appear.',
+                properties: { a: { type: 'string' } },
+              },
+            ],
+          },
+        },
+      });
+      expect(result.tsType).toBe('{\n  composed?: {\n    a?: string;\n  };\n}');
+      expect(result.tsType).not.toContain('Member doc');
+    });
+
+    it('drops oneOf member metadata silently', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          variant: {
+            oneOf: [
+              { type: 'string', description: 'Variant doc that must not appear.' },
+              { type: 'number' },
+            ],
+          },
+        },
+      });
+      expect(result.tsType).toBe('{\n  variant?: string | number;\n}');
+      expect(result.tsType).not.toContain('Variant doc');
+    });
+
+    it('escapes comment-terminator sequences inside descriptions', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          docs: { type: 'string', description: 'Ends with a terminator */ inline.' },
+        },
+      });
+      expect(result.tsType).toBe(
+        '{\n  /** Ends with a terminator *\\/ inline. */\n  docs?: string;\n}'
+      );
+    });
+
+    it('flattens multiline descriptions to a single space-separated line', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          docs: { type: 'string', description: 'Line one.\nLine two.' },
+        },
+      });
+      expect(result.tsType).toBe('{\n  /** Line one. Line two. */\n  docs?: string;\n}');
+    });
+
+    it('renders array items metadata-free (items metadata dropped)', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          list: {
+            type: 'array',
+            description: 'List doc.',
+            items: {
+              type: 'object',
+              description: 'Items doc that must not appear.',
+              properties: { a: { type: 'string' } },
+            },
+          },
+        },
+      });
+      expect(result.tsType).toBe(
+        '{\n  /** List doc. */\n  list?: Array<{\n    a?: string;\n  }>;\n}'
+      );
+      expect(result.tsType).not.toContain('Items doc');
+    });
+
+    it('emits JSDoc above the discriminator property block without comments on the hoisted property', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        discriminator: { propertyName: 'kind' },
+        properties: {
+          kind: { type: 'string' },
+          name: { type: 'string', description: 'Name doc.' },
+        },
+      });
+      expect(result.tsType).toBe('{\n  "kind": string;\n  /** Name doc. */\n  name?: string;\n}');
     });
   });
 });

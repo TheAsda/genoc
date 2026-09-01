@@ -2,8 +2,15 @@ import { RefResolver } from '../parser/ref-resolver.js';
 import type { TypeMappingResult } from '../types/contracts.js';
 import type { SchemaObject, ReferenceObject } from '../types/openapi.js';
 import { formatToBrandTypeName } from '../utils/case.js';
-import { sanitizeTypeName } from '../utils/generator-helpers.js';
+import { buildTypeJsDoc, sanitizeTypeName } from '../utils/generator-helpers.js';
 import { quoteKey } from '../utils/string.js';
+
+/** Indentation contract for multi-line types — 2-space unit pinned from the generated ServerParams interface; binding for downstream generators. */
+const INDENT_UNIT = '  ';
+
+function indentBy(level: number): string {
+  return INDENT_UNIT.repeat(level);
+}
 
 /**
  * Callback to customize how $ref strings are converted to TypeScript type names.
@@ -91,7 +98,7 @@ export class SchemaMapper {
     }
 
     const visited = new Set<SchemaObject>();
-    const result = this.mapInternal(schema, name, context, visited);
+    const result = this.mapInternal(schema, name, context, visited, 0);
 
     if (name && this.discriminatorTargets.has(name)) {
       const target = this.discriminatorTargets.get(name)!;
@@ -113,7 +120,8 @@ export class SchemaMapper {
     schema: SchemaObject | ReferenceObject,
     name: string | undefined,
     context: 'request' | 'response' | undefined,
-    visited: Set<SchemaObject>
+    visited: Set<SchemaObject>,
+    indent: number
   ): TypeMappingResult {
     if (isRefObject(schema)) {
       const refStr = (schema as unknown as { $ref: string }).$ref;
@@ -129,7 +137,7 @@ export class SchemaMapper {
       if (resolved) {
         const discInfo = this.resolveDiscriminatorInfo(resolved, refStr);
         if (discInfo) {
-          const expanded = this.mapInternal(resolved, undefined, context, visited);
+          const expanded = this.mapInternal(resolved, undefined, context, visited, indent);
           expanded.tsType += ` & { ${quoteKey(discInfo.propertyName)}: '${discInfo.literalValue}' }`;
           return expanded;
         }
@@ -169,7 +177,7 @@ export class SchemaMapper {
     }
 
     if (s.allOf !== undefined && s.allOf.length > 0) {
-      const result = this.mapCombinator(s.allOf, '&', context, visited);
+      const result = this.mapCombinator(s.allOf, '&', context, visited, indent);
       if (s.nullable === true) {
         return {
           tsType: needsParens(result.tsType)
@@ -183,8 +191,8 @@ export class SchemaMapper {
 
     if (s.oneOf !== undefined && s.oneOf.length > 0) {
       const result = s.discriminator
-        ? this.mapDiscriminatedUnion(s.oneOf, s.discriminator, context, visited)
-        : this.mapCombinator(s.oneOf, '|', context, visited);
+        ? this.mapDiscriminatedUnion(s.oneOf, s.discriminator, context, visited, indent)
+        : this.mapCombinator(s.oneOf, '|', context, visited, indent);
       if (s.nullable === true) {
         return {
           tsType: needsParens(result.tsType)
@@ -198,8 +206,8 @@ export class SchemaMapper {
 
     if (s.anyOf !== undefined && s.anyOf.length > 0) {
       const result = s.discriminator
-        ? this.mapDiscriminatedUnion(s.anyOf, s.discriminator, context, visited)
-        : this.mapCombinator(s.anyOf, '|', context, visited);
+        ? this.mapDiscriminatedUnion(s.anyOf, s.discriminator, context, visited, indent)
+        : this.mapCombinator(s.anyOf, '|', context, visited, indent);
       if (s.nullable === true) {
         return {
           tsType: needsParens(result.tsType)
@@ -225,7 +233,8 @@ export class SchemaMapper {
         { ...s, type: nonNull[0] } as SchemaObject,
         name,
         context,
-        new Set(visited)
+        new Set(visited),
+        indent
       );
       if (hasNull) {
         return {
@@ -282,9 +291,9 @@ export class SchemaMapper {
       case 'null':
         return { tsType: 'null', imports: [] };
       case 'array':
-        return this.mapArray(s, context, visited);
+        return this.mapArray(s, context, visited, indent);
       case 'object':
-        return this.mapObject(s, name, context, visited);
+        return this.mapObject(s, name, context, visited, indent);
       default:
         return { tsType: 'unknown', imports: [] };
     }
@@ -334,9 +343,10 @@ export class SchemaMapper {
     schemas: (SchemaObject | ReferenceObject)[],
     kind: '&' | '|',
     context: 'request' | 'response' | undefined,
-    visited: Set<SchemaObject>
+    visited: Set<SchemaObject>,
+    indent: number
   ): TypeMappingResult {
-    const results = schemas.map((s) => this.mapInternal(s, undefined, context, visited));
+    const results = schemas.map((s) => this.mapInternal(s, undefined, context, visited, indent));
 
     const allImports: string[] = [];
     for (const r of results) {
@@ -358,7 +368,8 @@ export class SchemaMapper {
     schemas: (SchemaObject | ReferenceObject)[],
     discriminator: NonNullable<SchemaObject['discriminator']>,
     context: 'request' | 'response' | undefined,
-    visited: Set<SchemaObject>
+    visited: Set<SchemaObject>,
+    indent: number
   ): TypeMappingResult {
     const propertyName = discriminator.propertyName;
     const mapping = discriminator.mapping;
@@ -368,7 +379,7 @@ export class SchemaMapper {
 
     for (const schema of schemas) {
       const discriminantValue = this.resolveDiscriminantValue(schema, propertyName, mapping);
-      const variantResult = this.mapInternal(schema, undefined, context, visited);
+      const variantResult = this.mapInternal(schema, undefined, context, visited, indent);
       allImports.push(...variantResult.imports);
 
       const quotedProp = quoteKey(propertyName);
@@ -413,7 +424,8 @@ export class SchemaMapper {
   private mapArray(
     schema: SchemaObject,
     context: 'request' | 'response' | undefined,
-    visited: Set<SchemaObject>
+    visited: Set<SchemaObject>,
+    indent: number
   ): TypeMappingResult {
     if (!schema.items) {
       return {
@@ -422,7 +434,7 @@ export class SchemaMapper {
       };
     }
 
-    const itemResult = this.mapInternal(schema.items, undefined, context, visited);
+    const itemResult = this.mapInternal(schema.items, undefined, context, visited, indent);
     const tsType = isComplexType(itemResult.tsType)
       ? `Array<${itemResult.tsType}>`
       : `${itemResult.tsType}[]`;
@@ -433,11 +445,40 @@ export class SchemaMapper {
     };
   }
 
+  /**
+   * Render the per-property JSDoc comment lines for an object property.
+   *
+   * Metadata comes from the property's own schema node; for a `$ref` property
+   * the resolved target's own node metadata is used (one level only — never
+   * recursed), so self-referential schemas cannot loop here.
+   */
+  private renderPropertyJsDoc(
+    propSchema: SchemaObject | ReferenceObject,
+    indentLevel: number
+  ): string[] {
+    let metaSchema: SchemaObject;
+    if (isRefObject(propSchema)) {
+      try {
+        metaSchema = this.resolver.resolveSchema(propSchema as SchemaObject);
+      } catch {
+        return [];
+      }
+    } else {
+      metaSchema = propSchema as SchemaObject;
+    }
+
+    const block = buildTypeJsDoc(metaSchema);
+    if (block === '') return [];
+    const ind = indentBy(indentLevel);
+    return block.split('\n').map((line) => `${ind}${line}`);
+  }
+
   private mapObject(
     schema: SchemaObject,
     name: string | undefined,
     context: 'request' | 'response' | undefined,
-    visited: Set<SchemaObject>
+    visited: Set<SchemaObject>,
+    indent: number
   ): TypeMappingResult {
     const properties = schema.properties ?? {};
     const requiredSet = new Set(schema.required ?? []);
@@ -453,7 +494,10 @@ export class SchemaMapper {
       return true;
     });
 
-    const propEntries: string[] = [];
+    const ownIndent = indentBy(indent);
+    const memberIndent = indentBy(indent + 1);
+
+    const memberLines: string[] = [];
     const allImports: string[] = [];
 
     if (schema.discriminator) {
@@ -462,17 +506,19 @@ export class SchemaMapper {
       if (discIndex !== -1) {
         filteredPropNames.splice(discIndex, 1);
       }
-      propEntries.push(`"${discPropName}": string`);
+      memberLines.push(`${memberIndent}"${discPropName}": string;`);
     }
 
     for (const propName of filteredPropNames) {
       const propSchema = properties[propName];
-      const propResult = this.mapInternal(propSchema, undefined, context, visited);
+      const propResult = this.mapInternal(propSchema, undefined, context, visited, indent + 1);
       allImports.push(...propResult.imports);
+
+      memberLines.push(...this.renderPropertyJsDoc(propSchema, indent + 1));
 
       const optional = requiredSet.has(propName) ? '' : '?';
       const quotedName = quoteKey(propName);
-      propEntries.push(`${quotedName}${optional}: ${propResult.tsType}`);
+      memberLines.push(`${memberIndent}${quotedName}${optional}: ${propResult.tsType};`);
     }
 
     const additionalProps = schema.additionalProperties;
@@ -483,12 +529,18 @@ export class SchemaMapper {
     } else if (additionalProps === true) {
       indexSignature = '[key: string]: unknown';
     } else if (additionalProps !== undefined && typeof additionalProps === 'object') {
-      const addPropResult = this.mapInternal(additionalProps, undefined, context, visited);
+      const addPropResult = this.mapInternal(
+        additionalProps,
+        undefined,
+        context,
+        visited,
+        indent + 1
+      );
       allImports.push(...addPropResult.imports);
       indexSignature = `[key: string]: ${addPropResult.tsType}`;
     }
 
-    const hasProps = propEntries.length > 0;
+    const hasProps = memberLines.length > 0;
     const hasIndex = indexSignature !== null;
 
     let result: TypeMappingResult;
@@ -503,7 +555,7 @@ export class SchemaMapper {
       const valueType = indexSignature!.replace('[key: string]: ', '');
       if (name) {
         result = {
-          tsType: `{ ${indexSignature!}; }`,
+          tsType: `{\n${memberIndent}${indexSignature!};\n${ownIndent}}`,
           imports: allImports,
         };
       } else {
@@ -513,15 +565,16 @@ export class SchemaMapper {
         };
       }
     } else {
-      const propsBody = propEntries.join('; ') + ';';
+      const propsBlock = `{\n${memberLines.join('\n')}\n${ownIndent}}`;
       if (hasIndex) {
+        const indexBlock = `{\n${memberIndent}${indexSignature!};\n${ownIndent}}`;
         result = {
-          tsType: `{ ${propsBody} } & { ${indexSignature!}; }`,
+          tsType: `${propsBlock} & ${indexBlock}`,
           imports: allImports,
         };
       } else {
         result = {
-          tsType: `{ ${propsBody} }`,
+          tsType: propsBlock,
           imports: allImports,
         };
       }

@@ -220,8 +220,9 @@ describe('OpenAPI 3.0 — Parameters (3.0-#33-#40)', () => {
   });
 
   // 3.0-#40: description (param) — Tier 1 doc, Tier 2 actual
-  // ParameterObject.description is parsed into AnalyzedParameter.description
-  // and emitted in method JSDoc as @param tags.
+  // ParameterObject.description is parsed into AnalyzedParameter.description,
+  // emitted in method JSDoc as @param tags, and (jsdoc-field-metadata) as
+  // per-property JSDoc on the ${prefix}Query type in contracts.
   it('3.0-#40: parameter description is parsed and emitted in JSDoc', () => {
     const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.3"
@@ -240,7 +241,8 @@ describe('OpenAPI 3.0 — Parameters (3.0-#33-#40)', () => {
 
     expect(contracts).toMatchSnapshot();
     expect(client).toMatchSnapshot();
-    expect(contracts).not.toContain('search query string');
+    expect(contracts).toContain(`  /** The search query string */
+  q?: string;`);
   });
 });
 

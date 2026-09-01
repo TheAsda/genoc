@@ -13,6 +13,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** List */
 export type GetItemsResponse = string[];"
 `;
 
@@ -28,6 +29,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * List
+     */
     getItems: decorateWithErrors<() => Promise<GetItemsResponse>, never>(
       async (): Promise<GetItemsResponse> => {
         try {
@@ -66,20 +70,28 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetResourceResponse = void;
 
+/** Created */
 export type PostResourceResponse = void;
 
+/** Updated */
 export type PutResourceResponse = void;
 
+/** Patched */
 export type PatchResourceResponse = void;
 
+/** Deleted */
 export type DeleteResourceResponse = void;
 
+/** CORS */
 export type OptionsResourceResponse = void;
 
+/** Headers */
 export type HeadResourceResponse = void;
 
+/** Debug */
 export type TraceResourceResponse = void;"
 `;
 
@@ -94,6 +106,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getResource: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -113,6 +128,9 @@ export function createClient(requester: Requester) {
       },
       [] as const,
     ),
+    /**
+     * Created
+     */
     postResource: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -132,6 +150,9 @@ export function createClient(requester: Requester) {
       },
       [] as const,
     ),
+    /**
+     * Updated
+     */
     putResource: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -151,6 +172,9 @@ export function createClient(requester: Requester) {
       },
       [] as const,
     ),
+    /**
+     * Patched
+     */
     patchResource: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -170,6 +194,9 @@ export function createClient(requester: Requester) {
       },
       [] as const,
     ),
+    /**
+     * Deleted
+     */
     deleteResource: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -189,6 +216,9 @@ export function createClient(requester: Requester) {
       },
       [] as const,
     ),
+    /**
+     * CORS
+     */
     optionsResource: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -208,6 +238,9 @@ export function createClient(requester: Requester) {
       },
       [] as const,
     ),
+    /**
+     * Headers
+     */
     headResource: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -227,6 +260,9 @@ export function createClient(requester: Requester) {
       },
       [] as const,
     ),
+    /**
+     * Debug
+     */
     traceResource: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -265,9 +301,14 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostItemsBody = { name: string; };
+export type PostItemsBody = {
+  name: string;
+};
 
-export type PostItemsResponse = { id: string; };"
+/** Created */
+export type PostItemsResponse = {
+  id: string;
+};"
 `;
 
 exports[`OpenAPI 3.0 — HTTP Methods (3.0-#100-#107) > 3.0-#101: POST operation generates client method with body parameter 2`] = `
@@ -283,6 +324,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postItems: decorateWithErrors<(body: PostItemsBody) => Promise<PostItemsResponse>, never>(
@@ -323,8 +366,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PutItemsIdBody = { name?: string; };
+export type PutItemsIdBody = {
+  name?: string;
+};
 
+/** Updated */
 export type PutItemsIdResponse = void;"
 `;
 
@@ -341,6 +387,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Updated
+     *
      * @param body — request body
      */
     putItemsById: decorateWithErrors<(id: string, body: PutItemsIdBody) => Promise<void>, never>(
@@ -381,8 +429,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PatchItemsIdBody = { name?: string; };
+export type PatchItemsIdBody = {
+  name?: string;
+};
 
+/** Patched */
 export type PatchItemsIdResponse = void;"
 `;
 
@@ -399,6 +450,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Patched
+     *
      * @param body — request body
      */
     patchItemsById: decorateWithErrors<(id: string, body: PatchItemsIdBody) => Promise<void>, never>(
@@ -439,6 +492,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Deleted */
 export type DeleteItemsIdResponse = void;"
 `;
 
@@ -453,6 +507,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * Deleted
+     */
     deleteItemsById: decorateWithErrors<(id: string) => Promise<void>, never>(
       async (id: string): Promise<void> => {
         try {
@@ -491,6 +548,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** CORS */
 export type OptionsItemsResponse = void;"
 `;
 
@@ -505,6 +563,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * CORS
+     */
     optionsItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -543,6 +604,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Headers */
 export type HeadItemsResponse = void;"
 `;
 
@@ -557,6 +619,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * Headers
+     */
     headItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -595,6 +660,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Debug */
 export type TraceItemsResponse = void;"
 `;
 
@@ -609,6 +675,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * Debug
+     */
     traceItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -647,6 +716,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -661,6 +731,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     listAllItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -699,6 +772,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -713,6 +787,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -751,8 +828,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;
 
+/** OK */
 export type GetThingsResponse = void;"
 `;
 
@@ -767,6 +846,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     listItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -786,6 +868,9 @@ export function createClient(requester: Requester) {
       },
       [] as const,
     ),
+    /**
+     * OK
+     */
     getThings: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -824,6 +909,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -840,6 +926,8 @@ export function createClient(requester: Requester) {
   return {
     /**
      * Retrieve all items from the catalog
+     *
+     * OK
      */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
@@ -879,6 +967,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetLegacyItemsResponse = void;"
 `;
 
@@ -897,6 +986,8 @@ export function createClient(requester: Requester) {
      * Legacy items endpoint
      *
      * Use the new /items endpoint instead
+     *
+     * OK
      *
      * @category legacy
      * @category deprecated
@@ -941,6 +1032,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -957,6 +1049,8 @@ export function createClient(requester: Requester) {
   return {
     /**
      * Fetches the complete catalog
+     *
+     * OK
      */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
@@ -996,6 +1090,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1014,6 +1109,8 @@ export function createClient(requester: Requester) {
      * Get items
      *
      * Returns a paginated list of all available items
+     *
+     * OK
      */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
@@ -1053,6 +1150,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1069,6 +1167,8 @@ export function createClient(requester: Requester) {
   return {
     /**
      * Get items
+     *
+     * OK
      *
      * @category catalog
      * @category public
@@ -1111,6 +1211,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetLegacyItemsResponse = void;"
 `;
 
@@ -1127,6 +1228,8 @@ export function createClient(requester: Requester) {
   return {
     /**
      * Old endpoint
+     *
+     * OK
      *
      * @deprecated
      */
@@ -1168,7 +1271,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetUsersUserIdPostsPostIdResponse = { title?: string; };"
+/** A post */
+export type GetUsersUserIdPostsPostIdResponse = {
+  title?: string;
+};"
 `;
 
 exports[`OpenAPI 3.0 — Operation Metadata (3.0-#108-#113) > 3.0-#113: path templating generates correct path params and URL encoding 2`] = `
@@ -1183,6 +1289,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * A post
+     */
     getUsersByUserIdPostsByPostId: decorateWithErrors<(userId: string, postId: string) => Promise<GetUsersUserIdPostsPostIdResponse>, never>(
       async (userId: string, postId: string): Promise<GetUsersUserIdPostsPostIdResponse> => {
         try {
@@ -1225,6 +1334,7 @@ export {
 
 export type ApiKeyQueryAuth = { type: "apiKey"; description: "API key passed as query parameter"; name: "api_key"; in: "query" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1239,6 +1349,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -1279,6 +1392,7 @@ export {
 
 export type OAuthWithRefreshAuth = { type: "oauth2"; flows: { authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; refreshUrl: "https://example.com/refresh"; scopes: { "read": "Read access" } } } };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1293,6 +1407,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -1337,6 +1454,7 @@ export type BearerAuthAuth = { type: "http"; scheme: "bearer" };
 
 export type SecuritySchemes = ApiKeyHeaderAuth | BearerAuthAuth;
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1351,6 +1469,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -1391,6 +1512,7 @@ export {
 
 export type OnlyAuthAuth = { type: "http"; scheme: "basic" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1405,6 +1527,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -1445,6 +1570,7 @@ export {
 
 export type ApiKeyHeaderAuth = { type: "apiKey"; name: "X-API-Key"; in: "header" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1459,6 +1585,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -1499,6 +1628,7 @@ export {
 
 export type SessionCookieAuth = { type: "apiKey"; name: "session"; in: "cookie" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1513,6 +1643,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -1553,6 +1686,7 @@ export {
 
 export type BasicAuthAuth = { type: "http"; scheme: "basic" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1567,6 +1701,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -1607,6 +1744,7 @@ export {
 
 export type BearerAuthAuth = { type: "http"; scheme: "bearer"; bearerFormat: "JWT" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1621,6 +1759,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -1661,6 +1802,7 @@ export {
 
 export type DigestAuthAuth = { type: "http"; scheme: "digest" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1675,6 +1817,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -1715,6 +1860,7 @@ export {
 
 export type OAuth2ImplicitAuth = { type: "oauth2"; flows: { implicit: { authorizationUrl: "https://example.com/auth"; scopes: { "read:items": "Read items"; "write:items": "Write items" } } } };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1729,6 +1875,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -1769,6 +1918,7 @@ export {
 
 export type FullOAuthAuth = { type: "oauth2"; flows: { implicit: { authorizationUrl: "https://example.com/auth"; scopes: { "read": "Read access" } }; password: { tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } }; clientCredentials: { tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } }; authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } } } };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1783,6 +1933,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -1823,6 +1976,7 @@ export {
 
 export type OAuth2PasswordAuth = { type: "oauth2"; flows: { password: { tokenUrl: "https://example.com/token"; scopes: { "read:items": "Read items" } } } };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1837,6 +1991,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -1877,6 +2034,7 @@ export {
 
 export type OAuth2ClientAuth = { type: "oauth2"; flows: { clientCredentials: { tokenUrl: "https://example.com/token"; scopes: { "read:items": "Read items" } } } };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1891,6 +2049,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -1931,6 +2092,7 @@ export {
 
 export type OAuth2AuthCodeAuth = { type: "oauth2"; flows: { authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; scopes: { "read:items": "Read items" } } } };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1945,6 +2107,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -1985,6 +2150,7 @@ export {
 
 export type OidcAuthAuth = { type: "openIdConnect"; openIdConnectUrl: "https://example.com/.well-known/openid-configuration" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1999,6 +2165,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -2039,6 +2208,7 @@ export {
 
 export type BearerAuthAuth = { type: "http"; scheme: "bearer" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -2053,6 +2223,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -2091,6 +2264,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -2105,6 +2279,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -2149,6 +2326,7 @@ export interface ServerParams {
   host: string;
 }
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -2163,6 +2341,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -2207,6 +2388,7 @@ export interface ServerParams {
   env: string;
 }
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -2221,6 +2403,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -2265,6 +2450,7 @@ export interface ServerParams {
   env: "production" | "staging" | "development";
 }
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -2279,6 +2465,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -2323,6 +2512,7 @@ export interface ServerParams {
   version: string;
 }
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -2337,6 +2527,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -2387,6 +2580,7 @@ export interface Server2Params {
   region: "us" | "eu" | "ap";
 }
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -2401,6 +2595,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -2445,6 +2642,7 @@ export interface Server2Params {
   env: string;
 }
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -2459,6 +2657,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {

@@ -17,6 +17,10 @@ export type SchemaObject = {
   const?: unknown;
   default?: unknown;
   description?: string;
+  title?: string;
+  deprecated?: boolean;
+  example?: unknown;
+  examples?: unknown[];
   nullable?: boolean;
   readOnly?: boolean;
   writeOnly?: boolean;

@@ -13,10 +13,14 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetUsersResponse = void;
 
-export type PostUsersBody = { name?: string; };
+export type PostUsersBody = {
+  name?: string;
+};
 
+/** Created */
 export type PostUsersResponse = void;"
 `;
 
@@ -34,6 +38,8 @@ export function createClient(requester: Requester) {
   return {
     /**
      * List all users
+     *
+     * OK
      */
     getUsers: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
@@ -56,6 +62,8 @@ export function createClient(requester: Requester) {
     ),
     /**
      * Create a user
+     *
+     * Created
      *
      * @param body — request body
      */

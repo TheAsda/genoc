@@ -1,0 +1,231 @@
+openapi: '3.1.0'
+info:
+  title: JSDoc Metadata Torture
+  version: '1.0.0'
+  description: >
+    Fixture stressing every JSDoc metadata edge case for the
+    jsdoc-field-metadata plan. Uses OpenAPI 3.1 `examples` arrays.
+paths:
+  /catalog/items:
+    get:
+      tags:
+        - catalog
+      summary: List catalog items
+      operationId: listCatalogItems
+      parameters:
+        - name: filter
+          in: query
+          required: false
+          description: 'Query param filter — parameter-level description text.'
+          schema:
+            type: string
+            description: 'Schema-level filter description with deliberately different wording.'
+        - name: X-Trace-Id
+          in: header
+          required: false
+          description: 'Header param trace id — parameter-level description text.'
+          schema:
+            type: string
+            description: 'Schema-level trace description with deliberately different wording.'
+      responses:
+        '200':
+          description: 'First success — full catalog item payload.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItem'
+        '201':
+          description: 'Second success — created-item confirmation payload with different wording.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItem'
+    post:
+      tags:
+        - catalog
+      summary: Create a catalog item
+      operationId: createCatalogItem
+      requestBody:
+        description: 'Request body — body-level description text.'
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: 'Body schema-level description with deliberately different wording.'
+              properties:
+                payload:
+                  type: string
+                  description: 'Inner payload field of the request body.'
+      responses:
+        '201':
+          description: 'Created catalog item.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItem'
+        '400':
+          description: 'Validation failed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItem'
+components:
+  schemas:
+    DescriptionOnly:
+      type: object
+      description: 'Schema carrying a single description-only property.'
+      properties:
+        value:
+          type: string
+          description: 'A property with only a description — no other metadata at all.'
+    FullMetadata:
+      type: object
+      title: Full Metadata
+      description: 'Property carrying all five supported metadata fields at once.'
+      properties:
+        status:
+          type: string
+          title: Status
+          description: 'Current processing status of the item.'
+          deprecated: true
+          default: active
+          examples: [active]
+    CatalogItem:
+      type: object
+      title: Catalog Item
+      description: 'Core catalog item aggregating every torture schema as a nested property.'
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          description: 'Unique item identifier.'
+        name:
+          type: string
+          description: 'Human-readable item name.'
+        docs:
+          type: string
+          description: |
+            Multiline documentation block.
+
+            ```json
+            { "id": "item-1", "qty": 2 }
+            ```
+
+            Tricky tail: this sentence ends with a comment terminator */ inline.
+        emptyDescription:
+          type: string
+          description: ''
+        blankDescription:
+          type: string
+          description: '   '
+        htmlDocs:
+          type: string
+          description: 'Renders as <b>bold</b> and <i>italic</i> inline markup.'
+        longDocs:
+          type: string
+          description: 'Extremely long single-line description intended to exceed two hundred characters in order to prove that the generator never wraps, truncates, or reformats description text no matter how long the original author made it inside the OpenAPI specification document.'
+        status:
+          $ref: '#/components/schemas/FullMetadata'
+        tree:
+          $ref: '#/components/schemas/DeepTree'
+        composed:
+          $ref: '#/components/schemas/ComposedItem'
+        selfRef:
+          $ref: '#/components/schemas/SelfRefNode'
+        defaults:
+          $ref: '#/components/schemas/DefaultsAndDeprecation'
+    DeepTree:
+      type: object
+      title: Deep Tree
+      description: 'Three-plus nesting levels with metadata at every level.'
+      properties:
+        level1:
+          type: object
+          title: Level One
+          description: 'Level one wrapper object.'
+          properties:
+            level2:
+              type: object
+              title: Level Two
+              description: 'Level two wrapper object.'
+              properties:
+                level3:
+                  type: object
+                  title: Level Three
+                  description: 'Level three leaf object.'
+                  properties:
+                    leafValue:
+                      type: string
+                      description: 'Deepest leaf value at level four.'
+        branches:
+          type: array
+          description: 'Array of branch objects carrying inner metadata.'
+          items:
+            type: object
+            title: Branch
+            description: 'Inner branch object metadata.'
+            properties:
+              branchName:
+                type: string
+                description: 'Branch display name.'
+    ComposedItem:
+      title: Composed Item
+      description: 'Named allOf composition carrying parent-level metadata.'
+      allOf:
+        - $ref: '#/components/schemas/CatalogItem'
+        - type: object
+          title: Composed Item
+          description: 'Composition adding title and description over a referenced schema.'
+          properties:
+            variant:
+              description: 'Inline oneOf members each carry their own description.'
+              oneOf:
+                - type: string
+                  description: 'Textual variant code.'
+                - type: number
+                  description: 'Numeric variant code.'
+    SelfRefNode:
+      type: object
+      title: Self Referential Node
+      description: 'Node whose children reference the node schema itself.'
+      properties:
+        nodeName:
+          type: string
+          description: 'Display name of this node.'
+        children:
+          type: array
+          description: 'Child nodes, recursively referenced.'
+          items:
+            $ref: '#/components/schemas/SelfRefNode'
+    DefaultsAndDeprecation:
+      type: object
+      title: Defaults And Deprecation
+      description: 'Deprecated fields and defaults of every primitive type.'
+      properties:
+        legacyField:
+          type: string
+          description: 'Old field kept for backwards compatibility.'
+          deprecated: true
+        defaultString:
+          type: string
+          description: 'String-typed default value.'
+          default: standard
+        defaultNumber:
+          type: number
+          description: 'Number-typed default value.'
+          default: 42
+        defaultBoolean:
+          type: boolean
+          description: 'Boolean-typed default value.'
+          default: true
+        defaultNull:
+          type: string
+          description: 'Null-typed default value.'
+          default: null
+        multiExample:
+          type: integer
+          description: 'Version-specific example keyword slot.'
+          examples: [1, 2]

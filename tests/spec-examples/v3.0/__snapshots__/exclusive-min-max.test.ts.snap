@@ -13,7 +13,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Config = { priority: number; };"
+export type Config = {
+  priority: number;
+};"
 `;
 
 exports[`OpenAPI 3.0 — exclusiveMinimum / exclusiveMaximum > generates nullable number with exclusive bounds 1`] = `

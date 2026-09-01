@@ -18,8 +18,14 @@ export interface FileInput {
   filename: string;
 }
 
-export type PostUploadBody = { avatar: FileInput; document?: string; gallery?: FileInput[]; name: string; };
+export type PostUploadBody = {
+  avatar: FileInput;
+  document?: string;
+  gallery?: FileInput[];
+  name: string;
+};
 
+/** Created */
 export type PostUploadResponse = void;"
 `;
 
@@ -37,6 +43,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postUpload: decorateWithErrors<(body: PostUploadBody) => Promise<void>, never>(
@@ -87,8 +95,14 @@ export interface FileInput {
   filename: string;
 }
 
-export type PostUploadBody = { avatar: FileInput; document?: string; gallery?: FileInput[]; name: string; };
+export type PostUploadBody = {
+  avatar: FileInput;
+  document?: string;
+  gallery?: FileInput[];
+  name: string;
+};
 
+/** Created */
 export type PostUploadResponse = void;"
 `;
 
@@ -106,6 +120,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postUpload: decorateWithErrors<(body: PostUploadBody) => Promise<void>, never>(
@@ -156,8 +172,14 @@ export interface FileInput {
   filename: string;
 }
 
-export type PostUploadBody = { avatar: FileInput; document?: string; gallery?: FileInput[]; name: string; };
+export type PostUploadBody = {
+  avatar: FileInput;
+  document?: string;
+  gallery?: FileInput[];
+  name: string;
+};
 
+/** Created */
 export type PostUploadResponse = void;"
 `;
 
@@ -175,6 +197,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postUpload: decorateWithErrors<(body: PostUploadBody) => Promise<void>, never>(
@@ -225,8 +249,14 @@ export interface FileInput {
   filename: string;
 }
 
-export type PostUploadBody = { avatar: FileInput; document?: string; gallery?: FileInput[]; name: string; };
+export type PostUploadBody = {
+  avatar: FileInput;
+  document?: string;
+  gallery?: FileInput[];
+  name: string;
+};
 
+/** Created */
 export type PostUploadResponse = void;"
 `;
 
@@ -244,6 +274,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postUpload: decorateWithErrors<(body: PostUploadBody) => Promise<void>, never>(
@@ -294,8 +326,11 @@ export interface FileInput {
   filename: string;
 }
 
-export type PostUploadBody = { file: FileInput; };
+export type PostUploadBody = {
+  file: FileInput;
+};
 
+/** Created */
 export type PostUploadResponse = void;"
 `;
 
@@ -313,6 +348,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postUpload: decorateWithErrors<(body: PostUploadBody) => Promise<void>, never>(
@@ -355,6 +392,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetUsersUserIdResponse = void;"
 `;
 
@@ -369,6 +407,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getUsersByUserId: decorateWithErrors<(userId: string) => Promise<void>, never>(
       async (userId: string): Promise<void> => {
         try {
@@ -407,8 +448,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetItemsQuery = { page?: number; limit?: number; };
+export type GetItemsQuery = {
+  page?: number;
+  limit?: number;
+};
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -424,6 +469,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<(query?: GetItemsQuery) => Promise<void>, never>(
       async (query?: GetItemsQuery): Promise<void> => {
         try {
@@ -462,8 +510,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetDataHeaders = { "X-Api-Key"?: string; "X-Request-Id": string; };
+export type GetDataHeaders = {
+  "X-Api-Key"?: string;
+  "X-Request-Id": string;
+};
 
+/** OK */
 export type GetDataResponse = void;"
 `;
 
@@ -479,6 +531,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getData: decorateWithErrors<(headers: GetDataHeaders) => Promise<void>, never>(
       async (headers: GetDataHeaders): Promise<void> => {
         try {
@@ -517,6 +572,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetSessionResponse = void;"
 `;
 
@@ -531,6 +587,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getSession: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -569,6 +628,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsItemIdResponse = void;"
 `;
 
@@ -583,6 +643,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItemsByItemId: decorateWithErrors<(itemId: string) => Promise<void>, never>(
       async (itemId: string): Promise<void> => {
         try {
@@ -621,8 +684,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetSearchQuery = { q: string; sort?: string; filter?: string; };
+export type GetSearchQuery = {
+  q: string;
+  sort?: string;
+  filter?: string;
+};
 
+/** OK */
 export type GetSearchResponse = void;"
 `;
 
@@ -638,6 +706,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getSearch: decorateWithErrors<(query: GetSearchQuery) => Promise<void>, never>(
       async (query: GetSearchQuery): Promise<void> => {
         try {
@@ -676,8 +747,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetSearchQuery = { q?: string; ids?: number[]; };
+export type GetSearchQuery = {
+  q?: string;
+  ids?: number[];
+};
 
+/** OK */
 export type GetSearchResponse = void;"
 `;
 
@@ -693,6 +768,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getSearch: decorateWithErrors<(query?: GetSearchQuery) => Promise<void>, never>(
       async (query?: GetSearchQuery): Promise<void> => {
         try {
@@ -731,8 +809,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetItemsQuery = { oldParam?: string; newParam?: string; };
+export type GetItemsQuery = {
+  /** @deprecated */
+  oldParam?: string;
+  newParam?: string;
+};
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -749,6 +832,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * OK
+     *
      * @deprecated oldParam — This parameter is deprecated
      */
     getItems: decorateWithErrors<(query?: GetItemsQuery) => Promise<void>, never>(
@@ -789,8 +874,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetSearchQuery = { q?: string; };
+export type GetSearchQuery = {
+  /** The search query string */
+  q?: string;
+};
 
+/** OK */
 export type GetSearchResponse = void;"
 `;
 
@@ -807,6 +896,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * OK
+     *
      * @param q — The search query string
      */
     getSearch: decorateWithErrors<(query?: GetSearchQuery) => Promise<void>, never>(
@@ -847,8 +938,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostUsersBody = { name: string; email: string; age?: number; };
+export type PostUsersBody = {
+  name: string;
+  email: string;
+  age?: number;
+};
 
+/** Created */
 export type PostUsersResponse = void;"
 `;
 
@@ -865,6 +961,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postUsers: decorateWithErrors<(body?: PostUsersBody) => Promise<void>, never>(
@@ -910,8 +1008,12 @@ export interface FileInput {
   filename: string;
 }
 
-export type PostUploadBody = { name?: string; file: FileInput; };
+export type PostUploadBody = {
+  name?: string;
+  file: FileInput;
+};
 
+/** Created */
 export type PostUploadResponse = void;"
 `;
 
@@ -929,6 +1031,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postUpload: decorateWithErrors<(body: PostUploadBody) => Promise<void>, never>(
@@ -972,8 +1076,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostLoginBody = { username: string; password: string; };
+export type PostLoginBody = {
+  username: string;
+  password: string;
+};
 
+/** OK */
 export type PostLoginResponse = void;"
 `;
 
@@ -990,6 +1098,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * OK
+     *
      * @param body — request body
      */
     postLogin: decorateWithErrors<(body: PostLoginBody) => Promise<void>, never>(
@@ -1032,6 +1142,7 @@ export {
 
 export type PostBinaryBody = Blob;
 
+/** OK */
 export type PostBinaryResponse = void;"
 `;
 
@@ -1048,6 +1159,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * OK
+     *
      * @param body — request body
      */
     postBinary: decorateWithErrors<(body: PostBinaryBody) => Promise<void>, never>(
@@ -1088,8 +1201,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostDataBody = { jsonField: string; };
+export type PostDataBody = {
+  jsonField: string;
+};
 
+/** OK */
 export type PostDataResponse = void;"
 `;
 
@@ -1106,6 +1222,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * OK
+     *
      * @param body — request body
      */
     postData: decorateWithErrors<(body: PostDataBody) => Promise<void>, never>(
@@ -1146,8 +1264,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostOrdersBody = { productId: string; };
+export type PostOrdersBody = {
+  productId: string;
+};
 
+/** Created */
 export type PostOrdersResponse = void;"
 `;
 
@@ -1164,6 +1285,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postOrders: decorateWithErrors<(body: PostOrdersBody) => Promise<void>, never>(
@@ -1204,8 +1327,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PatchProfileBody = { bio?: string; };
+export type PatchProfileBody = {
+  bio?: string;
+};
 
+/** Updated */
 export type PatchProfileResponse = void;"
 `;
 
@@ -1222,6 +1348,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Updated
+     *
      * @param body — request body
      */
     patchProfile: decorateWithErrors<(body?: PatchProfileBody) => Promise<void>, never>(
@@ -1262,8 +1390,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PostUsersBody = { name: string; };
+export type PostUsersBody = {
+  name: string;
+};
 
+/** Created */
 export type PostUsersResponse = void;"
 `;
 
@@ -1280,6 +1411,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postUsers: decorateWithErrors<(body?: PostUsersBody) => Promise<void>, never>(

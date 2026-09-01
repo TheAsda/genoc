@@ -13,8 +13,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { id: string; name: string; };
+export type Product = {
+  id: string;
+  name: string;
+};
 
+/** Products list */
 export type GetProductsResponse = Product[];"
 `;
 
@@ -30,6 +34,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * Products list
+     */
     getProducts: decorateWithErrors<() => Promise<GetProductsResponse>, never>(
       async (): Promise<GetProductsResponse> => {
         try {
@@ -68,9 +75,15 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Address = { city: string; zip?: string; };
+export type Address = {
+  city: string;
+  zip?: string;
+};
 
-export type Person = { name: string; address: Address; };"
+export type Person = {
+  name: string;
+  address: Address;
+};"
 `;
 
 exports[`OpenAPI 3.1 — $ref Resolution (3.1-#70-#75) > 3.1-#71: chained refs > resolves chained refs through intermediate object schemas 1`] = `
@@ -86,10 +99,14 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type BaseError = { code: number; message: string; };
+export type BaseError = {
+  code: number;
+  message: string;
+};
 
 export type DetailedError = BaseError;
 
+/** OK */
 export type GetItemsResponse = void;
 
 export type GetItemsError500 = DetailedError;
@@ -109,6 +126,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, GetItemsErrors>(
       async (): Promise<void> => {
         try {
@@ -169,7 +189,9 @@ export {
 } from 'genoc/runtime';
 
 /** Original target description */
-export type Target = { id?: string; };
+export type Target = {
+  id?: string;
+};
 
 /** Original target description */
 export type RefWithSibling = Target;"
@@ -189,7 +211,9 @@ export {
 } from 'genoc/runtime';
 
 /** Original target description */
-export type Target = { id?: string; };
+export type Target = {
+  id?: string;
+};
 
 /** Override from sibling */
 export type RefWithSibling = Target;"
@@ -228,10 +252,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type CreateItem = { name: string; };
+export type CreateItem = {
+  name: string;
+};
 
 export type PostItemsBody = CreateItem;
 
+/** Created */
 export type PostItemsResponse = void;"
 `;
 
@@ -248,6 +275,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postItems: decorateWithErrors<(body: PostItemsBody) => Promise<void>, never>(
@@ -288,8 +317,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Item = { id: string; };
+export type Item = {
+  id: string;
+};
 
+/** An item */
 export type GetItemsIdResponse = Item;"
 `;
 
@@ -305,6 +337,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * An item
+     */
     getItemsById: decorateWithErrors<(id: string) => Promise<GetItemsIdResponse>, never>(
       async (id: string): Promise<GetItemsIdResponse> => {
         try {
@@ -343,7 +378,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type User = { id: string; name: string; email?: string; };
+export type User = {
+  id: string;
+  name: string;
+  email?: string;
+};
 
 export type Status = 'active' | 'inactive' | 'pending';"
 `;
@@ -361,9 +400,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Base = { id: string; };
+export type Base = {
+  id: string;
+};
 
-export type Extended = Base & { extra?: string; };"
+export type Extended = Base & {
+  extra?: string;
+};"
 `;
 
 exports[`OpenAPI 3.1 — Components (3.1-#76-#84) > 3.1-#76: components/schemas > sorts schemas topologically when one references another via $ref 1`] = `
@@ -379,9 +422,14 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Product = { name: string; };
+export type Product = {
+  name: string;
+};
 
-export type Order = { id: string; product: Product; };"
+export type Order = {
+  id: string;
+  product: Product;
+};"
 `;
 
 exports[`OpenAPI 3.1 — Components (3.1-#76-#84) > 3.1-#77: components/responses > resolves $ref to reusable response in error codes 1`] = `
@@ -397,8 +445,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ErrorBody = { code: number; message: string; };
+export type ErrorBody = {
+  code: number;
+  message: string;
+};
 
+/** OK */
 export type GetItemsResponse = void;
 
 export type GetItemsError400 = ErrorBody;
@@ -420,6 +472,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItems: decorateWithErrors<() => Promise<void>, GetItemsErrors>(
       async (): Promise<void> => {
         try {
@@ -460,14 +515,18 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ErrorDetail = { msg: string; };
+export type ErrorDetail = {
+  msg: string;
+};
 
+/** OK */
 export type GetAResponse = void;
 
 export type GetAError500 = ErrorDetail;
 
 export type GetAErrors = ApiError<500, GetAError500>;
 
+/** OK */
 export type GetBResponse = void;
 
 export type GetBError500 = ErrorDetail;
@@ -487,6 +546,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getA: decorateWithErrors<() => Promise<void>, GetAErrors>(
       async (): Promise<void> => {
         try {
@@ -507,6 +569,9 @@ export function createClient(requester: Requester) {
       },
       [500] as const,
     ),
+    /**
+     * OK
+     */
     getB: decorateWithErrors<() => Promise<void>, GetBErrors>(
       async (): Promise<void> => {
         try {
@@ -546,6 +611,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** A user */
 export type GetUsersUserIdResponse = void;"
 `;
 
@@ -560,6 +626,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * A user
+     */
     getUsersByUserId: decorateWithErrors<(userId: string) => Promise<void>, never>(
       async (userId: string): Promise<void> => {
         try {
@@ -598,8 +667,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetItemsQuery = { limit?: number; };
+export type GetItemsQuery = {
+  limit?: number;
+};
 
+/** Items list */
 export type GetItemsResponse = void;"
 `;
 
@@ -615,6 +687,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * Items list
+     */
     getItems: decorateWithErrors<(query?: GetItemsQuery) => Promise<void>, never>(
       async (query?: GetItemsQuery): Promise<void> => {
         try {
@@ -653,10 +728,14 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type NewUser = { name: string; email: string; };
+export type NewUser = {
+  name: string;
+  email: string;
+};
 
 export type PostUsersBody = NewUser;
 
+/** Created */
 export type PostUsersResponse = void;"
 `;
 
@@ -673,6 +752,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postUsers: decorateWithErrors<(body: PostUsersBody) => Promise<void>, never>(
@@ -713,14 +794,18 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ItemInput = { label: string; };
+export type ItemInput = {
+  label: string;
+};
 
 export type PostItemsBody = ItemInput;
 
+/** Created */
 export type PostItemsResponse = void;
 
 export type PutBulkBody = ItemInput;
 
+/** Updated */
 export type PutBulkResponse = void;"
 `;
 
@@ -737,6 +822,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postItems: decorateWithErrors<(body?: PostItemsBody) => Promise<void>, never>(
@@ -759,6 +846,8 @@ export function createClient(requester: Requester) {
       [] as const,
     ),
     /**
+     * Updated
+     *
      * @param body — request body
      */
     putBulk: decorateWithErrors<(body?: PutBulkBody) => Promise<void>, never>(
@@ -799,6 +888,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetDataResponse = void;"
 `;
 
@@ -813,6 +903,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getData: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -857,6 +950,7 @@ export type ApiKeyQueryAuth = { type: "apiKey"; name: "api_key"; in: "query" };
 
 export type SecuritySchemes = BearerAuthAuth | ApiKeyQueryAuth;
 
+/** Secure data */
 export type GetSecureResponse = void;"
 `;
 
@@ -871,6 +965,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * Secure data
+     */
     getSecure: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -911,6 +1008,7 @@ export {
 
 export type OAuth2Auth = { type: "oauth2"; flows: { authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } } } };
 
+/** OK */
 export type GetDataResponse = void;"
 `;
 
@@ -925,6 +1023,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getData: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -963,6 +1064,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Created */
 export type PostUsersResponse = void;"
 `;
 
@@ -977,6 +1079,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * Created
+     */
     postUsers: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -1015,6 +1120,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Subscribed */
 export type PostSubscribeResponse = void;"
 `;
 
@@ -1029,6 +1135,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * Subscribed
+     */
     postSubscribe: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -1067,8 +1176,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetStatusQuery = { status?: string; };
+export type GetStatusQuery = {
+  status?: string;
+};
 
+/** Status */
 export type GetStatusResponse = void;"
 `;
 
@@ -1084,6 +1196,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * Status
+     */
     getStatus: decorateWithErrors<(query?: GetStatusQuery) => Promise<void>, never>(
       async (query?: GetStatusQuery): Promise<void> => {
         try {
@@ -1122,7 +1237,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetUsersResponse = Array<{ id?: string; name?: string; }>;"
+/** Users */
+export type GetUsersResponse = Array<{
+  id?: string;
+  name?: string;
+}>;"
 `;
 
 exports[`OpenAPI 3.1 — Components (3.1-#76-#84) > 3.1-#84: components/examples > spec with components/examples does not crash 2`] = `
@@ -1137,6 +1256,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * Users
+     */
     getUsers: decorateWithErrors<() => Promise<GetUsersResponse>, never>(
       async (): Promise<GetUsersResponse> => {
         try {

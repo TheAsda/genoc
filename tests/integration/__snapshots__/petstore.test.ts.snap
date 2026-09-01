@@ -15,6 +15,8 @@ export function createClient(requester: Requester) {
     /**
      * List all pets
      *
+     * A list of pets
+     *
      * @category pets
      */
     getPets: decorateWithErrors<(query?: GetPetsQuery) => Promise<GetPetsResponse>, GetPetsErrors>(
@@ -40,6 +42,8 @@ export function createClient(requester: Requester) {
     ),
     /**
      * Create a pet
+     *
+     * Pet created
      *
      * @param body — request body
      *
@@ -69,6 +73,8 @@ export function createClient(requester: Requester) {
     /**
      * Get a pet by ID
      *
+     * A pet
+     *
      * @category pets
      */
     getPetsByPetId: decorateWithErrors<(petId: string) => Promise<GetPetsPetIdResponse>, GetPetsPetIdErrors>(
@@ -94,6 +100,8 @@ export function createClient(requester: Requester) {
     ),
     /**
      * Update a pet
+     *
+     * Updated pet
      *
      * @param body — request body
      *
@@ -123,6 +131,8 @@ export function createClient(requester: Requester) {
     ),
     /**
      * Delete a pet
+     *
+     * Pet deleted
      *
      * @category pets
      */
@@ -167,14 +177,29 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Pet = { id: string; name: string; tag?: string; status?: 'available' | 'pending' | 'sold'; };
+export type Pet = {
+  id: string;
+  name: string;
+  tag?: string;
+  status?: 'available' | 'pending' | 'sold';
+};
 
-export type NewPet = { name: string; tag?: string; };
+export type NewPet = {
+  name: string;
+  tag?: string;
+};
 
-export type Error = { code: number; message: string; };
+export type Error = {
+  code: number;
+  message: string;
+};
 
-export type GetPetsQuery = { limit?: number; tags?: string[]; };
+export type GetPetsQuery = {
+  limit?: number;
+  tags?: string[];
+};
 
+/** A list of pets */
 export type GetPetsResponse = Pet[];
 
 export type GetPetsError400 = Error;
@@ -185,6 +210,7 @@ export type GetPetsErrors = ApiError<400, GetPetsError400> | ApiError<500, GetPe
 
 export type PostPetsBody = NewPet;
 
+/** Pet created */
 export type PostPetsResponse = Pet;
 
 export type PostPetsError400 = Error;
@@ -193,6 +219,7 @@ export type PostPetsError500 = Error;
 
 export type PostPetsErrors = ApiError<400, PostPetsError400> | ApiError<500, PostPetsError500>;
 
+/** A pet */
 export type GetPetsPetIdResponse = Pet;
 
 export type GetPetsPetIdError404 = Error;
@@ -203,6 +230,7 @@ export type GetPetsPetIdErrors = ApiError<404, GetPetsPetIdError404> | ApiError<
 
 export type PutPetsPetIdBody = NewPet;
 
+/** Updated pet */
 export type PutPetsPetIdResponse = Pet;
 
 export type PutPetsPetIdError400 = Error;
@@ -213,6 +241,7 @@ export type PutPetsPetIdError500 = Error;
 
 export type PutPetsPetIdErrors = ApiError<400, PutPetsPetIdError400> | ApiError<404, PutPetsPetIdError404> | ApiError<500, PutPetsPetIdError500>;
 
+/** Pet deleted */
 export type DeletePetsPetIdResponse = void;
 
 export type DeletePetsPetIdError400 = Error;

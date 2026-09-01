@@ -1,7 +1,11 @@
 import type { AnalyzedOperation } from '../analyzer/path-analyzer.js';
 import type { GeneratedMethod } from '../types/client.js';
 import type { SchemaObject } from '../types/openapi.js';
-import { getOperationTypePrefix, getSuccessType } from '../utils/generator-helpers.js';
+import {
+  getOperationTypePrefix,
+  getSuccessType,
+  sanitizeJsDocText,
+} from '../utils/generator-helpers.js';
 
 function buildParameters(op: AnalyzedOperation): string {
   const params: string[] = [];
@@ -53,6 +57,17 @@ function buildJsDoc(op: AnalyzedOperation): string {
       lines.push(' *');
     }
     lines.push(` * ${op.description}`);
+  }
+
+  // Responses iterate ascending-numeric with 'default' last (Object.entries
+  // integer-key semantics in path-analyzer), so the first success is the
+  // lowest-numbered 2xx. No fallback to later 2xx when it is undescribed.
+  const firstSuccess = op.responses.find((response) => response.isSuccess);
+  if (firstSuccess?.description !== undefined && firstSuccess.description.trim() !== '') {
+    if (lines.length > 0) {
+      lines.push(' *');
+    }
+    lines.push(` * ${sanitizeJsDocText(firstSuccess.description)}`);
   }
 
   const allParams = [...op.pathParams, ...op.queryParams, ...op.headerParams, ...op.cookieParams];

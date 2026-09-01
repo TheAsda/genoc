@@ -1,4 +1,4 @@
-import { analyzePaths } from '../analyzer/path-analyzer.js';
+import { analyzePaths, type AnalyzedParameter } from '../analyzer/path-analyzer.js';
 import { SchemaMapper } from '../analyzer/schema-mapper.js';
 import { RefResolver } from '../parser/ref-resolver.js';
 import type { ContractEntry } from '../types/contracts.js';
@@ -13,6 +13,8 @@ import {
   RESERVED_TYPE_NAMES,
   buildSchemaRenameMap,
   DEFAULT_RUNTIME_IMPORT_PATH,
+  buildTypeJsDoc,
+  sanitizeJsDocText,
   sanitizeTypeName,
   toPascalCase,
   getOperationTypePrefix,
@@ -62,9 +64,72 @@ function substituteDiscriminatedType(
   return tsType;
 }
 
-function buildJsDoc(description?: string): string | undefined {
-  if (!description) return undefined;
-  return `/** ${description} */`;
+/**
+ * Indent unit matching `INDENT_UNIT` in schema-mapper.ts (2 spaces, pinned by
+ * the mapper's golden tests). Kept local to avoid modifying the mapper module.
+ */
+const INDENT_UNIT = '  ';
+
+/**
+ * Build a description-only type-level JSDoc comment for operation-derived
+ * types (body / response). Returns '' when the description is absent or
+ * whitespace-only so callers can skip emission entirely.
+ */
+function buildDescriptionJsDoc(description: string | undefined): string {
+  if (description === undefined) return '';
+  const sanitized = sanitizeJsDocText(description);
+  return sanitized === '' ? '' : `/** ${sanitized} */`;
+}
+
+/**
+ * Prefix a type definition with its JSDoc block (single- or multi-line),
+ * keeping the comment directly above the `export type` line.
+ */
+function attachTypeJsDoc(jsDoc: string, definition: string): string {
+  return jsDoc === '' ? definition : `${jsDoc}\n${definition}`;
+}
+
+/**
+ * Indent every line of a JSDoc block by one indent unit so property comments
+ * line up exactly with their property line (mapper indentation contract).
+ */
+function indentJsDocBlock(jsDoc: string): string[] {
+  return jsDoc.split('\n').map((line) => `${INDENT_UNIT}${line}`);
+}
+
+/**
+ * Build the JSDoc block for a query/header parameter property using the
+ * pinned parameter merge rule: parameter-level description / deprecated /
+ * example win over the schema's; default, title and examples come from the
+ * schema only (carried by the spread).
+ */
+function buildParamPropertyJsDoc(param: AnalyzedParameter, schema: SchemaObject): string {
+  return buildTypeJsDoc({
+    ...schema,
+    description: param.description ?? schema.description,
+    deprecated: param.deprecated === true || schema.deprecated === true,
+    example: param.example ?? schema.example,
+  });
+}
+
+/**
+ * Render a `${prefix}Query` / `${prefix}Headers` object body in the mapper's
+ * multi-line format with per-property JSDoc from the parameter merge rule.
+ */
+function buildParamTypeBody(params: AnalyzedParameter[], mapper: SchemaMapper): string {
+  const lines: string[] = [];
+  for (const param of params) {
+    const paramSchema = param.schema ?? { type: 'string' };
+    const result = mapper.mapSchema(paramSchema);
+    const optional = param.required ? '' : '?';
+    const key = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(param.name) ? param.name : `"${param.name}"`;
+    const jsDoc = buildParamPropertyJsDoc(param, paramSchema);
+    if (jsDoc !== '') {
+      lines.push(...indentJsDocBlock(jsDoc));
+    }
+    lines.push(`${INDENT_UNIT}${key}${optional}: ${result.tsType};`);
+  }
+  return `{\n${lines.join('\n')}\n}`;
 }
 
 function securitySchemeToTsType(scheme: SecuritySchemeObject): string {
@@ -316,7 +381,7 @@ export function generateContracts(
         name: renamedName,
         kind: 'type',
         definition,
-        jsDoc: buildJsDoc(resolved.description),
+        jsDoc: buildTypeJsDoc(resolved) || undefined,
       });
     }
   }
@@ -349,9 +414,10 @@ export function generateContracts(
     for (const [schemeName, scheme] of Object.entries(securitySchemes)) {
       const typeName = `${toPascalCase(schemeName)}Auth`;
       const tsType = securitySchemeToTsType(scheme);
-      if (scheme.description) {
+      const schemeJsDoc = buildDescriptionJsDoc(scheme.description);
+      if (schemeJsDoc !== '') {
         lines.push('');
-        lines.push(buildJsDoc(scheme.description)!);
+        lines.push(schemeJsDoc);
       }
       lines.push('');
       lines.push(`export type ${typeName} = ${tsType};`);
@@ -379,10 +445,13 @@ export function generateContracts(
         const sv = variable as ServerVariableObject;
         const jsDocParts: string[] = [];
         if (sv.description) {
-          jsDocParts.push(sv.description);
+          const description = sanitizeJsDocText(sv.description);
+          if (description !== '') {
+            jsDocParts.push(description);
+          }
         }
         if (sv.default !== undefined) {
-          jsDocParts.push(`@default ${sv.default}`);
+          jsDocParts.push(`@default ${sanitizeJsDocText(String(sv.default))}`);
         }
 
         let tsType: string;
@@ -430,33 +499,24 @@ export function generateContracts(
 
     // Section 2: Query parameter types
     if (op.queryParams.length > 0) {
-      const props = op.queryParams.map((param) => {
-        const paramSchema = param.schema ?? { type: 'string' };
-        const result = mapper.mapSchema(paramSchema);
-        const optional = param.required ? '' : '?';
-        const key = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(param.name) ? param.name : `"${param.name}"`;
-        return `${key}${optional}: ${result.tsType}`;
-      });
-      opLines.push(`export type ${prefix}Query = { ${props.join('; ')}; };`);
+      opLines.push(`export type ${prefix}Query = ${buildParamTypeBody(op.queryParams, mapper)};`);
     }
 
     // Section 2b: Header parameter types
     if (op.headerParams.length > 0) {
-      const props = op.headerParams.map((param) => {
-        const paramSchema = param.schema ?? { type: 'string' };
-        const result = mapper.mapSchema(paramSchema);
-        const optional = param.required ? '' : '?';
-        const key = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(param.name) ? param.name : `"${param.name}"`;
-        return `${key}${optional}: ${result.tsType}`;
-      });
-      opLines.push(`export type ${prefix}Headers = { ${props.join('; ')}; };`);
+      opLines.push(
+        `export type ${prefix}Headers = ${buildParamTypeBody(op.headerParams, mapper)};`
+      );
     }
 
     // Section 3: Request body types
+    const bodyJsDoc = op.requestBody ? buildDescriptionJsDoc(op.requestBody.description) : '';
+
     if (op.requestBody?.isMultipart && op.requestBody.schema) {
       const schema = resolver.resolveSchema(op.requestBody.schema);
       const requiredSet = new Set(schema.required ?? []);
-      const props = Object.entries(schema.properties ?? {}).map(([name, propSchema]) => {
+      const propLines: string[] = [];
+      for (const [name, propSchema] of Object.entries(schema.properties ?? {})) {
         const resolved = resolver.resolveSchema(propSchema as SchemaObject | ReferenceObject);
         const optional = requiredSet.has(name) ? '' : '?';
         let tsType: string;
@@ -467,20 +527,28 @@ export function generateContracts(
         } else {
           tsType = 'string';
         }
-        return `${name}${optional}: ${tsType}`;
-      });
-      if (props.length > 0) {
-        opLines.push(`export type ${prefix}Body = { ${props.join('; ')}; };`);
+        const jsDoc = buildTypeJsDoc(resolved);
+        if (jsDoc !== '') {
+          propLines.push(...indentJsDocBlock(jsDoc));
+        }
+        propLines.push(`${INDENT_UNIT}${name}${optional}: ${tsType};`);
+      }
+      if (propLines.length > 0) {
+        opLines.push(
+          attachTypeJsDoc(bodyJsDoc, `export type ${prefix}Body = {\n${propLines.join('\n')}\n};`)
+        );
       } else {
-        opLines.push(`export type ${prefix}Body = Record<string, never>;`);
+        opLines.push(
+          attachTypeJsDoc(bodyJsDoc, `export type ${prefix}Body = Record<string, never>;`)
+        );
       }
     } else if (op.requestBody?.schema) {
       const hasBinaryContentType = op.requestBody.contentTypes.some(isBinaryContentType);
       if (hasBinaryContentType) {
-        opLines.push(`export type ${prefix}Body = Blob;`);
+        opLines.push(attachTypeJsDoc(bodyJsDoc, `export type ${prefix}Body = Blob;`));
       } else {
         const result = mapper.mapSchema(op.requestBody.schema, undefined, 'request');
-        opLines.push(`export type ${prefix}Body = ${result.tsType};`);
+        opLines.push(attachTypeJsDoc(bodyJsDoc, `export type ${prefix}Body = ${result.tsType};`));
       }
     }
 
@@ -500,7 +568,12 @@ export function generateContracts(
         return r.tsType;
       });
       const successType = types.length === 1 ? types[0] : types.join(' | ');
-      opLines.push(`export type ${prefix}Response = ${successType};`);
+      // Type-level JSDoc from the lowest-numbered 2xx response (the analyzer
+      // returns success responses in ascending status order).
+      const responseJsDoc = buildDescriptionJsDoc(successResponses[0].description);
+      opLines.push(
+        attachTypeJsDoc(responseJsDoc, `export type ${prefix}Response = ${successType};`)
+      );
     }
 
     // Error types per status

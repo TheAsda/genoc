@@ -14,6 +14,8 @@ export function createClient(requester: Requester) {
   return {
     /**
      * Get all pets
+     *
+     * List of pets
      */
     getPets: decorateWithErrors<() => Promise<GetPetsResponse>, never>(
       async (): Promise<GetPetsResponse> => {
@@ -36,6 +38,8 @@ export function createClient(requester: Requester) {
     ),
     /**
      * Get pet by ID
+     *
+     * Pet found
      */
     getPetsById: decorateWithErrors<(id: string) => Promise<GetPetsIdResponse>, never>(
       async (id: string): Promise<GetPetsIdResponse> => {
@@ -75,15 +79,25 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Pet = { "$type": string; name?: string; age?: number; };
+export type Pet = {
+  "$type": string;
+  name?: string;
+  age?: number;
+};
 
-export type Cat = Pet & { meow?: string; } & { $type: 'Cat' };
+export type Cat = Pet & {
+  meow?: string;
+} & { $type: 'Cat' };
 
-export type Dog = Pet & { bark?: string; } & { $type: 'Dog' };
+export type Dog = Pet & {
+  bark?: string;
+} & { $type: 'Dog' };
 
 export type PetVariant = Cat | Dog;
 
+/** List of pets */
 export type GetPetsResponse = PetVariant[];
 
+/** Pet found */
 export type GetPetsIdResponse = PetVariant;"
 `;

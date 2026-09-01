@@ -13,7 +13,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Pet = { name?: string; tag?: string; };"
+/** @example {"name":"Fluffy","tag":"cat"} */
+export type Pet = {
+  /** @example "Fluffy" */
+  name?: string;
+  tag?: string;
+};"
 `;
 
 exports[`Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples > Model with Example > does not crash when schema includes \`examples\` array (OpenAPI 3.1 style) 1`] = `
@@ -29,6 +34,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/**
+ * @example "red"
+ *
+ * @example "green"
+ *
+ * @example "blue"
+ */
 export type Color = string;"
 `;
 
@@ -45,8 +57,14 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-/** A product in the catalog */
-export type Product = { name?: string; };"
+/**
+ * A product in the catalog
+ *
+ * @example {"name":"Widget"}
+ */
+export type Product = {
+  name?: string;
+};"
 `;
 
 exports[`Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples > Model with Map/Dictionary Properties > generates Record type for anonymous map without name (inline) 1`] = `
@@ -62,7 +80,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Container = { metadata?: Record<string, string>; };"
+export type Container = {
+  metadata?: Record<string, string>;
+};"
 `;
 
 exports[`Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples > Model with Map/Dictionary Properties > generates index signature alongside named properties 1`] = `
@@ -78,7 +98,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ExtendedMap = { id: string; } & { [key: string]: number; };"
+export type ExtendedMap = {
+  id: string;
+} & {
+  [key: string]: number;
+};"
 `;
 
 exports[`Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples > Model with Map/Dictionary Properties > generates index signature for additionalProperties with type 1`] = `
@@ -94,7 +118,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type IntMap = { [key: string]: number; };"
+export type IntMap = {
+  [key: string]: number;
+};"
 `;
 
 exports[`Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples > Models with Composition — allOf > generates intersection type combining base schema with extension 1`] = `
@@ -110,9 +136,14 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ErrorBase = { code: number; message: string; };
+export type ErrorBase = {
+  code: number;
+  message: string;
+};
 
-export type ExtendedError = ErrorBase & { detail?: string; };"
+export type ExtendedError = ErrorBase & {
+  detail?: string;
+};"
 `;
 
 exports[`Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples > Models with Composition — allOf > generates intersection type for allOf with inline objects only 1`] = `
@@ -128,7 +159,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Combined = { a?: string; } & { b?: number; };"
+export type Combined = {
+  a?: string;
+} & {
+  b?: number;
+};"
 `;
 
 exports[`Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples > Models with Composition — anyOf > generates union type for anyOf with mixed inline schemas 1`] = `
@@ -160,9 +195,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Photo = { url?: string; };
+export type Photo = {
+  url?: string;
+};
 
-export type Video = { duration?: number; };
+export type Video = {
+  duration?: number;
+};
 
 export type Media = Photo | Video;"
 `;
@@ -196,9 +235,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Cat = { meow?: boolean; };
+export type Cat = {
+  meow?: boolean;
+};
 
-export type Dog = { bark?: boolean; };
+export type Dog = {
+  bark?: boolean;
+};
 
 export type Pet = Cat | Dog;"
 `;
@@ -216,11 +259,17 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type PetBase = { petType: string; };
+export type PetBase = {
+  petType: string;
+};
 
-export type Cat = PetBase & { meow?: boolean; };
+export type Cat = PetBase & {
+  meow?: boolean;
+};
 
-export type Dog = PetBase & { bark?: boolean; };
+export type Dog = PetBase & {
+  bark?: boolean;
+};
 
 export type Pet = Cat | Dog;"
 `;
@@ -286,5 +335,8 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type User = { name: string; age?: number; };"
+export type User = {
+  name: string;
+  age?: number;
+};"
 `;
