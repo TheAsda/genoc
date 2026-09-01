@@ -10,6 +10,11 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
  * `npm run build` beforehand so dist/runtime exists.
  */
 export function linkGenoc(dir: string): void {
+  if (!existsSync(join(REPO_ROOT, 'dist/runtime/index.d.ts'))) {
+    throw new Error(
+      'dist/runtime not found — run `npm run build` before running tests that compile generated output'
+    );
+  }
   const nodeModules = join(dir, 'node_modules');
   mkdirSync(nodeModules, { recursive: true });
   const target = join(nodeModules, 'genoc');
