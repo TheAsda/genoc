@@ -95,7 +95,7 @@ const requester: Requester = async (method, path, options) => {
     return new ErrorResponse(
       response.status,
       await response.json(),
-      response.headers,
+      Object.fromEntries(response.headers.entries()),
       response.statusText
     );
   }
@@ -123,7 +123,6 @@ implement **one shared requester** typed against the package:
 // common-requester.ts — reusable across all generated clients,
 // no generated imports needed
 import type { Requester } from 'genoc/runtime';
-import { errorResponse } from 'genoc/runtime';
 
 export const requester: Requester = async (method, path, options) => {
   // ...your fetch/axios/etc. implementation
@@ -148,7 +147,7 @@ if (options.expectStream === true) {
   return new StreamResponse(
     response.body as ReadableStream<Uint8Array>,
     getFilename(response.headers), // extract from Content-Disposition
-    response.headers
+    Object.fromEntries(response.headers.entries())
   );
 }
 ```
@@ -162,17 +161,6 @@ class StreamResponse {
   headers: Record<string, string>;
 }
 ```
-
-### Response Helpers
-
-The generated `contracts.ts` re-exports helper functions for constructing
-responses in your `Requester` implementation (they come from `genoc/runtime`):
-
-- `streamResponse(data, filename?, headers?)` — Creates a `StreamResponse` instance
-- `errorResponse(status, data, headers?, message?)` — Creates an `ErrorResponse` instance
-
-These are convenience wrappers around the `StreamResponse` and `ErrorResponse`
-constructors.
 
 ## CLI Reference
 
