@@ -6,6 +6,7 @@ import { RefResolver } from '../parser/ref-resolver.js';
 import type { GeneratorConfig } from '../types/client.js';
 import type { OpenAPIDocument, SchemaObject } from '../types/openapi.js';
 import {
+  DEFAULT_RUNTIME_IMPORT_PATH,
   getOperationTypePrefix,
   getSuccessType,
   getErrorType,
@@ -200,7 +201,11 @@ function buildClientMethodBody(op: AnalyzedOperation): string {
   return tryCatchLines.join('\n');
 }
 
-function buildClientFile(operations: AnalyzedOperation[], version: string): string {
+function buildClientFile(
+  operations: AnalyzedOperation[],
+  version: string,
+  runtimeImportPath: string = DEFAULT_RUNTIME_IMPORT_PATH
+): string {
   const lines: string[] = [];
 
   lines.push(makeHeader(version));
@@ -232,50 +237,11 @@ function buildClientFile(operations: AnalyzedOperation[], version: string): stri
     lines.push('/* global FormData */');
   }
 
+  lines.push(`import { decorateWithErrors } from '${runtimeImportPath}';`);
+  lines.push(`import type { Requester } from '${runtimeImportPath}';`);
   lines.push('');
-
-  lines.push('function decorateWithErrors<T, E>(');
-  lines.push('  item: T,');
-  lines.push('  runtimeErrors: unknown,');
-  lines.push('): T & { __definedErrors: E } {');
-  lines.push('  Object.defineProperty(item, "__definedErrors", {');
-  lines.push('    value: runtimeErrors,');
-  lines.push('    enumerable: false,');
-  lines.push('    configurable: true,');
-  lines.push('    writable: false,');
-  lines.push('  });');
-  lines.push('  return item as T & { __definedErrors: E };');
-  lines.push('}');
-  lines.push('');
-  lines.push('export function isDefinedError<E extends ApiError<number, unknown>>(');
-  lines.push('  err: unknown,');
-  lines.push('  fn: { __definedErrors: E },');
-  lines.push('): err is E {');
-  lines.push('  if (err instanceof UnspecifiedApiError) return false;');
-  lines.push('  if (!(err instanceof ApiError)) return false;');
-  lines.push('  return true;');
-  lines.push('}');
-  lines.push('');
-
-  lines.push('/**');
-  lines.push(' * Performs an HTTP request and returns the response.');
-  lines.push(' *');
-  lines.push(' * When `expectStream` is true, the implementation should return');
-  lines.push(' * a `StreamResponse` containing the stream data, filename (from');
-  lines.push(' * Content-Disposition header), and response headers.');
-  lines.push(' */');
-  lines.push('export type Requester = <TResponse>(');
-  lines.push('  method: string,');
-  lines.push('  path: string,');
-  lines.push('  options: {');
-  lines.push('    query?: Record<string, unknown>;');
-  lines.push('    body?: unknown;');
-  lines.push('    headers?: Record<string, string>;');
-  lines.push('    expectStream?: true;');
-  lines.push('  },');
-  lines.push(') => Promise<TResponse | StreamResponse | ErrorResponse>;');
-
-  lines.push('');
+  lines.push(`export { isDefinedError } from '${runtimeImportPath}';`);
+  lines.push(`export type { Requester } from '${runtimeImportPath}';`);
 
   lines.push('');
 
@@ -354,11 +320,12 @@ export function generateClient(
     preserveRefSiblings: options?.preserveRefSiblings,
   });
 
-  const contracts = generateContracts(doc, resolver);
+  const runtimeImportPath = config.runtimeImportPath ?? DEFAULT_RUNTIME_IMPORT_PATH;
+  const contracts = generateContracts(doc, resolver, runtimeImportPath);
 
   const operations = analyzePaths(doc, resolver, config.methodNameStrategy ?? 'path-based');
 
-  const client = buildClientFile(operations, doc.openapi);
+  const client = buildClientFile(operations, doc.openapi, runtimeImportPath);
 
   return { contracts, client };
 }

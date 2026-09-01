@@ -25,6 +25,9 @@ export const RESERVED_TYPE_NAMES: ReadonlySet<string> = new Set([
   'FileInput',
 ]);
 
+/** Default module specifier generated code imports shared runtime classes from. */
+export const DEFAULT_RUNTIME_IMPORT_PATH = 'genoc/runtime';
+
 /**
  * Sanitize a schema type name by converting dot-separated segments into
  * PascalCase. Names without dots pass through unchanged.

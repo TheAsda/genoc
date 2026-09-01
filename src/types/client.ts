@@ -7,6 +7,7 @@ export type GeneratorConfig = {
   requesterModuleName?: string;
   specVersion?: string;
   strictVersion?: boolean;
+  runtimeImportPath?: string;
 };
 
 export type RequesterFunction = <TResponse>(

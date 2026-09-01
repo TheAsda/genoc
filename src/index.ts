@@ -1,5 +1,4 @@
 import { generateFullOutput, type ApiClient } from './generator/client-generator.js';
-import { ApiError, DefaultApiError } from './generator/error-types.js';
 import { load } from './parser/spec-reader.js';
 import type { GeneratorConfig } from './types/client.js';
 
@@ -8,6 +7,19 @@ export async function generateClient(config: GeneratorConfig): Promise<void> {
   await generateFullOutput(doc, config);
 }
 
-export type { GeneratorConfig, ApiClient, ApiError, DefaultApiError };
+export {
+  ApiError,
+  UnspecifiedApiError,
+  DefaultApiError,
+  RequesterFailError,
+  StreamResponse,
+  streamResponse,
+  ErrorResponse,
+  errorResponse,
+  decorateWithErrors,
+  isDefinedError,
+} from './runtime/index.js';
+export type { Requester } from './runtime/index.js';
+export type { GeneratorConfig, ApiClient };
 export type { GenerationOptions } from './generator/client-generator.js';
 export { load as loadSpec } from './parser/spec-reader.js';
