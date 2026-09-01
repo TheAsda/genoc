@@ -182,12 +182,12 @@ genoc <spec> [flags]
 
 `<spec>` — Path or URL to an OpenAPI 3.0 / 3.1 spec (JSON or YAML).
 
-| Flag                     | Default      | Description                                          |
-| ------------------------ | ------------ | ---------------------------------------------------- |
-| `--output-dir`           | (required)   | Output directory for generated files                 |
-| `--method-name-strategy` | `path-based` | Method naming strategy                               |
-| `--spec-version`         | auto-detect  | Override version detection (`"3.0"` or `"3.1"`)      |
-| `--strict-version`       | `true`       | Warn if `--spec-version` mismatches detected version |
+| Flag                     | Default         | Description                                                  |
+| ------------------------ | --------------- | ------------------------------------------------------------ |
+| `--output-dir`           | (required)      | Output directory for generated files                         |
+| `--method-name-strategy` | `path-based`    | Method naming strategy                                       |
+| `--spec-version`         | auto-detect     | Override version detection (`"3.0"` or `"3.1"`)              |
+| `--strict-version`       | `true`          | Warn if `--spec-version` mismatches detected version         |
 | `--runtime-import-path`  | `genoc/runtime` | Module specifier generated code imports runtime classes from |
 
 ## Method Naming Strategies
