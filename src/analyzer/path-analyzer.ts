@@ -27,6 +27,7 @@ export interface AnalyzedRequestBody {
   schema: SchemaObject | ReferenceObject | undefined;
   tsType: string;
   isMultipart: boolean;
+  description?: string;
 }
 
 export interface AnalyzedResponse {
@@ -209,6 +210,7 @@ function analyzeRequestBody(
     schema,
     tsType,
     isMultipart,
+    description: resolved.description,
   };
 }
 
