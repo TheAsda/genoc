@@ -43,7 +43,7 @@
     "format": "oxfmt --write",
     "format:check": "oxfmt --check",
     "changeset": "changeset",
-    "version-packages": "changeset version",
+    "version-packages": "changeset version && oxfmt --write",
     "release": "bun run build && changeset publish"
   },
   "dependencies": {
