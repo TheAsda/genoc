@@ -15,7 +15,11 @@ export {
 
 export type DateTimeString = string & { readonly __format?: 'date-time' };
 
-/** String type */
+/**
+ * String type
+ *
+ * @deprecated
+ */
 export type StringType = string & { "type": 'string' };
 
 /** Number type */
@@ -71,7 +75,10 @@ export type DefaultSchema = {
   count?: number;
 };
 
-/** This has a detailed description for testing JSDoc generation. This is a longer description that should trigger JSDoc generation with proper formatting and multiple lines of content to test how the generator handles verbose documentation in schema definitions with various metadata and configuration options.
+/**
+ * This has a detailed description for testing JSDoc generation. This is a longer description that should trigger JSDoc generation with proper formatting and multiple lines of content to test how the generator handles verbose documentation in schema definitions with various metadata and configuration options.
+ *
+ * @deprecated
  */
 export type DescriptionSchema = string;
 
@@ -87,7 +94,11 @@ export type WriteOnlySchema = {
   normal_field: string;
 };
 
-/** Deprecated schema */
+/**
+ * Deprecated schema
+ *
+ * @deprecated
+ */
 export type DeprecatedSchema = string;
 
 /** Format schema */
@@ -194,6 +205,7 @@ export interface FileInput {
   filename: string;
 }
 
+/** Successful response */
 export type GetStringResponse = {
   result: string;
   status?: number;
@@ -211,53 +223,66 @@ export type GetStringError500 = {
 
 export type GetStringErrors = ApiError<400, GetStringError400> | ApiError<500, GetStringError500>;
 
-export type GetNumberQuery = { limit?: number; };
+export type GetNumberQuery = {
+  /** Query parameter limit */
+  limit?: number;
+};
 
+/** Successful response */
 export type GetNumberResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetIntegerResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetBooleanResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetArrayResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetObjectResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetNullResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetTypeArrayResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetAllofResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetOneofResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetAnyofResponse = {
   result: string;
   status?: number;
@@ -265,16 +290,19 @@ export type GetAnyofResponse = {
 
 export type PostDiscriminatorBody = DiscriminatorSchema;
 
+/** Successful response */
 export type PostDiscriminatorResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetEnumResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetConstResponse = {
   result: string;
   status?: number;
@@ -282,16 +310,19 @@ export type GetConstResponse = {
 
 export type PostDefaultBody = DefaultSchema;
 
+/** Successful response */
 export type PostDefaultResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetDescriptionResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetReadonlyResponse = {
   result: string;
   status?: number;
@@ -299,38 +330,55 @@ export type GetReadonlyResponse = {
 
 export type PostWriteonlyBody = WriteOnlySchema;
 
+/** Successful response */
 export type PostWriteonlyResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetDeprecatedResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetFormatResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetAdditionalPropertiesResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetRequiredResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetValidationConstraintsResponse = {
   result: string;
   status?: number;
 };
 
-export type PostUploadBody = { text_field: string; file_field: FileInput; text_file?: string; array_field?: string; };
+/** Multipart request body */
+export type PostUploadBody = {
+  /** Regular text field */
+  text_field: string;
+  /** Binary file */
+  file_field: FileInput;
+  /** Text file */
+  text_file?: string;
+  /** Array field */
+  array_field?: string;
+};
 
+/** Successful response */
 export type PostUploadResponse = {
   result: string;
   status?: number;
@@ -343,6 +391,7 @@ export type PostUploadError400 = {
 
 export type PostUploadErrors = ApiError<400, PostUploadError400>;
 
+/** Binary response */
 export type GetBinaryResponseResponse = StreamResponse;
 
 export type GetBinaryResponseError400 = {
@@ -352,6 +401,7 @@ export type GetBinaryResponseError400 = {
 
 export type GetBinaryResponseErrors = ApiError<400, GetBinaryResponseError400>;
 
+/** Empty response */
 export type GetEmptyResponseResponse = void;
 
 export type GetEmptyResponseError400 = {
@@ -363,11 +413,13 @@ export type GetEmptyResponseErrors = ApiError<400, GetEmptyResponseError400>;
 
 export type PostNestedSchemaBody = NestedSchema;
 
+/** Successful response */
 export type PostNestedSchemaResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetAllMethodsResponse = {
   result: string;
   status?: number;
@@ -377,6 +429,7 @@ export type PostAllMethodsBody = {
   data: string;
 };
 
+/** Successful response */
 export type PostAllMethodsResponse = {
   result: string;
   status?: number;
@@ -386,6 +439,7 @@ export type PutAllMethodsBody = {
   data: string;
 };
 
+/** Successful response */
 export type PutAllMethodsResponse = {
   result: string;
   status?: number;
@@ -395,68 +449,95 @@ export type PatchAllMethodsBody = {
   data: string;
 };
 
+/** Successful response */
 export type PatchAllMethodsResponse = {
   result: string;
   status?: number;
 };
 
+/** Empty response */
 export type DeleteAllMethodsResponse = void;
 
+/** CORS options response */
 export type OptionsAllMethodsResponse = void;
 
+/** Empty response */
 export type HeadAllMethodsResponse = void;
 
+/** Successful response */
 export type TraceAllMethodsResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetPathIdResponse = {
   result: string;
   status?: number;
 };
 
-export type GetQueryQuery = { limit?: number; offset?: number; filter?: string; };
+export type GetQueryQuery = {
+  /** Query parameter limit */
+  limit?: number;
+  /** Query offset */
+  offset?: number;
+  /** Query filter */
+  filter?: string;
+};
 
+/** Successful response */
 export type GetQueryResponse = {
   result: string;
   status?: number;
 };
 
-export type GetHeadersHeaders = { "X-Custom-Header": string; "X-Trace-ID": string; };
+export type GetHeadersHeaders = {
+  /** Custom header */
+  "X-Custom-Header": string;
+  /** Trace ID */
+  "X-Trace-ID": string;
+};
 
+/** Successful response */
 export type GetHeadersResponse = {
   result: string;
   status?: number;
 };
 
+/** JSON request body */
 export type PostJsonBodyBody = {
   name: string;
   value?: number;
 };
 
+/** Successful response */
 export type PostJsonBodyResponse = {
   result: string;
   status?: number;
 };
 
+/** Form URL encoded body */
 export type PostFormBodyBody = {
   field1: string;
   field2?: number;
 };
 
+/** Successful response */
 export type PostFormBodyResponse = {
   result: string;
   status?: number;
 };
 
+/** Octet stream body */
 export type PostBinaryBodyBody = Blob;
 
+/** Successful response */
 export type PostBinaryBodyResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetErrorHandlingResponse = {
   result: string;
   status?: number;
@@ -491,11 +572,13 @@ export type GetErrorHandlingDefaultError = {
 
 export type GetErrorHandlingErrors = ApiError<400, GetErrorHandlingError400> | ApiError<401, GetErrorHandlingError401> | ApiError<403, GetErrorHandlingError403> | ApiError<404, GetErrorHandlingError404> | ApiError<500, GetErrorHandlingError500>;
 
+/** Successful response */
 export type GetSecurityTestResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetOauthTestResponse = {
   result: string;
   status?: number;
@@ -516,22 +599,42 @@ export type GetRefSiblingsTestResponse = {
   normal_ref: DescriptionSchema;
 };
 
-export type GetTier2ParamsQuery = { style_test?: string; empty_value_test?: string; };
+export type GetTier2ParamsQuery = {
+  /** Style test parameter */
+  style_test?: string;
+  /** Allow empty value test */
+  empty_value_test?: string;
+};
 
+/** Successful response */
 export type GetTier2ParamsResponse = {
   result: string;
   status?: number;
 };
 
-export type GetTier2ValidationQuery = { min_items?: string[]; max_length?: string; pattern_test?: string; };
+export type GetTier2ValidationQuery = {
+  /** Min items test */
+  min_items?: string[];
+  /** Max length test */
+  max_length?: string;
+  /** Pattern test */
+  pattern_test?: string;
+};
 
+/** Successful response */
 export type GetTier2ValidationResponse = {
   result: string;
   status?: number;
 };
 
-export type GetExclusiveMinMaxQuery = { exclusive_min?: number; exclusive_max?: number; };
+export type GetExclusiveMinMaxQuery = {
+  /** Exclusive minimum test */
+  exclusive_min?: number;
+  /** Exclusive maximum test */
+  exclusive_max?: number;
+};
 
+/** Successful response */
 export type GetExclusiveMinMaxResponse = {
   result: string;
   status?: number;
@@ -1925,7 +2028,11 @@ export {
 
 export type DateTimeString = string & { readonly __format?: 'date-time' };
 
-/** String type */
+/**
+ * String type
+ *
+ * @deprecated
+ */
 export type StringType = string & { "type": 'string' };
 
 /** Number type */
@@ -1981,7 +2088,10 @@ export type DefaultSchema = {
   count?: number;
 };
 
-/** This has a detailed description for testing JSDoc generation. This is a longer description that should trigger JSDoc generation with proper formatting and multiple lines of content to test how the generator handles verbose documentation in schema definitions with various metadata and configuration options.
+/**
+ * This has a detailed description for testing JSDoc generation. This is a longer description that should trigger JSDoc generation with proper formatting and multiple lines of content to test how the generator handles verbose documentation in schema definitions with various metadata and configuration options.
+ *
+ * @deprecated
  */
 export type DescriptionSchema = string;
 
@@ -1997,7 +2107,11 @@ export type WriteOnlySchema = {
   normal_field: string;
 };
 
-/** Deprecated schema */
+/**
+ * Deprecated schema
+ *
+ * @deprecated
+ */
 export type DeprecatedSchema = string;
 
 /** Format schema */
@@ -2104,6 +2218,7 @@ export interface FileInput {
   filename: string;
 }
 
+/** Successful response */
 export type GetStringResponse = {
   result: string;
   status?: number;
@@ -2121,53 +2236,66 @@ export type GetStringError500 = {
 
 export type GetStringErrors = ApiError<400, GetStringError400> | ApiError<500, GetStringError500>;
 
-export type GetNumberQuery = { limit?: number; };
+export type GetNumberQuery = {
+  /** Query parameter limit */
+  limit?: number;
+};
 
+/** Successful response */
 export type GetNumberResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetIntegerResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetBooleanResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetArrayResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetObjectResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetNullResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetTypeArrayResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetAllofResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetOneofResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetAnyofResponse = {
   result: string;
   status?: number;
@@ -2175,16 +2303,19 @@ export type GetAnyofResponse = {
 
 export type PostDiscriminatorBody = DiscriminatorSchema;
 
+/** Successful response */
 export type PostDiscriminatorResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetEnumResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetConstResponse = {
   result: string;
   status?: number;
@@ -2192,16 +2323,19 @@ export type GetConstResponse = {
 
 export type PostDefaultBody = DefaultSchema;
 
+/** Successful response */
 export type PostDefaultResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetDescriptionResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetReadonlyResponse = {
   result: string;
   status?: number;
@@ -2209,38 +2343,55 @@ export type GetReadonlyResponse = {
 
 export type PostWriteonlyBody = WriteOnlySchema;
 
+/** Successful response */
 export type PostWriteonlyResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetDeprecatedResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetFormatResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetAdditionalPropertiesResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetRequiredResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetValidationConstraintsResponse = {
   result: string;
   status?: number;
 };
 
-export type PostUploadBody = { text_field: string; file_field: FileInput; text_file?: string; array_field?: string; };
+/** Multipart request body */
+export type PostUploadBody = {
+  /** Regular text field */
+  text_field: string;
+  /** Binary file */
+  file_field: FileInput;
+  /** Text file */
+  text_file?: string;
+  /** Array field */
+  array_field?: string;
+};
 
+/** Successful response */
 export type PostUploadResponse = {
   result: string;
   status?: number;
@@ -2253,6 +2404,7 @@ export type PostUploadError400 = {
 
 export type PostUploadErrors = ApiError<400, PostUploadError400>;
 
+/** Binary response */
 export type GetBinaryResponseResponse = StreamResponse;
 
 export type GetBinaryResponseError400 = {
@@ -2262,6 +2414,7 @@ export type GetBinaryResponseError400 = {
 
 export type GetBinaryResponseErrors = ApiError<400, GetBinaryResponseError400>;
 
+/** Empty response */
 export type GetEmptyResponseResponse = void;
 
 export type GetEmptyResponseError400 = {
@@ -2273,11 +2426,13 @@ export type GetEmptyResponseErrors = ApiError<400, GetEmptyResponseError400>;
 
 export type PostNestedSchemaBody = NestedSchema;
 
+/** Successful response */
 export type PostNestedSchemaResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetAllMethodsResponse = {
   result: string;
   status?: number;
@@ -2287,6 +2442,7 @@ export type PostAllMethodsBody = {
   data: string;
 };
 
+/** Successful response */
 export type PostAllMethodsResponse = {
   result: string;
   status?: number;
@@ -2296,6 +2452,7 @@ export type PutAllMethodsBody = {
   data: string;
 };
 
+/** Successful response */
 export type PutAllMethodsResponse = {
   result: string;
   status?: number;
@@ -2305,68 +2462,95 @@ export type PatchAllMethodsBody = {
   data: string;
 };
 
+/** Successful response */
 export type PatchAllMethodsResponse = {
   result: string;
   status?: number;
 };
 
+/** Empty response */
 export type DeleteAllMethodsResponse = void;
 
+/** CORS options response */
 export type OptionsAllMethodsResponse = void;
 
+/** Empty response */
 export type HeadAllMethodsResponse = void;
 
+/** Successful response */
 export type TraceAllMethodsResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetPathIdResponse = {
   result: string;
   status?: number;
 };
 
-export type GetQueryQuery = { limit?: number; offset?: number; filter?: string; };
+export type GetQueryQuery = {
+  /** Query parameter limit */
+  limit?: number;
+  /** Query offset */
+  offset?: number;
+  /** Query filter */
+  filter?: string;
+};
 
+/** Successful response */
 export type GetQueryResponse = {
   result: string;
   status?: number;
 };
 
-export type GetHeadersHeaders = { "X-Custom-Header": string; "X-Trace-ID": string; };
+export type GetHeadersHeaders = {
+  /** Custom header */
+  "X-Custom-Header": string;
+  /** Trace ID */
+  "X-Trace-ID": string;
+};
 
+/** Successful response */
 export type GetHeadersResponse = {
   result: string;
   status?: number;
 };
 
+/** JSON request body */
 export type PostJsonBodyBody = {
   name: string;
   value?: number;
 };
 
+/** Successful response */
 export type PostJsonBodyResponse = {
   result: string;
   status?: number;
 };
 
+/** Form URL encoded body */
 export type PostFormBodyBody = {
   field1: string;
   field2?: number;
 };
 
+/** Successful response */
 export type PostFormBodyResponse = {
   result: string;
   status?: number;
 };
 
+/** Octet stream body */
 export type PostBinaryBodyBody = Blob;
 
+/** Successful response */
 export type PostBinaryBodyResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetErrorHandlingResponse = {
   result: string;
   status?: number;
@@ -2401,11 +2585,13 @@ export type GetErrorHandlingDefaultError = {
 
 export type GetErrorHandlingErrors = ApiError<400, GetErrorHandlingError400> | ApiError<401, GetErrorHandlingError401> | ApiError<403, GetErrorHandlingError403> | ApiError<404, GetErrorHandlingError404> | ApiError<500, GetErrorHandlingError500>;
 
+/** Successful response */
 export type GetSecurityTestResponse = {
   result: string;
   status?: number;
 };
 
+/** Successful response */
 export type GetOauthTestResponse = {
   result: string;
   status?: number;
@@ -2426,22 +2612,42 @@ export type GetRefSiblingsTestResponse = {
   normal_ref: DescriptionSchema;
 };
 
-export type GetTier2ParamsQuery = { style_test?: string; empty_value_test?: string; };
+export type GetTier2ParamsQuery = {
+  /** Style test parameter */
+  style_test?: string;
+  /** Allow empty value test */
+  empty_value_test?: string;
+};
 
+/** Successful response */
 export type GetTier2ParamsResponse = {
   result: string;
   status?: number;
 };
 
-export type GetTier2ValidationQuery = { min_items?: string[]; max_length?: string; pattern_test?: string; };
+export type GetTier2ValidationQuery = {
+  /** Min items test */
+  min_items?: string[];
+  /** Max length test */
+  max_length?: string;
+  /** Pattern test */
+  pattern_test?: string;
+};
 
+/** Successful response */
 export type GetTier2ValidationResponse = {
   result: string;
   status?: number;
 };
 
-export type GetExclusiveMinMaxQuery = { exclusive_min?: number; exclusive_max?: number; };
+export type GetExclusiveMinMaxQuery = {
+  /** Exclusive minimum test */
+  exclusive_min?: number;
+  /** Exclusive maximum test */
+  exclusive_max?: number;
+};
 
+/** Successful response */
 export type GetExclusiveMinMaxResponse = {
   result: string;
   status?: number;

@@ -13,12 +13,14 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetUsersResponse = void;
 
 export type PostUsersBody = {
   name?: string;
 };
 
+/** Created */
 export type PostUsersResponse = void;"
 `;
 

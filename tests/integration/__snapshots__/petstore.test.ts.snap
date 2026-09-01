@@ -184,8 +184,12 @@ export type Error = {
   message: string;
 };
 
-export type GetPetsQuery = { limit?: number; tags?: string[]; };
+export type GetPetsQuery = {
+  limit?: number;
+  tags?: string[];
+};
 
+/** A list of pets */
 export type GetPetsResponse = Pet[];
 
 export type GetPetsError400 = Error;
@@ -196,6 +200,7 @@ export type GetPetsErrors = ApiError<400, GetPetsError400> | ApiError<500, GetPe
 
 export type PostPetsBody = NewPet;
 
+/** Pet created */
 export type PostPetsResponse = Pet;
 
 export type PostPetsError400 = Error;
@@ -204,6 +209,7 @@ export type PostPetsError500 = Error;
 
 export type PostPetsErrors = ApiError<400, PostPetsError400> | ApiError<500, PostPetsError500>;
 
+/** A pet */
 export type GetPetsPetIdResponse = Pet;
 
 export type GetPetsPetIdError404 = Error;
@@ -214,6 +220,7 @@ export type GetPetsPetIdErrors = ApiError<404, GetPetsPetIdError404> | ApiError<
 
 export type PutPetsPetIdBody = NewPet;
 
+/** Updated pet */
 export type PutPetsPetIdResponse = Pet;
 
 export type PutPetsPetIdError400 = Error;
@@ -224,6 +231,7 @@ export type PutPetsPetIdError500 = Error;
 
 export type PutPetsPetIdErrors = ApiError<400, PutPetsPetIdError400> | ApiError<404, PutPetsPetIdError404> | ApiError<500, PutPetsPetIdError500>;
 
+/** Pet deleted */
 export type DeletePetsPetIdResponse = void;
 
 export type DeletePetsPetIdError400 = Error;

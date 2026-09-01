@@ -17,6 +17,7 @@ export type PostItemsBody = {
   name: string;
 };
 
+/** Created */
 export type PostItemsResponse = void;
 
 export type PostItemsError400 = {
@@ -80,6 +81,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;
 
 export type GetItemsError400 = unknown;
@@ -138,6 +140,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;
 
 export type GetItemsError400 = unknown;
@@ -196,6 +199,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -248,6 +252,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;
 
 export type GetItemsError400 = unknown;
@@ -306,6 +311,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Deleted */
 export type DeleteUsersUserIdResponse = void;
 
 export type DeleteUsersUserIdError400 = {
@@ -369,6 +375,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetHealthResponse = {
   status: string;
 };"
@@ -428,6 +435,7 @@ export type PostItemsBody = {
   name?: string;
 };
 
+/** Created */
 export type PostItemsResponse = void;
 
 export type PostItemsError400 = unknown;
@@ -495,6 +503,7 @@ export type PostSubmitBody = {
   data: string;
 };
 
+/** Created */
 export type PostSubmitResponse = {
   id: string;
 };
@@ -571,6 +580,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Reset done */
 export type PostResetResponse = void;
 
 export type PostResetError500 = unknown;
@@ -629,6 +639,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Order */
 export type GetOrdersOrderIdResponse = {
   id: string;
 };
@@ -694,6 +705,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetPingResponse = void;"
 `;
 
@@ -746,6 +758,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetPingResponse = void;
 
 export type GetPingError500 = unknown;
@@ -804,6 +817,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Export file */
 export type GetExportFormatResponse = StreamResponse;
 
 export type GetExportFormatError400 = {
@@ -872,6 +886,7 @@ export type Product = {
   name: string;
 };
 
+/** List of products */
 export type GetProductsResponse = Product[];"
 `;
 
@@ -933,6 +948,7 @@ export type PostTasksBody = {
   cmd: string;
 };
 
+/** Created */
 export type PostTasksResponse = Task | Task;"
 `;
 
@@ -989,6 +1005,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetOrdersOrderIdResponse = {
   total: number;
 };
@@ -1066,6 +1083,7 @@ export type PostItemsBody = {
   name: string;
 };
 
+/** Created */
 export type PostItemsResponse = {
   id: string;
 };
@@ -1129,6 +1147,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetHealthResponse = {
   status: string;
 };
@@ -1191,6 +1210,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Tasks */
 export type GetTasksResponse = void;
 
 export type GetTasksError401 = unknown;
@@ -1251,6 +1271,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Pong */
 export type GetPingResponse = void;
 
 export type GetPingDefaultError = unknown;"
@@ -1306,6 +1327,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** File download */
 export type GetDownloadFileIdResponse = StreamResponse;"
 `;
 
@@ -1359,6 +1381,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** User avatar */
 export type GetAvatarUserIdResponse = StreamResponse;"
 `;
 
@@ -1412,6 +1435,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Pong */
 export type GetPingResponse = void;"
 `;
 
@@ -1464,6 +1488,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Cache cleared */
 export type DeleteCacheResponse = void;"
 `;
 
@@ -1516,6 +1541,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Data */
 export type GetDataResponse = {
   jsonField: string;
 };"
@@ -1571,6 +1597,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Stream */
 export type GetStreamResponse = string;"
 `;
 
@@ -1624,6 +1651,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** File info */
 export type GetDownloadResponse = {
   url: string;
 };"
@@ -1679,6 +1707,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Status */
 export type GetStatusResponse = {
   healthy: boolean;
 };"

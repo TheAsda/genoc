@@ -13,6 +13,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** pong */
 export type GetPingResponse = void;"
 `;
 
@@ -29,6 +30,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetHealthResponse = void;"
 `;
 
@@ -90,6 +92,7 @@ export type NewItem = {
 
 export type PostItemsBody = NewItem;
 
+/** Created */
 export type PostItemsResponse = void;"
 `;
 
@@ -111,6 +114,7 @@ export type ErrorResponseModel = {
   message: string;
 };
 
+/** OK */
 export type GetItemsResponse = void;
 
 export type GetItemsError400 = ErrorResponseModel;

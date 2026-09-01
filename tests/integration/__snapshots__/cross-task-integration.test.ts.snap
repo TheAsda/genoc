@@ -142,10 +142,16 @@ export type OAuth2PasswordAuth = { type: "oauth2"; flows: { password: { tokenUrl
 
 export type SecuritySchemes = OAuth2ImplicitAuth | OAuth2PasswordAuth;
 
-export type GetProductsQuery = { limit?: number; };
+export type GetProductsQuery = {
+  limit?: number;
+};
 
-export type GetProductsHeaders = { "X-Request-Id"?: string; "X-Api-Key": string; };
+export type GetProductsHeaders = {
+  "X-Request-Id"?: string;
+  "X-Api-Key": string;
+};
 
+/** List of products */
 export type GetProductsResponse = Product[];
 
 export type GetProductsError400 = ErrorBody;
@@ -154,10 +160,13 @@ export type GetProductsDefaultError = ErrorBody;
 
 export type GetProductsErrors = ApiError<400, GetProductsError400>;
 
-export type PostProductsHeaders = { "X-Idempotency-Key"?: string; };
+export type PostProductsHeaders = {
+  "X-Idempotency-Key"?: string;
+};
 
 export type PostProductsBody = Product;
 
+/** Product created */
 export type PostProductsResponse = Product;
 
 export type PostProductsError400 = ErrorBody;
@@ -166,8 +175,11 @@ export type PostProductsDefaultError = ErrorBody;
 
 export type PostProductsErrors = ApiError<400, PostProductsError400>;
 
-export type GetProductsProductIdHeaders = { "X-Trace-Id"?: string; };
+export type GetProductsProductIdHeaders = {
+  "X-Trace-Id"?: string;
+};
 
+/** A product */
 export type GetProductsProductIdResponse = Product;
 
 export type GetProductsProductIdError404 = ErrorBody;
@@ -176,6 +188,7 @@ export type GetProductsProductIdDefaultError = ErrorBody;
 
 export type GetProductsProductIdErrors = ApiError<404, GetProductsProductIdError404>;
 
+/** Product deleted */
 export type DeleteProductsProductIdResponse = void;
 
 export type DeleteProductsProductIdError404 = ErrorBody;

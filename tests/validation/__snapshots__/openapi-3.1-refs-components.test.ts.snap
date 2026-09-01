@@ -18,6 +18,7 @@ export type Product = {
   name: string;
 };
 
+/** Products list */
 export type GetProductsResponse = Product[];"
 `;
 
@@ -102,6 +103,7 @@ export type BaseError = {
 
 export type DetailedError = BaseError;
 
+/** OK */
 export type GetItemsResponse = void;
 
 export type GetItemsError500 = DetailedError;
@@ -250,6 +252,7 @@ export type CreateItem = {
 
 export type PostItemsBody = CreateItem;
 
+/** Created */
 export type PostItemsResponse = void;"
 `;
 
@@ -310,6 +313,7 @@ export type Item = {
   id: string;
 };
 
+/** An item */
 export type GetItemsIdResponse = Item;"
 `;
 
@@ -435,6 +439,7 @@ export type ErrorBody = {
   message: string;
 };
 
+/** OK */
 export type GetItemsResponse = void;
 
 export type GetItemsError400 = ErrorBody;
@@ -500,12 +505,14 @@ export type ErrorDetail = {
   msg: string;
 };
 
+/** OK */
 export type GetAResponse = void;
 
 export type GetAError500 = ErrorDetail;
 
 export type GetAErrors = ApiError<500, GetAError500>;
 
+/** OK */
 export type GetBResponse = void;
 
 export type GetBError500 = ErrorDetail;
@@ -584,6 +591,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** A user */
 export type GetUsersUserIdResponse = void;"
 `;
 
@@ -636,8 +644,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetItemsQuery = { limit?: number; };
+export type GetItemsQuery = {
+  limit?: number;
+};
 
+/** Items list */
 export type GetItemsResponse = void;"
 `;
 
@@ -698,6 +709,7 @@ export type NewUser = {
 
 export type PostUsersBody = NewUser;
 
+/** Created */
 export type PostUsersResponse = void;"
 `;
 
@@ -760,10 +772,12 @@ export type ItemInput = {
 
 export type PostItemsBody = ItemInput;
 
+/** Created */
 export type PostItemsResponse = void;
 
 export type PutBulkBody = ItemInput;
 
+/** Updated */
 export type PutBulkResponse = void;"
 `;
 
@@ -842,6 +856,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetDataResponse = void;"
 `;
 
@@ -900,6 +915,7 @@ export type ApiKeyQueryAuth = { type: "apiKey"; name: "api_key"; in: "query" };
 
 export type SecuritySchemes = BearerAuthAuth | ApiKeyQueryAuth;
 
+/** Secure data */
 export type GetSecureResponse = void;"
 `;
 
@@ -954,6 +970,7 @@ export {
 
 export type OAuth2Auth = { type: "oauth2"; flows: { authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } } } };
 
+/** OK */
 export type GetDataResponse = void;"
 `;
 
@@ -1006,6 +1023,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Created */
 export type PostUsersResponse = void;"
 `;
 
@@ -1058,6 +1076,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Subscribed */
 export type PostSubscribeResponse = void;"
 `;
 
@@ -1110,8 +1129,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetStatusQuery = { status?: string; };
+export type GetStatusQuery = {
+  status?: string;
+};
 
+/** Status */
 export type GetStatusResponse = void;"
 `;
 
@@ -1165,6 +1187,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Users */
 export type GetUsersResponse = Array<{
   id?: string;
   name?: string;

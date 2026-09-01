@@ -99,12 +99,14 @@ export type NamespaceNamespace2ErrorDetail = {
   reason?: string;
 };
 
+/** List of users */
 export type GetUsersResponse = ModelsUser[];
 
 export type GetUsersError400 = ApiErrorModel;
 
 export type GetUsersErrors = ApiError<400, GetUsersError400>;
 
+/** User address */
 export type GetUsersUserIdAddressResponse = ModelsAddress;
 
 export type GetUsersUserIdAddressError404 = NamespaceNamespace2ErrorDetail;

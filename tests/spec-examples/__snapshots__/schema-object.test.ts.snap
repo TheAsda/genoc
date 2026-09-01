@@ -13,6 +13,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** @example {"name":"Fluffy","tag":"cat"} */
 export type Pet = {
   /** @example "Fluffy" */
   name?: string;
@@ -33,6 +34,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/**
+ * @example "red"
+ *
+ * @example "green"
+ *
+ * @example "blue"
+ */
 export type Color = string;"
 `;
 
@@ -49,7 +57,11 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-/** A product in the catalog */
+/**
+ * A product in the catalog
+ *
+ * @example {"name":"Widget"}
+ */
 export type Product = {
   name?: string;
 };"

@@ -147,8 +147,11 @@ export type Product = {
   name?: string;
 };
 
-export type GetApiV1ProductsQuery = { page?: number; };
+export type GetApiV1ProductsQuery = {
+  page?: number;
+};
 
+/** OK */
 export type GetApiV1ProductsResponse = Product[];"
 `;
 
@@ -503,8 +506,11 @@ export type ErrorBody = {
   message: string;
 };
 
-export type GetApiV1ProductsQuery = { page?: number; };
+export type GetApiV1ProductsQuery = {
+  page?: number;
+};
 
+/** Product list */
 export type GetApiV1ProductsResponse = Product[];
 
 export type GetApiV1ProductsError400 = ErrorBody;
@@ -513,6 +519,7 @@ export type GetApiV1ProductsErrors = ApiError<400, GetApiV1ProductsError400>;
 
 export type PostApiV1ProductsBody = CreateProductInput;
 
+/** Created */
 export type PostApiV1ProductsResponse = Product;
 
 export type PostApiV1ProductsError400 = ErrorBody;
@@ -1472,6 +1479,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 

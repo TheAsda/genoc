@@ -19,6 +19,7 @@ export interface AnalyzedParameter {
   tsType: string;
   description?: string;
   deprecated?: boolean;
+  example?: unknown;
 }
 
 export interface AnalyzedRequestBody {
@@ -151,6 +152,7 @@ function analyzeParameter(param: ParameterObject, resolver: RefResolver): Analyz
     tsType: schemaToTsType(param.schema, resolver),
     description: param.description,
     deprecated: param.deprecated,
+    example: param.example,
   };
 }
 

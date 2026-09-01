@@ -18,8 +18,14 @@ export interface FileInput {
   filename: string;
 }
 
-export type PostUploadBody = { avatar: FileInput; document?: string; gallery?: FileInput[]; name: string; };
+export type PostUploadBody = {
+  avatar: FileInput;
+  document?: string;
+  gallery?: FileInput[];
+  name: string;
+};
 
+/** Created */
 export type PostUploadResponse = void;"
 `;
 
@@ -87,8 +93,14 @@ export interface FileInput {
   filename: string;
 }
 
-export type PostUploadBody = { avatar: FileInput; document?: string; gallery?: FileInput[]; name: string; };
+export type PostUploadBody = {
+  avatar: FileInput;
+  document?: string;
+  gallery?: FileInput[];
+  name: string;
+};
 
+/** Created */
 export type PostUploadResponse = void;"
 `;
 
@@ -156,8 +168,14 @@ export interface FileInput {
   filename: string;
 }
 
-export type PostUploadBody = { avatar: FileInput; document?: string; gallery?: FileInput[]; name: string; };
+export type PostUploadBody = {
+  avatar: FileInput;
+  document?: string;
+  gallery?: FileInput[];
+  name: string;
+};
 
+/** Created */
 export type PostUploadResponse = void;"
 `;
 
@@ -225,8 +243,14 @@ export interface FileInput {
   filename: string;
 }
 
-export type PostUploadBody = { avatar: FileInput; document?: string; gallery?: FileInput[]; name: string; };
+export type PostUploadBody = {
+  avatar: FileInput;
+  document?: string;
+  gallery?: FileInput[];
+  name: string;
+};
 
+/** Created */
 export type PostUploadResponse = void;"
 `;
 
@@ -294,8 +318,11 @@ export interface FileInput {
   filename: string;
 }
 
-export type PostUploadBody = { file: FileInput; };
+export type PostUploadBody = {
+  file: FileInput;
+};
 
+/** Created */
 export type PostUploadResponse = void;"
 `;
 
@@ -355,6 +382,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetUsersUserIdResponse = void;"
 `;
 
@@ -407,8 +435,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetItemsQuery = { page?: number; limit?: number; };
+export type GetItemsQuery = {
+  page?: number;
+  limit?: number;
+};
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -462,8 +494,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetDataHeaders = { "X-Api-Key"?: string; "X-Request-Id": string; };
+export type GetDataHeaders = {
+  "X-Api-Key"?: string;
+  "X-Request-Id": string;
+};
 
+/** OK */
 export type GetDataResponse = void;"
 `;
 
@@ -517,6 +553,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetSessionResponse = void;"
 `;
 
@@ -569,6 +606,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsItemIdResponse = void;"
 `;
 
@@ -621,8 +659,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetSearchQuery = { q: string; sort?: string; filter?: string; };
+export type GetSearchQuery = {
+  q: string;
+  sort?: string;
+  filter?: string;
+};
 
+/** OK */
 export type GetSearchResponse = void;"
 `;
 
@@ -676,8 +719,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetSearchQuery = { q?: string; ids?: number[]; };
+export type GetSearchQuery = {
+  q?: string;
+  ids?: number[];
+};
 
+/** OK */
 export type GetSearchResponse = void;"
 `;
 
@@ -731,8 +778,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetItemsQuery = { oldParam?: string; newParam?: string; };
+export type GetItemsQuery = {
+  /** @deprecated */
+  oldParam?: string;
+  newParam?: string;
+};
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -789,8 +841,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetSearchQuery = { q?: string; };
+export type GetSearchQuery = {
+  /** The search query string */
+  q?: string;
+};
 
+/** OK */
 export type GetSearchResponse = void;"
 `;
 
@@ -853,6 +909,7 @@ export type PostUsersBody = {
   age?: number;
 };
 
+/** Created */
 export type PostUsersResponse = void;"
 `;
 
@@ -914,8 +971,12 @@ export interface FileInput {
   filename: string;
 }
 
-export type PostUploadBody = { name?: string; file: FileInput; };
+export type PostUploadBody = {
+  name?: string;
+  file: FileInput;
+};
 
+/** Created */
 export type PostUploadResponse = void;"
 `;
 
@@ -981,6 +1042,7 @@ export type PostLoginBody = {
   password: string;
 };
 
+/** OK */
 export type PostLoginResponse = void;"
 `;
 
@@ -1039,6 +1101,7 @@ export {
 
 export type PostBinaryBody = Blob;
 
+/** OK */
 export type PostBinaryResponse = void;"
 `;
 
@@ -1099,6 +1162,7 @@ export type PostDataBody = {
   jsonField: string;
 };
 
+/** OK */
 export type PostDataResponse = void;"
 `;
 
@@ -1159,6 +1223,7 @@ export type PostOrdersBody = {
   productId: string;
 };
 
+/** Created */
 export type PostOrdersResponse = void;"
 `;
 
@@ -1219,6 +1284,7 @@ export type PatchProfileBody = {
   bio?: string;
 };
 
+/** Updated */
 export type PatchProfileResponse = void;"
 `;
 
@@ -1279,6 +1345,7 @@ export type PostUsersBody = {
   name: string;
 };
 
+/** Created */
 export type PostUsersResponse = void;"
 `;
 

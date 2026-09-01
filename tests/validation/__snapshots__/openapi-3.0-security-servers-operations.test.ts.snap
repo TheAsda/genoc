@@ -13,6 +13,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** List */
 export type GetItemsResponse = string[];"
 `;
 
@@ -66,20 +67,28 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetResourceResponse = void;
 
+/** Created */
 export type PostResourceResponse = void;
 
+/** Updated */
 export type PutResourceResponse = void;
 
+/** Patched */
 export type PatchResourceResponse = void;
 
+/** Deleted */
 export type DeleteResourceResponse = void;
 
+/** CORS */
 export type OptionsResourceResponse = void;
 
+/** Headers */
 export type HeadResourceResponse = void;
 
+/** Debug */
 export type TraceResourceResponse = void;"
 `;
 
@@ -269,6 +278,7 @@ export type PostItemsBody = {
   name: string;
 };
 
+/** Created */
 export type PostItemsResponse = {
   id: string;
 };"
@@ -331,6 +341,7 @@ export type PutItemsIdBody = {
   name?: string;
 };
 
+/** Updated */
 export type PutItemsIdResponse = void;"
 `;
 
@@ -391,6 +402,7 @@ export type PatchItemsIdBody = {
   name?: string;
 };
 
+/** Patched */
 export type PatchItemsIdResponse = void;"
 `;
 
@@ -447,6 +459,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Deleted */
 export type DeleteItemsIdResponse = void;"
 `;
 
@@ -499,6 +512,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** CORS */
 export type OptionsItemsResponse = void;"
 `;
 
@@ -551,6 +565,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Headers */
 export type HeadItemsResponse = void;"
 `;
 
@@ -603,6 +618,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Debug */
 export type TraceItemsResponse = void;"
 `;
 
@@ -655,6 +671,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -707,6 +724,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -759,8 +777,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;
 
+/** OK */
 export type GetThingsResponse = void;"
 `;
 
@@ -832,6 +852,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -887,6 +908,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetLegacyItemsResponse = void;"
 `;
 
@@ -949,6 +971,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1004,6 +1027,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1061,6 +1085,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1119,6 +1144,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetLegacyItemsResponse = void;"
 `;
 
@@ -1176,6 +1202,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** A post */
 export type GetUsersUserIdPostsPostIdResponse = {
   title?: string;
 };"
@@ -1235,6 +1262,7 @@ export {
 
 export type ApiKeyQueryAuth = { type: "apiKey"; description: "API key passed as query parameter"; name: "api_key"; in: "query" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1289,6 +1317,7 @@ export {
 
 export type OAuthWithRefreshAuth = { type: "oauth2"; flows: { authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; refreshUrl: "https://example.com/refresh"; scopes: { "read": "Read access" } } } };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1347,6 +1376,7 @@ export type BearerAuthAuth = { type: "http"; scheme: "bearer" };
 
 export type SecuritySchemes = ApiKeyHeaderAuth | BearerAuthAuth;
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1401,6 +1431,7 @@ export {
 
 export type OnlyAuthAuth = { type: "http"; scheme: "basic" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1455,6 +1486,7 @@ export {
 
 export type ApiKeyHeaderAuth = { type: "apiKey"; name: "X-API-Key"; in: "header" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1509,6 +1541,7 @@ export {
 
 export type SessionCookieAuth = { type: "apiKey"; name: "session"; in: "cookie" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1563,6 +1596,7 @@ export {
 
 export type BasicAuthAuth = { type: "http"; scheme: "basic" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1617,6 +1651,7 @@ export {
 
 export type BearerAuthAuth = { type: "http"; scheme: "bearer"; bearerFormat: "JWT" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1671,6 +1706,7 @@ export {
 
 export type DigestAuthAuth = { type: "http"; scheme: "digest" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1725,6 +1761,7 @@ export {
 
 export type OAuth2ImplicitAuth = { type: "oauth2"; flows: { implicit: { authorizationUrl: "https://example.com/auth"; scopes: { "read:items": "Read items"; "write:items": "Write items" } } } };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1779,6 +1816,7 @@ export {
 
 export type FullOAuthAuth = { type: "oauth2"; flows: { implicit: { authorizationUrl: "https://example.com/auth"; scopes: { "read": "Read access" } }; password: { tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } }; clientCredentials: { tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } }; authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } } } };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1833,6 +1871,7 @@ export {
 
 export type OAuth2PasswordAuth = { type: "oauth2"; flows: { password: { tokenUrl: "https://example.com/token"; scopes: { "read:items": "Read items" } } } };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1887,6 +1926,7 @@ export {
 
 export type OAuth2ClientAuth = { type: "oauth2"; flows: { clientCredentials: { tokenUrl: "https://example.com/token"; scopes: { "read:items": "Read items" } } } };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1941,6 +1981,7 @@ export {
 
 export type OAuth2AuthCodeAuth = { type: "oauth2"; flows: { authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; scopes: { "read:items": "Read items" } } } };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1995,6 +2036,7 @@ export {
 
 export type OidcAuthAuth = { type: "openIdConnect"; openIdConnectUrl: "https://example.com/.well-known/openid-configuration" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -2049,6 +2091,7 @@ export {
 
 export type BearerAuthAuth = { type: "http"; scheme: "bearer" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -2101,6 +2144,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -2159,6 +2203,7 @@ export interface ServerParams {
   host: string;
 }
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -2217,6 +2262,7 @@ export interface ServerParams {
   env: string;
 }
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -2275,6 +2321,7 @@ export interface ServerParams {
   env: "production" | "staging" | "development";
 }
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -2333,6 +2380,7 @@ export interface ServerParams {
   version: string;
 }
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -2397,6 +2445,7 @@ export interface Server2Params {
   region: "us" | "eu" | "ap";
 }
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -2455,6 +2504,7 @@ export interface Server2Params {
   env: string;
 }
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 

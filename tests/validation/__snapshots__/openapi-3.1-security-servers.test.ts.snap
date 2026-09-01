@@ -17,6 +17,7 @@ export {
 
 export type ApiKeyQueryAuth = { type: "apiKey"; description: "API key passed as query parameter"; name: "api_key"; in: "query" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -71,6 +72,7 @@ export {
 
 export type OAuthWithRefreshAuth = { type: "oauth2"; flows: { authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; refreshUrl: "https://example.com/refresh"; scopes: { "read": "Read access" } } } };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -129,6 +131,7 @@ export type BearerAuthAuth = { type: "http"; scheme: "bearer" };
 
 export type SecuritySchemes = ApiKeyHeaderAuth | BearerAuthAuth;
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -183,6 +186,7 @@ export {
 
 export type OnlyAuthAuth = { type: "http"; scheme: "basic" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -237,6 +241,7 @@ export {
 
 export type ApiKeyHeaderAuth = { type: "apiKey"; name: "X-API-Key"; in: "header" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -291,6 +296,7 @@ export {
 
 export type SessionCookieAuth = { type: "apiKey"; name: "session"; in: "cookie" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -345,6 +351,7 @@ export {
 
 export type BasicAuthAuth = { type: "http"; scheme: "basic" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -399,6 +406,7 @@ export {
 
 export type BearerAuthAuth = { type: "http"; scheme: "bearer"; bearerFormat: "JWT" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -453,6 +461,7 @@ export {
 
 export type DigestAuthAuth = { type: "http"; scheme: "digest" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -507,6 +516,7 @@ export {
 
 export type OAuth2ImplicitAuth = { type: "oauth2"; flows: { implicit: { authorizationUrl: "https://example.com/auth"; scopes: { "read:items": "Read items"; "write:items": "Write items" } } } };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -561,6 +571,7 @@ export {
 
 export type FullOAuthAuth = { type: "oauth2"; flows: { implicit: { authorizationUrl: "https://example.com/auth"; scopes: { "read": "Read access" } }; password: { tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } }; clientCredentials: { tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } }; authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } } } };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -615,6 +626,7 @@ export {
 
 export type OAuth2PasswordAuth = { type: "oauth2"; flows: { password: { tokenUrl: "https://example.com/token"; scopes: { "read:items": "Read items" } } } };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -669,6 +681,7 @@ export {
 
 export type OAuth2ClientAuth = { type: "oauth2"; flows: { clientCredentials: { tokenUrl: "https://example.com/token"; scopes: { "read:items": "Read items" } } } };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -723,6 +736,7 @@ export {
 
 export type OAuth2AuthCodeAuth = { type: "oauth2"; flows: { authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; scopes: { "read:items": "Read items" } } } };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -777,6 +791,7 @@ export {
 
 export type OidcAuthAuth = { type: "openIdConnect"; openIdConnectUrl: "https://example.com/.well-known/openid-configuration" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -831,6 +846,7 @@ export {
 
 export type BearerAuthAuth = { type: "http"; scheme: "bearer" };
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -883,6 +899,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -941,6 +958,7 @@ export interface ServerParams {
   host: string;
 }
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -999,6 +1017,7 @@ export interface ServerParams {
   env: string;
 }
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1057,6 +1076,7 @@ export interface ServerParams {
   env: "production" | "staging" | "development";
 }
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1115,6 +1135,7 @@ export interface ServerParams {
   version: string;
 }
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1179,6 +1200,7 @@ export interface Server2Params {
   region: "us" | "eu" | "ap";
 }
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 
@@ -1237,6 +1259,7 @@ export interface Server2Params {
   env: string;
 }
 
+/** OK */
 export type GetItemsResponse = void;"
 `;
 

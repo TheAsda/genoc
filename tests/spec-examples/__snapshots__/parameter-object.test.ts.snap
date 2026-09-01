@@ -13,6 +13,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** Session info */
 export type GetSessionResponse = void;"
 `;
 
@@ -65,10 +66,15 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetDataQuery = { page?: number; };
+export type GetDataQuery = {
+  page?: number;
+};
 
-export type GetDataHeaders = { "X-Request-Id"?: string; };
+export type GetDataHeaders = {
+  "X-Request-Id"?: string;
+};
 
+/** OK */
 export type GetDataResponse = void;"
 `;
 
@@ -122,10 +128,16 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetOrgsOrgIdUsersUserIdQuery = { include?: string; fields?: string; };
+export type GetOrgsOrgIdUsersUserIdQuery = {
+  include?: string;
+  fields?: string;
+};
 
-export type GetOrgsOrgIdUsersUserIdHeaders = { "X-Api-Key": string; };
+export type GetOrgsOrgIdUsersUserIdHeaders = {
+  "X-Api-Key": string;
+};
 
+/** User details */
 export type GetOrgsOrgIdUsersUserIdResponse = void;"
 `;
 
@@ -179,6 +191,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** User found */
 export type GetUsersUserIdResponse = void;"
 `;
 
@@ -231,8 +244,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetUsersQuery = { page?: number; limit?: number; };
+export type GetUsersQuery = {
+  page?: number;
+  limit?: number;
+};
 
+/** User list */
 export type GetUsersResponse = void;"
 `;
 
@@ -322,8 +339,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type GetSearchQuery = { q: string; sort?: string; filter?: string; };
+export type GetSearchQuery = {
+  q: string;
+  sort?: string;
+  filter?: string;
+};
 
+/** Search results */
 export type GetSearchResponse = void;"
 `;
 

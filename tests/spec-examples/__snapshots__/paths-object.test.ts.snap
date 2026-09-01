@@ -106,10 +106,12 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetUsersResponse = {
   total?: number;
 };
 
+/** OK */
 export type GetProductsResponse = {
   count?: number;
 };"

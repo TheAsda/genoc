@@ -91,7 +91,9 @@ export type Dog = Pet & {
 
 export type PetVariant = Cat | Dog;
 
+/** List of pets */
 export type GetPetsResponse = PetVariant[];
 
+/** Pet found */
 export type GetPetsIdResponse = PetVariant;"
 `;

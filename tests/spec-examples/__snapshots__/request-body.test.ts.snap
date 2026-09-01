@@ -18,6 +18,7 @@ export type PutUsersUserIdBody = {
   email: string;
 };
 
+/** Updated */
 export type PutUsersUserIdResponse = void;"
 `;
 
@@ -80,6 +81,7 @@ export type PostUsersBody = {
   age?: number;
 };
 
+/** Created */
 export type PostUsersResponse = void;"
 `;
 
@@ -143,6 +145,7 @@ export type CreateUser = {
 
 export type PostRegisterBody = CreateUser;
 
+/** Registered */
 export type PostRegisterResponse = void;"
 `;
 
@@ -164,6 +167,7 @@ export type PostUploadBody = {
   metadata?: string;
 };
 
+/** Uploaded */
 export type PostUploadResponse = void;"
 `;
 

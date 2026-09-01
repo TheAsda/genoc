@@ -21,6 +21,7 @@ export type Target = {
 /** Original target description */
 export type RefWithSibling = Target;
 
+/** OK */
 export type GetTestResponse = Record<string, unknown>;"
 `;
 
@@ -45,6 +46,7 @@ export type Target = {
 /** Override from sibling */
 export type RefWithSibling = Target;
 
+/** OK */
 export type GetTestResponse = Record<string, unknown>;"
 `;
 
@@ -61,8 +63,10 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** @example "foo" */
 export type Label = string;
 
+/** OK */
 export type GetTestResponse = Record<string, unknown>;"
 `;
 
@@ -81,6 +85,7 @@ export {
 
 export type Score = number;
 
+/** OK */
 export type GetTestResponse = Record<string, unknown>;"
 `;
 
@@ -104,6 +109,7 @@ export type Widget = {
   label?: string;
 };
 
+/** OK */
 export type GetTestResponse = Record<string, unknown>;"
 `;
 
@@ -122,5 +128,6 @@ export {
 
 export type NullableString = string | null;
 
+/** OK */
 export type GetTestResponse = Record<string, unknown>;"
 `;

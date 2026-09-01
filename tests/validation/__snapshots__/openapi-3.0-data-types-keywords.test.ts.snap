@@ -427,6 +427,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** @deprecated */
 export type LegacyType = string;"
 `;
 
@@ -443,6 +444,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** OK */
 export type GetOldResponse = string;"
 `;
 
@@ -1001,6 +1003,7 @@ export type PostItemsBody = {
   password: string;
 };
 
+/** Created */
 export type PostItemsResponse = {
   name: string;
   id: string;
@@ -1065,6 +1068,7 @@ export type PostItemsBody = {
   password: string;
 };
 
+/** Created */
 export type PostItemsResponse = {
   name: string;
   id: string;
@@ -1129,6 +1133,7 @@ export type PostItemsBody = {
   password: string;
 };
 
+/** Created */
 export type PostItemsResponse = {
   name: string;
   id: string;
@@ -1193,6 +1198,7 @@ export type PostItemsBody = {
   password: string;
 };
 
+/** Created */
 export type PostItemsResponse = {
   name: string;
   id: string;
@@ -1380,6 +1386,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** @example "red" */
 export type Color = string;"
 `;
 
@@ -1396,6 +1403,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
+/** @example {"name":"Widget","price":9.99} */
 export type Product = {
   name?: string;
   price?: number;
