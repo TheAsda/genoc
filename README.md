@@ -1,7 +1,7 @@
 # genoc
 
 Generate TypeScript HTTP clients from OpenAPI 3.0 / 3.1 specifications.
-The generated code has zero runtime dependencies. Full type safety. Bring your own HTTP client.
+Generated code depends only on the tiny `genoc/runtime` module. Full type safety. Bring your own HTTP client.
 
 [![npm version](https://img.shields.io/npm/v/genoc)](https://www.npmjs.com/package/genoc)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18-green)](https://nodejs.org/)
@@ -13,6 +13,7 @@ The generated code has zero runtime dependencies. Full type safety. Bring your o
 - Full OpenAPI 3.0 and 3.1 specification support with automatic version detection
 - End-to-end type safety — requests, responses, and errors are fully typed
 - HTTP-client agnostic — adapter pattern lets you plug in fetch, axios, or anything else
+- Shared runtime contract — `genoc/runtime` exports the `Requester` type and response/error classes, so one requester implementation works with every generated client
 - Error types with per-status-code narrowing and type guards
 - File and binary upload/download with stream handling
 - Flexible method naming strategies (path-based, operationId, operationId-with-fallback)
@@ -23,8 +24,11 @@ The generated code has zero runtime dependencies. Full type safety. Bring your o
 Install:
 
 ```bash
-npm install -D genoc
+npm install genoc
 ```
+
+Generated code imports from `genoc/runtime`, so `genoc` is a runtime
+dependency (not just `devDependencies`).
 
 Generate:
 
@@ -40,8 +44,13 @@ This creates two files in `./src/api`:
 ## Usage
 
 The generated client requires a `Requester` implementation — a function that
-performs the actual HTTP call and returns the result. This is the type your
-implementation must satisfy:
+performs the actual HTTP call and returns the result. The type lives in
+`genoc/runtime`, so you can write and compile a requester before generating
+anything:
+
+```typescript
+import type { Requester } from 'genoc/runtime';
+```
 
 ```typescript
 type Requester = <TResponse>(
@@ -60,7 +69,8 @@ type Requester = <TResponse>(
 
 ```typescript
 import { createClient } from './client.js';
-import { ApiError, RequesterFailError, ErrorResponse } from './contracts.js';
+import type { Requester } from 'genoc/runtime';
+import { RequesterFailError, ErrorResponse } from 'genoc/runtime';
 
 const baseUrl = 'https://api.example.com';
 
@@ -101,6 +111,28 @@ const pets = await client.getPets({ limit: 10 });
 
 See [Binary / File Responses](#binary--file-responses) for handling `expectStream: true`.
 
+## Shared Runtime (`genoc/runtime`)
+
+Generated clients import their response and error classes from `genoc/runtime`
+instead of declaring inline copies (the generated `contracts.ts` re-exports
+them, so existing imports keep working). This gives every generated client the
+same class identity — `instanceof` checks work across clients, and you can
+implement **one shared requester** typed against the package:
+
+```typescript
+// common-requester.ts — reusable across all generated clients,
+// no generated imports needed
+import type { Requester } from 'genoc/runtime';
+import { errorResponse } from 'genoc/runtime';
+
+export const requester: Requester = async (method, path, options) => {
+  // ...your fetch/axios/etc. implementation
+};
+```
+
+To pin a specific version or point at a mirror, override the import specifier
+via `--runtime-import-path` (CLI) or `runtimeImportPath` (programmatic config).
+
 ## Binary / File Responses
 
 When your spec defines binary responses (e.g. `format: binary`,
@@ -109,7 +141,7 @@ When your spec defines binary responses (e.g. `format: binary`,
 `StreamResponse` in that case:
 
 ```typescript
-import { StreamResponse } from './contracts.js';
+import { StreamResponse } from 'genoc/runtime';
 
 // Inside your Requester implementation:
 if (options.expectStream === true) {
@@ -133,8 +165,8 @@ class StreamResponse {
 
 ### Response Helpers
 
-The generated `contracts.ts` includes helper functions for constructing
-responses in your `Requester` implementation:
+The generated `contracts.ts` re-exports helper functions for constructing
+responses in your `Requester` implementation (they come from `genoc/runtime`):
 
 - `streamResponse(data, filename?, headers?)` — Creates a `StreamResponse` instance
 - `errorResponse(status, data, headers?, message?)` — Creates an `ErrorResponse` instance
@@ -156,6 +188,7 @@ genoc <spec> [flags]
 | `--method-name-strategy` | `path-based` | Method naming strategy                               |
 | `--spec-version`         | auto-detect  | Override version detection (`"3.0"` or `"3.1"`)      |
 | `--strict-version`       | `true`       | Warn if `--spec-version` mismatches detected version |
+| `--runtime-import-path`  | `genoc/runtime` | Module specifier generated code imports runtime classes from |
 
 ## Method Naming Strategies
 
@@ -194,7 +227,7 @@ union, and `isDefinedError` narrows a caught error to that union:
 
 ```typescript
 import { UnspecifiedApiError, RequesterFailError } from './contracts.js';
-import { isDefinedError } from './client.js';
+import { isDefinedError } from 'genoc/runtime';
 
 try {
   const result = await client.getPets();
