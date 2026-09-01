@@ -43,6 +43,7 @@ export default async function (
       methodNameStrategy: flags.methodNameStrategy || 'path-based',
       specVersion: flags.specVersion,
       strictVersion: flags.strictVersion,
+      runtimeImportPath: flags.runtimeImportPath,
     };
 
     const preserveRefSiblings = strategy.version() === '3.1';

@@ -1,29 +1,5 @@
 import type { AnalyzedOperation } from '../analyzer/path-analyzer.js';
 
-export class ApiError<TStatus extends number, TData> extends Error {
-  readonly status: TStatus;
-  readonly data: TData;
-
-  constructor(status: TStatus, data: TData, message: string) {
-    super(message);
-    this.status = status;
-    this.data = data;
-    this.name = 'ApiError';
-  }
-}
-
-export class DefaultApiError<TData> extends Error {
-  readonly status: number;
-  readonly data: TData;
-
-  constructor(status: number, data: TData, message: string) {
-    super(message);
-    this.status = status;
-    this.data = data;
-    this.name = 'DefaultApiError';
-  }
-}
-
 /**
  * Generate error types for a set of analyzed operations.
  *

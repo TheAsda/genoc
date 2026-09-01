@@ -12,6 +12,7 @@ import type {
 import {
   RESERVED_TYPE_NAMES,
   buildSchemaRenameMap,
+  DEFAULT_RUNTIME_IMPORT_PATH,
   sanitizeTypeName,
   toPascalCase,
   getOperationTypePrefix,
@@ -187,6 +188,28 @@ function topologicalSort(entries: ContractEntry[], allNames: Set<string>): Contr
 }
 
 /**
+ * Build the import + re-export block for the shared runtime classes.
+ * Generated code re-uses the genoc runtime as the single source of truth
+ * for class identity, so `instanceof` checks work across module boundaries.
+ */
+function buildRuntimeReexport(runtimeImportPath: string): string[] {
+  return [
+    '',
+    `import { ApiError, StreamResponse } from '${runtimeImportPath}';`,
+    'export {',
+    '  ApiError,',
+    '  UnspecifiedApiError,',
+    '  DefaultApiError,',
+    '  RequesterFailError,',
+    '  StreamResponse,',
+    '  streamResponse,',
+    '  ErrorResponse,',
+    '  errorResponse,',
+    `} from '${runtimeImportPath}';`,
+  ];
+}
+
+/**
  * Generate the complete `*.contracts.ts` file content as a string.
  *
  * Sections produced:
@@ -196,10 +219,13 @@ function topologicalSort(entries: ContractEntry[], allNames: Set<string>): Contr
  * 4. Header parameter types per operation
  * 5. Request body types per operation
  * 6. Response / error types per operation
- * 7. ApiError class
- * 7b. UnspecifiedApiError class
+ * 7. Runtime re-export block (shared classes from the genoc runtime package)
  */
-export function generateContracts(doc: OpenAPIDocument, resolver: RefResolver): string {
+export function generateContracts(
+  doc: OpenAPIDocument,
+  resolver: RefResolver,
+  runtimeImportPath: string = DEFAULT_RUNTIME_IMPORT_PATH
+): string {
   const schemaNameList = doc.components?.schemas ? Object.keys(doc.components.schemas) : [];
   const renameMap = buildSchemaRenameMap(schemaNameList, RESERVED_TYPE_NAMES);
 
@@ -272,6 +298,9 @@ export function generateContracts(doc: OpenAPIDocument, resolver: RefResolver): 
   const lines: string[] = [];
 
   lines.push(makeHeader(doc.openapi));
+
+  const runtimeReexport = buildRuntimeReexport(runtimeImportPath);
+  lines.push(...runtimeReexport);
 
   // Section 1: Schema types
   const schemaEntries: ContractEntry[] = [];
@@ -529,103 +558,7 @@ export function generateContracts(doc: OpenAPIDocument, resolver: RefResolver): 
         `export type ${brand.name} = ${brand.baseType} & { readonly __format?: '${brand.format}' };`
       );
     }
-    lines.splice(1, 0, '', ...brandLines);
-  }
-
-  // Always emit StreamResponse class (used by Requester type)
-  lines.push('');
-  lines.push('export class StreamResponse {');
-  lines.push('  constructor(');
-  lines.push('    public readonly data: ReadableStream<Uint8Array>,');
-  lines.push('    public readonly filename?: string,');
-  lines.push('    public readonly headers: Record<string, string> = {},');
-  lines.push('  ) {}');
-  lines.push('}');
-
-  lines.push('');
-  lines.push(`export function streamResponse(
-  data: ReadableStream<Uint8Array>,
-  filename?: string,
-  headers?: Record<string, string>,
-): StreamResponse {
-  return new StreamResponse(data, filename, headers ?? {});
-}`);
-
-  // ErrorResponse class
-  lines.push('');
-  lines.push(`export class ErrorResponse {
-  constructor(
-    public readonly status: number,
-    public readonly data: unknown,
-    public readonly headers: Record<string, string>,
-    public readonly message?: string,
-  ) {}
-}`);
-
-  // errorResponse() helper
-  lines.push('');
-  lines.push(`export function errorResponse(
-  status: number,
-  data: unknown,
-  headers?: Record<string, string>,
-  message?: string,
-): ErrorResponse {
-  return new ErrorResponse(status, data, headers ?? {}, message);
-}`);
-
-  // RequesterFailError class
-  lines.push('');
-  lines.push(`export class RequesterFailError extends Error {
-  constructor(
-    public readonly cause: unknown,
-  ) {
-    super(\`Request failed: \${cause instanceof Error ? cause.message : String(cause)}\`);
-    this.name = "RequesterFailError";
-  }
-}`);
-
-  // Section 5: ApiError class
-  lines.push('');
-  lines.push(`export class ApiError<TStatus extends number, TData> extends Error {
-  constructor(
-    public readonly status: TStatus,
-    public readonly data: TData,
-    message: string,
-  ) {
-    super(message);
-    this.name = "ApiError";
-  }
-}`);
-
-  // Section 5b: UnspecifiedApiError class
-  lines.push('');
-  lines.push(`export class UnspecifiedApiError extends ApiError<number, unknown> {
-  constructor(
-    status: number,
-    data: unknown,
-    message: string,
-  ) {
-    super(status, data, message);
-    this.name = "UnspecifiedApiError";
-  }
-}`);
-
-  const needsDefaultApiError = operations.some((op) =>
-    op.responses.some((r) => !r.isSuccess && r.statusCode === 'default')
-  );
-
-  if (needsDefaultApiError) {
-    lines.push('');
-    lines.push(`export class DefaultApiError<TData> extends Error {
-  constructor(
-    public readonly status: number,
-    public readonly data: TData,
-    message: string,
-  ) {
-    super(message);
-    this.name = "DefaultApiError";
-  }
-}`);
+    lines.splice(1 + runtimeReexport.length, 0, '', ...brandLines);
   }
 
   return lines.join('\n');

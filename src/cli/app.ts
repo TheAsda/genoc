@@ -11,6 +11,7 @@ interface Flags {
   methodNameStrategy: 'path-based' | 'operationId' | 'operationId-with-fallback';
   specVersion?: string;
   strictVersion: boolean;
+  runtimeImportPath?: string;
 }
 
 const command = buildCommand<Flags, [string]>({
@@ -40,6 +41,13 @@ const command = buildCommand<Flags, [string]>({
         kind: 'boolean',
         default: true,
         brief: 'Enable strict version checking',
+      },
+      runtimeImportPath: {
+        kind: 'parsed',
+        parse: String,
+        brief: 'Module specifier for runtime imports (default: genoc/runtime)',
+        optional: true,
+        placeholder: 'module',
       },
     },
     positional: {

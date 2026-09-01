@@ -756,7 +756,7 @@ describe('generateContracts', () => {
       });
       const result = generateContracts(doc, makeResolver(doc));
       expect(result).toMatchSnapshot();
-      expect(result).not.toContain('DefaultApiError');
+      expect(result).not.toContain('class DefaultApiError');
       expect(result).not.toContain('DefaultError');
     });
   });
@@ -787,7 +787,9 @@ describe('generateContracts', () => {
       const result = generateContracts(doc, makeResolver(doc));
       expect(result).toMatchSnapshot();
       const lines = result.split('\n');
-      expect(lines.length).toBeGreaterThan(25);
+      expect(lines.length).toBeGreaterThan(10);
+      expect(result).toContain("import { ApiError, StreamResponse } from 'genoc/runtime';");
+      expect(result).toContain('  errorResponse,');
     });
   });
 

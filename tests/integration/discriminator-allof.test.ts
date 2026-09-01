@@ -11,6 +11,7 @@ import { generateClient } from '../../src/generator/client-generator.js';
 import { loadFromFile } from '../../src/parser/spec-reader.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { linkGenoc } from '../helpers/link-genoc.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FIXTURE_PATH = join(__dirname, '../fixtures/discriminator-allof.json');
@@ -76,6 +77,7 @@ describe('Discriminator allOf integration', () => {
   // 4. Contracts compile with tsc
   it('generated contracts compile with tsc --strict --noEmit', async () => {
     const tmpDir = await mkdtemp(join(tmpdir(), 'discriminator-contracts-'));
+    linkGenoc(tmpDir);
     const contractsFile = join(tmpDir, 'contracts.ts');
     writeFileSync(contractsFile, contracts, 'utf-8');
 
@@ -91,6 +93,7 @@ describe('Discriminator allOf integration', () => {
   // 5. Client compiles with tsc (needs contracts file alongside)
   it('generated client compiles with tsc --strict --noEmit', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'discriminator-client-'));
+    linkGenoc(dir);
     writeFileSync(join(dir, 'contracts.ts'), contracts, 'utf-8');
     writeFileSync(join(dir, 'client.ts'), client, 'utf-8');
 

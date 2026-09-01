@@ -147,7 +147,7 @@ describe('generateClient', () => {
       const doc = createDoc();
       const config = createConfig();
       const { client } = generateClient(doc, config);
-      expect(client).not.toContain('import type');
+      expect(client).not.toMatch(/import type \{[^}]+\} from '\.\/contracts\.js';/);
       expect(client).toMatchSnapshot();
     });
   });
