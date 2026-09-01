@@ -13,6 +13,7 @@ import { RefResolver } from '../../src/parser/ref-resolver.js';
 import { loadFromFile } from '../../src/parser/spec-reader.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { linkGenoc } from '../helpers/link-genoc.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FIXTURE_PATH = join(__dirname, '../fixtures/v3.0/petstore.yaml');
@@ -61,6 +62,7 @@ describe('Petstore v3.0 integration', () => {
   // 2. Contracts compile with tsc
   it('generated contracts compile with tsc --strict --noEmit', async () => {
     const tmpDir = await mkdtemp(join(tmpdir(), 'petstore-v3-contracts-'));
+    linkGenoc(tmpDir);
     const contractsFile = join(tmpDir, 'contracts.ts');
     writeFileSync(contractsFile, contracts, 'utf-8');
 
@@ -77,6 +79,7 @@ describe('Petstore v3.0 integration', () => {
   // 3. Client compiles with tsc (needs contracts file alongside)
   it('generated client compiles with tsc --strict --noEmit', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'petstore-v3-client-'));
+    linkGenoc(dir);
     writeFileSync(join(dir, 'contracts.ts'), contracts, 'utf-8');
     writeFileSync(join(dir, 'client.ts'), client, 'utf-8');
 
@@ -119,6 +122,7 @@ describe('Petstore v3.0 full output pipeline', () => {
 
   beforeAll(async () => {
     tmpDir = await mkdtemp(join(tmpdir(), 'petstore-v3-full-'));
+    linkGenoc(tmpDir);
     const doc = await loadFromFile(FIXTURE_PATH);
     const config: GeneratorConfig = {
       input: FIXTURE_PATH,
