@@ -6,6 +6,6 @@
  * generator API (dev-time only); this subpath is the tiny runtime surface.
  */
 export { ApiError, UnspecifiedApiError, DefaultApiError, RequesterFailError } from './errors.js';
-export { StreamResponse, streamResponse, ErrorResponse, errorResponse } from './responses.js';
+export { StreamResponse, ErrorResponse } from './responses.js';
 export { decorateWithErrors, isDefinedError } from './defined-errors.js';
 export type { Requester } from './requester.js';

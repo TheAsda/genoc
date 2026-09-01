@@ -789,18 +789,11 @@ describe('generateContracts', () => {
       const lines = result.split('\n');
       expect(lines.length).toBeGreaterThan(10);
       expect(result).toContain("import { ApiError, StreamResponse } from 'genoc/runtime';");
-      expect(result).toContain('  errorResponse,');
     });
   });
 
   describe('error handling constructs', () => {
     it('includes ErrorResponse class', () => {
-      const doc = createDoc();
-      const result = generateContracts(doc, makeResolver(doc));
-      expect(result).toMatchSnapshot();
-    });
-
-    it('includes errorResponse() helper', () => {
       const doc = createDoc();
       const result = generateContracts(doc, makeResolver(doc));
       expect(result).toMatchSnapshot();

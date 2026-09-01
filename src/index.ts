@@ -13,9 +13,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
   decorateWithErrors,
   isDefinedError,
 } from './runtime/index.js';
