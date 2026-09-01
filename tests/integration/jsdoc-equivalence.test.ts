@@ -95,8 +95,7 @@ describe('AC-1 stripped-token equivalence (jsdoc metadata baselines)', () => {
   });
 });
 
-// UNSKIP in Task 7
-test.skip('torture fixture full output shape', async () => {
+test('torture fixture full output shape', async () => {
   const v30 = await generateStripped(join(__dirname, '../fixtures/jsdoc-metadata-v3.0.yaml'));
   expect(v30.contracts).toMatchSnapshot('jsdoc-metadata-v3.0-contracts-stripped');
   expect(v30.client).toMatchSnapshot('jsdoc-metadata-v3.0-client-stripped');
