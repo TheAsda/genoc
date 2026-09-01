@@ -1,7 +1,0 @@
----
-'genoc': minor
----
-
-Generate JSDoc documentation from OpenAPI field metadata. Field-level `description`, `deprecated`, `default`, `example`/`examples`, and `title` now flow into the generated output as JSDoc — on schema properties, query/header/body parameter types, response types, named type declarations, and client method JSDoc (lowest-numbered 2xx response description). Descriptions containing `*/` or newlines are now escaped/flattened instead of corrupting the generated file.
-
-**Output format change (regeneration required):** generated type tokens are provably unchanged — a stripped-comment equivalence harness verifies every type compiles identically to before — but object types now render as multi-line blocks with depth-aware indentation instead of single-line inline literals (`{ id: string; name: string; }` → one property per line). Generated files therefore differ textually: consumers diffing or snapshotting generated output must regenerate it. Note that JSDoc comments are preserved in `tsc --declaration` output, so published `.d.ts` text changes as well. Tag order is fixed: description → `@deprecated` → `@default` → `@example`(s) → `@title`. Composition rules: `allOf` parent metadata is emitted, inline `oneOf`/`anyOf` member and `items`/`additionalProperties` metadata is dropped; parameter-level metadata takes precedence over schema-level metadata on parameter types.
