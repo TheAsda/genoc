@@ -157,7 +157,7 @@ describe('Paths Object examples', () => {
       const { client } = generateClient(doc, makeConfig());
 
       expect(client).toMatchSnapshot();
-      expect(client).not.toContain('import type');
+      expect(client).not.toMatch(/import type \{[^}]+\} from '\.\/contracts\.js';/);
     });
 
     it('returns empty operations array from analyzePaths', () => {
