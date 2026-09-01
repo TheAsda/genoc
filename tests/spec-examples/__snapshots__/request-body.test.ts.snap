@@ -35,6 +35,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Updated
+     *
      * @param body — request body
      */
     putUsersByUserId: decorateWithErrors<(userId: string, body: PutUsersUserIdBody) => Promise<void>, never>(
@@ -98,6 +100,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postUsers: decorateWithErrors<(body?: PostUsersBody) => Promise<void>, never>(
@@ -184,6 +188,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Order created
+     *
      * @param body — request body
      */
     postOrders: decorateWithErrors<(body: PostOrdersBody) => Promise<void>, never>(
@@ -224,6 +230,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Updated
+     *
      * @param body — request body
      */
     patchProfile: decorateWithErrors<(body?: PatchProfileBody) => Promise<void>, never>(

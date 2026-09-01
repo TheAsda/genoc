@@ -14,6 +14,8 @@ export function createClient(requester: Requester) {
   return {
     /**
      * List users
+     *
+     * List of users
      */
     getUsers: decorateWithErrors<() => Promise<GetUsersResponse>, GetUsersErrors>(
       async (): Promise<GetUsersResponse> => {
@@ -37,6 +39,8 @@ export function createClient(requester: Requester) {
     ),
     /**
      * Get user address
+     *
+     * User address
      */
     getUsersByUserIdAddress: decorateWithErrors<(userId: string) => Promise<GetUsersUserIdAddressResponse>, GetUsersUserIdAddressErrors>(
       async (userId: string): Promise<GetUsersUserIdAddressResponse> => {

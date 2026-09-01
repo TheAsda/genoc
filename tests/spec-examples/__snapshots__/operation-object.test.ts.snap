@@ -13,6 +13,8 @@ export function createClient(requester: Requester) {
   return {
     /**
      * Current endpoint
+     *
+     * OK
      */
     getCurrent: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
@@ -53,6 +55,8 @@ export function createClient(requester: Requester) {
     /**
      * Legacy endpoint
      *
+     * OK
+     *
      * @deprecated
      */
     getLegacy: decorateWithErrors<() => Promise<void>, never>(
@@ -91,6 +95,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getUsers: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -127,6 +134,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     listUsers: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -163,6 +173,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     listUsers: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -199,6 +212,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getUsers: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -237,6 +253,8 @@ export function createClient(requester: Requester) {
   return {
     /**
      * Health check
+     *
+     * OK
      */
     getPing: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
@@ -278,6 +296,8 @@ export function createClient(requester: Requester) {
      * List all users
      *
      * Returns a paginated list of all registered users in the system.
+     *
+     * OK
      */
     getUsers: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
@@ -317,6 +337,8 @@ export function createClient(requester: Requester) {
   return {
     /**
      * Returns all registered users.
+     *
+     * OK
      */
     getUsers: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
@@ -356,6 +378,8 @@ export function createClient(requester: Requester) {
   return {
     /**
      * List all users
+     *
+     * OK
      */
     getUsers: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {

@@ -461,6 +461,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * OK
+     *
      * @deprecated
      */
     getOld: decorateWithErrors<() => Promise<GetOldResponse>, never>(
@@ -1023,6 +1025,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postItems: decorateWithErrors<(body: PostItemsBody) => Promise<PostItemsResponse>, never>(
@@ -1088,6 +1092,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postItems: decorateWithErrors<(body: PostItemsBody) => Promise<PostItemsResponse>, never>(
@@ -1153,6 +1159,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postItems: decorateWithErrors<(body: PostItemsBody) => Promise<PostItemsResponse>, never>(
@@ -1218,6 +1226,8 @@ export type { Requester } from 'genoc/runtime';
 export function createClient(requester: Requester) {
   return {
     /**
+     * Created
+     *
      * @param body — request body
      */
     postItems: decorateWithErrors<(body: PostItemsBody) => Promise<PostItemsResponse>, never>(

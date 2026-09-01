@@ -789,6 +789,8 @@ export function createClient(requester: Requester) {
      *
      * Retrieve a string value
      *
+     * Successful response
+     *
      * @param id — Path parameter ID
      *
      * @category data-types
@@ -819,6 +821,8 @@ export function createClient(requester: Requester) {
      *
      * Retrieve a numeric value
      *
+     * Successful response
+     *
      * @param limit — Query parameter limit
      *
      * @category data-types
@@ -847,6 +851,8 @@ export function createClient(requester: Requester) {
      *
      * Retrieve an integer value
      *
+     * Successful response
+     *
      * @category data-types
      */
     getInteger: decorateWithErrors<() => Promise<GetIntegerResponse>, never>(
@@ -872,6 +878,8 @@ export function createClient(requester: Requester) {
      * Get boolean type
      *
      * Retrieve a boolean value
+     *
+     * Successful response
      *
      * @category data-types
      */
@@ -899,6 +907,8 @@ export function createClient(requester: Requester) {
      *
      * Retrieve an array of strings
      *
+     * Successful response
+     *
      * @category data-types
      */
     getArray: decorateWithErrors<() => Promise<GetArrayResponse>, never>(
@@ -924,6 +934,8 @@ export function createClient(requester: Requester) {
      * Get object type
      *
      * Retrieve an object
+     *
+     * Successful response
      *
      * @category data-types
      */
@@ -951,6 +963,8 @@ export function createClient(requester: Requester) {
      *
      * Retrieve a nullable value (3.0 nullable keyword)
      *
+     * Successful response
+     *
      * @category data-types
      */
     getNullable: decorateWithErrors<() => Promise<GetNullableResponse>, never>(
@@ -976,6 +990,8 @@ export function createClient(requester: Requester) {
      * AllOf composition
      *
      * Test allOf keyword
+     *
+     * Successful response
      *
      * @category schema-keywords
      */
@@ -1003,6 +1019,8 @@ export function createClient(requester: Requester) {
      *
      * Test oneOf keyword
      *
+     * Successful response
+     *
      * @category schema-keywords
      */
     getOneof: decorateWithErrors<() => Promise<GetOneofResponse>, never>(
@@ -1029,6 +1047,8 @@ export function createClient(requester: Requester) {
      *
      * Test anyOf keyword
      *
+     * Successful response
+     *
      * @category schema-keywords
      */
     getAnyof: decorateWithErrors<() => Promise<GetAnyofResponse>, never>(
@@ -1054,6 +1074,8 @@ export function createClient(requester: Requester) {
      * Discriminator test
      *
      * Test discriminator keyword
+     *
+     * Successful response
      *
      * @param body — request body
      *
@@ -1083,6 +1105,8 @@ export function createClient(requester: Requester) {
      *
      * Test enum keyword
      *
+     * Successful response
+     *
      * @category schema-keywords
      */
     getEnum: decorateWithErrors<() => Promise<GetEnumResponse>, never>(
@@ -1109,6 +1133,8 @@ export function createClient(requester: Requester) {
      *
      * Test const keyword
      *
+     * Successful response
+     *
      * @category schema-keywords
      */
     getConst: decorateWithErrors<() => Promise<GetConstResponse>, never>(
@@ -1134,6 +1160,8 @@ export function createClient(requester: Requester) {
      * Default values test
      *
      * Test default keyword
+     *
+     * Successful response
      *
      * @param body — request body
      *
@@ -1163,6 +1191,8 @@ export function createClient(requester: Requester) {
      *
      * Test description keyword
      *
+     * Successful response
+     *
      * @category schema-keywords
      */
     getDescription: decorateWithErrors<() => Promise<GetDescriptionResponse>, never>(
@@ -1189,6 +1219,8 @@ export function createClient(requester: Requester) {
      *
      * Test readOnly keyword
      *
+     * Successful response
+     *
      * @category schema-keywords
      */
     getReadonly: decorateWithErrors<() => Promise<GetReadonlyResponse>, never>(
@@ -1214,6 +1246,8 @@ export function createClient(requester: Requester) {
      * WriteOnly test
      *
      * Test writeOnly keyword
+     *
+     * Successful response
      *
      * @param body — request body
      *
@@ -1243,6 +1277,8 @@ export function createClient(requester: Requester) {
      *
      * Test deprecated keyword
      *
+     * Successful response
+     *
      * @category schema-keywords
      *
      * @deprecated
@@ -1271,6 +1307,8 @@ export function createClient(requester: Requester) {
      *
      * Test format keyword
      *
+     * Successful response
+     *
      * @category schema-keywords
      */
     getFormat: decorateWithErrors<() => Promise<GetFormatResponse>, never>(
@@ -1296,6 +1334,8 @@ export function createClient(requester: Requester) {
      * Additional properties test
      *
      * Test additionalProperties keyword
+     *
+     * Successful response
      *
      * @category schema-keywords
      */
@@ -1323,6 +1363,8 @@ export function createClient(requester: Requester) {
      *
      * Test required keyword
      *
+     * Successful response
+     *
      * @category schema-keywords
      */
     getRequired: decorateWithErrors<() => Promise<GetRequiredResponse>, never>(
@@ -1349,6 +1391,8 @@ export function createClient(requester: Requester) {
      *
      * Test Tier 2 validation constraints (should not crash)
      *
+     * Successful response
+     *
      * @category schema-keywords
      */
     getValidationConstraints: decorateWithErrors<() => Promise<GetValidationConstraintsResponse>, never>(
@@ -1374,6 +1418,8 @@ export function createClient(requester: Requester) {
      * File upload test
      *
      * Test file uploads
+     *
+     * Successful response
      *
      * @param body — request body
      *
@@ -1427,6 +1473,8 @@ export function createClient(requester: Requester) {
      *
      * Test binary response handling
      *
+     * Binary response
+     *
      * @category responses
      */
     getBinaryResponse: decorateWithErrors<() => Promise<GetBinaryResponseResponse>, GetBinaryResponseErrors>(
@@ -1454,6 +1502,8 @@ export function createClient(requester: Requester) {
      *
      * Test image response handling
      *
+     * Image response
+     *
      * @category responses
      */
     getImageResponse: decorateWithErrors<() => Promise<GetImageResponseResponse>, never>(
@@ -1479,6 +1529,8 @@ export function createClient(requester: Requester) {
      * Empty response test
      *
      * Test empty response handling
+     *
+     * Empty response
      *
      * @category responses
      */
@@ -1507,6 +1559,8 @@ export function createClient(requester: Requester) {
      *
      * Test multiple content types in response
      *
+     * Response with multiple content types
+     *
      * @category responses
      */
     getMultiContentResponse: decorateWithErrors<() => Promise<GetMultiContentResponseResponse>, never>(
@@ -1532,6 +1586,8 @@ export function createClient(requester: Requester) {
      * Nested schema test
      *
      * Test nested schemas with refs
+     *
+     * Successful response
      *
      * @param body — request body
      *
@@ -1561,6 +1617,8 @@ export function createClient(requester: Requester) {
      *
      * Test GET method
      *
+     * Successful response
+     *
      * @category http-methods
      */
     getAllMethods: decorateWithErrors<() => Promise<GetAllMethodsResponse>, never>(
@@ -1586,6 +1644,8 @@ export function createClient(requester: Requester) {
      * POST method test
      *
      * Test POST method
+     *
+     * Successful response
      *
      * @param body — request body
      *
@@ -1615,6 +1675,8 @@ export function createClient(requester: Requester) {
      *
      * Test PUT method
      *
+     * Successful response
+     *
      * @param body — request body
      *
      * @category http-methods
@@ -1642,6 +1704,8 @@ export function createClient(requester: Requester) {
      * PATCH method test
      *
      * Test PATCH method
+     *
+     * Successful response
      *
      * @param body — request body
      *
@@ -1671,6 +1735,8 @@ export function createClient(requester: Requester) {
      *
      * Test DELETE method
      *
+     * Empty response
+     *
      * @category http-methods
      */
     deleteAllMethods: decorateWithErrors<() => Promise<void>, never>(
@@ -1696,6 +1762,8 @@ export function createClient(requester: Requester) {
      * OPTIONS method test
      *
      * Test OPTIONS method
+     *
+     * CORS options response
      *
      * @category http-methods
      */
@@ -1723,6 +1791,8 @@ export function createClient(requester: Requester) {
      *
      * Test HEAD method
      *
+     * Empty response
+     *
      * @category http-methods
      */
     headAllMethods: decorateWithErrors<() => Promise<void>, never>(
@@ -1749,6 +1819,8 @@ export function createClient(requester: Requester) {
      *
      * Test TRACE method
      *
+     * Successful response
+     *
      * @category http-methods
      */
     traceAllMethods: decorateWithErrors<() => Promise<TraceAllMethodsResponse>, never>(
@@ -1774,6 +1846,8 @@ export function createClient(requester: Requester) {
      * Get by path ID
      *
      * Test path parameter handling
+     *
+     * Successful response
      *
      * @param id — Path parameter ID
      *
@@ -1802,6 +1876,8 @@ export function createClient(requester: Requester) {
      * Get with query params
      *
      * Test query parameter handling
+     *
+     * Successful response
      *
      * @param limit — Query parameter limit
      * @param offset — Query offset
@@ -1833,6 +1909,8 @@ export function createClient(requester: Requester) {
      *
      * Test header parameter handling
      *
+     * Successful response
+     *
      * @param X-Custom-Header — Custom header
      * @param X-Trace-ID — Trace ID
      *
@@ -1862,6 +1940,8 @@ export function createClient(requester: Requester) {
      *
      * Test cookie parameter handling
      *
+     * Successful response
+     *
      * @param session_id — Session cookie
      *
      * @category parameters
@@ -1889,6 +1969,8 @@ export function createClient(requester: Requester) {
      * Post JSON body
      *
      * Test JSON request body
+     *
+     * Successful response
      *
      * @param body — request body
      *
@@ -1918,6 +2000,8 @@ export function createClient(requester: Requester) {
      *
      * Test form URL encoded request body
      *
+     * Successful response
+     *
      * @param body — request body
      *
      * @category request-bodies
@@ -1945,6 +2029,8 @@ export function createClient(requester: Requester) {
      * Post binary body
      *
      * Test binary request body
+     *
+     * Successful response
      *
      * @param body — request body
      *
@@ -1974,6 +2060,8 @@ export function createClient(requester: Requester) {
      *
      * Test multiple content types in request body
      *
+     * Successful response
+     *
      * @param body — request body
      *
      * @category request-bodies
@@ -2002,6 +2090,8 @@ export function createClient(requester: Requester) {
      *
      * Test optional request body
      *
+     * Successful response
+     *
      * @param body — request body
      *
      * @category request-bodies
@@ -2029,6 +2119,8 @@ export function createClient(requester: Requester) {
      * Error handling test
      *
      * Test various error responses
+     *
+     * Successful response
      *
      * @category error-handling
      */
@@ -2061,6 +2153,8 @@ export function createClient(requester: Requester) {
      *
      * Test security scheme handling
      *
+     * Successful response
+     *
      * @category security
      */
     getSecurityTest: decorateWithErrors<() => Promise<GetSecurityTestResponse>, never>(
@@ -2086,6 +2180,8 @@ export function createClient(requester: Requester) {
      * OAuth test
      *
      * Test OAuth scheme handling
+     *
+     * Successful response
      *
      * @category security
      */
@@ -2191,6 +2287,8 @@ export function createClient(requester: Requester) {
      *
      * Test 3.0 exclusive bounds as booleans
      *
+     * Successful response
+     *
      * @param exclusive_min — Exclusive minimum test (3.0 boolean)
      * @param exclusive_max — Exclusive maximum test (3.0 boolean)
      *
@@ -2246,6 +2344,8 @@ export function createClient(requester: Requester) {
      *
      * Test nullable keyword on request body object
      *
+     * Successful response
+     *
      * @param body — request body
      *
      * @category version-specific
@@ -2273,6 +2373,8 @@ export function createClient(requester: Requester) {
      * Tier 2 parameters test
      *
      * Test Tier 2 parameter features
+     *
+     * Successful response
      *
      * @param style_test — Style test parameter
      * @param empty_value_test — Allow empty value test
@@ -2306,6 +2408,8 @@ export function createClient(requester: Requester) {
      *
      * Test Tier 2 validation constraints
      *
+     * Successful response
+     *
      * @param min_items — Min items test
      * @param max_length — Max length test
      * @param pattern_test — Pattern test
@@ -2335,6 +2439,8 @@ export function createClient(requester: Requester) {
      * Get user post
      *
      * Test complex path with multiple params
+     *
+     * Successful response
      *
      * @param userId — User ID
      * @param postId — Post ID
@@ -2366,6 +2472,8 @@ export function createClient(requester: Requester) {
      * Inline schema test
      *
      * Test inline schema definition in operation
+     *
+     * Success
      *
      * @param body — request body
      *
@@ -3185,6 +3293,8 @@ export function createClient(requester: Requester) {
      *
      * Retrieve a string value
      *
+     * Successful response
+     *
      * @param id — Path parameter ID
      *
      * @category data-types
@@ -3215,6 +3325,8 @@ export function createClient(requester: Requester) {
      *
      * Retrieve a numeric value
      *
+     * Successful response
+     *
      * @param limit — Query parameter limit
      *
      * @category data-types
@@ -3243,6 +3355,8 @@ export function createClient(requester: Requester) {
      *
      * Retrieve an integer value
      *
+     * Successful response
+     *
      * @category data-types
      */
     getInteger: decorateWithErrors<() => Promise<GetIntegerResponse>, never>(
@@ -3268,6 +3382,8 @@ export function createClient(requester: Requester) {
      * Get boolean type
      *
      * Retrieve a boolean value
+     *
+     * Successful response
      *
      * @category data-types
      */
@@ -3295,6 +3411,8 @@ export function createClient(requester: Requester) {
      *
      * Retrieve an array of strings
      *
+     * Successful response
+     *
      * @category data-types
      */
     getArray: decorateWithErrors<() => Promise<GetArrayResponse>, never>(
@@ -3320,6 +3438,8 @@ export function createClient(requester: Requester) {
      * Get object type
      *
      * Retrieve an object
+     *
+     * Successful response
      *
      * @category data-types
      */
@@ -3347,6 +3467,8 @@ export function createClient(requester: Requester) {
      *
      * Retrieve a nullable value (3.0 nullable keyword)
      *
+     * Successful response
+     *
      * @category data-types
      */
     getNullable: decorateWithErrors<() => Promise<GetNullableResponse>, never>(
@@ -3372,6 +3494,8 @@ export function createClient(requester: Requester) {
      * AllOf composition
      *
      * Test allOf keyword
+     *
+     * Successful response
      *
      * @category schema-keywords
      */
@@ -3399,6 +3523,8 @@ export function createClient(requester: Requester) {
      *
      * Test oneOf keyword
      *
+     * Successful response
+     *
      * @category schema-keywords
      */
     getOneof: decorateWithErrors<() => Promise<GetOneofResponse>, never>(
@@ -3425,6 +3551,8 @@ export function createClient(requester: Requester) {
      *
      * Test anyOf keyword
      *
+     * Successful response
+     *
      * @category schema-keywords
      */
     getAnyof: decorateWithErrors<() => Promise<GetAnyofResponse>, never>(
@@ -3450,6 +3578,8 @@ export function createClient(requester: Requester) {
      * Discriminator test
      *
      * Test discriminator keyword
+     *
+     * Successful response
      *
      * @param body — request body
      *
@@ -3479,6 +3609,8 @@ export function createClient(requester: Requester) {
      *
      * Test enum keyword
      *
+     * Successful response
+     *
      * @category schema-keywords
      */
     getEnum: decorateWithErrors<() => Promise<GetEnumResponse>, never>(
@@ -3505,6 +3637,8 @@ export function createClient(requester: Requester) {
      *
      * Test const keyword
      *
+     * Successful response
+     *
      * @category schema-keywords
      */
     getConst: decorateWithErrors<() => Promise<GetConstResponse>, never>(
@@ -3530,6 +3664,8 @@ export function createClient(requester: Requester) {
      * Default values test
      *
      * Test default keyword
+     *
+     * Successful response
      *
      * @param body — request body
      *
@@ -3559,6 +3695,8 @@ export function createClient(requester: Requester) {
      *
      * Test description keyword
      *
+     * Successful response
+     *
      * @category schema-keywords
      */
     getDescription: decorateWithErrors<() => Promise<GetDescriptionResponse>, never>(
@@ -3585,6 +3723,8 @@ export function createClient(requester: Requester) {
      *
      * Test readOnly keyword
      *
+     * Successful response
+     *
      * @category schema-keywords
      */
     getReadonly: decorateWithErrors<() => Promise<GetReadonlyResponse>, never>(
@@ -3610,6 +3750,8 @@ export function createClient(requester: Requester) {
      * WriteOnly test
      *
      * Test writeOnly keyword
+     *
+     * Successful response
      *
      * @param body — request body
      *
@@ -3639,6 +3781,8 @@ export function createClient(requester: Requester) {
      *
      * Test deprecated keyword
      *
+     * Successful response
+     *
      * @category schema-keywords
      *
      * @deprecated
@@ -3667,6 +3811,8 @@ export function createClient(requester: Requester) {
      *
      * Test format keyword
      *
+     * Successful response
+     *
      * @category schema-keywords
      */
     getFormat: decorateWithErrors<() => Promise<GetFormatResponse>, never>(
@@ -3692,6 +3838,8 @@ export function createClient(requester: Requester) {
      * Additional properties test
      *
      * Test additionalProperties keyword
+     *
+     * Successful response
      *
      * @category schema-keywords
      */
@@ -3719,6 +3867,8 @@ export function createClient(requester: Requester) {
      *
      * Test required keyword
      *
+     * Successful response
+     *
      * @category schema-keywords
      */
     getRequired: decorateWithErrors<() => Promise<GetRequiredResponse>, never>(
@@ -3745,6 +3895,8 @@ export function createClient(requester: Requester) {
      *
      * Test Tier 2 validation constraints (should not crash)
      *
+     * Successful response
+     *
      * @category schema-keywords
      */
     getValidationConstraints: decorateWithErrors<() => Promise<GetValidationConstraintsResponse>, never>(
@@ -3770,6 +3922,8 @@ export function createClient(requester: Requester) {
      * File upload test
      *
      * Test file uploads
+     *
+     * Successful response
      *
      * @param body — request body
      *
@@ -3823,6 +3977,8 @@ export function createClient(requester: Requester) {
      *
      * Test binary response handling
      *
+     * Binary response
+     *
      * @category responses
      */
     getBinaryResponse: decorateWithErrors<() => Promise<GetBinaryResponseResponse>, GetBinaryResponseErrors>(
@@ -3850,6 +4006,8 @@ export function createClient(requester: Requester) {
      *
      * Test image response handling
      *
+     * Image response
+     *
      * @category responses
      */
     getImageResponse: decorateWithErrors<() => Promise<GetImageResponseResponse>, never>(
@@ -3875,6 +4033,8 @@ export function createClient(requester: Requester) {
      * Empty response test
      *
      * Test empty response handling
+     *
+     * Empty response
      *
      * @category responses
      */
@@ -3903,6 +4063,8 @@ export function createClient(requester: Requester) {
      *
      * Test multiple content types in response
      *
+     * Response with multiple content types
+     *
      * @category responses
      */
     getMultiContentResponse: decorateWithErrors<() => Promise<GetMultiContentResponseResponse>, never>(
@@ -3928,6 +4090,8 @@ export function createClient(requester: Requester) {
      * Nested schema test
      *
      * Test nested schemas with refs
+     *
+     * Successful response
      *
      * @param body — request body
      *
@@ -3957,6 +4121,8 @@ export function createClient(requester: Requester) {
      *
      * Test GET method
      *
+     * Successful response
+     *
      * @category http-methods
      */
     getAllMethods: decorateWithErrors<() => Promise<GetAllMethodsResponse>, never>(
@@ -3982,6 +4148,8 @@ export function createClient(requester: Requester) {
      * POST method test
      *
      * Test POST method
+     *
+     * Successful response
      *
      * @param body — request body
      *
@@ -4011,6 +4179,8 @@ export function createClient(requester: Requester) {
      *
      * Test PUT method
      *
+     * Successful response
+     *
      * @param body — request body
      *
      * @category http-methods
@@ -4038,6 +4208,8 @@ export function createClient(requester: Requester) {
      * PATCH method test
      *
      * Test PATCH method
+     *
+     * Successful response
      *
      * @param body — request body
      *
@@ -4067,6 +4239,8 @@ export function createClient(requester: Requester) {
      *
      * Test DELETE method
      *
+     * Empty response
+     *
      * @category http-methods
      */
     deleteAllMethods: decorateWithErrors<() => Promise<void>, never>(
@@ -4092,6 +4266,8 @@ export function createClient(requester: Requester) {
      * OPTIONS method test
      *
      * Test OPTIONS method
+     *
+     * CORS options response
      *
      * @category http-methods
      */
@@ -4119,6 +4295,8 @@ export function createClient(requester: Requester) {
      *
      * Test HEAD method
      *
+     * Empty response
+     *
      * @category http-methods
      */
     headAllMethods: decorateWithErrors<() => Promise<void>, never>(
@@ -4145,6 +4323,8 @@ export function createClient(requester: Requester) {
      *
      * Test TRACE method
      *
+     * Successful response
+     *
      * @category http-methods
      */
     traceAllMethods: decorateWithErrors<() => Promise<TraceAllMethodsResponse>, never>(
@@ -4170,6 +4350,8 @@ export function createClient(requester: Requester) {
      * Get by path ID
      *
      * Test path parameter handling
+     *
+     * Successful response
      *
      * @param id — Path parameter ID
      *
@@ -4198,6 +4380,8 @@ export function createClient(requester: Requester) {
      * Get with query params
      *
      * Test query parameter handling
+     *
+     * Successful response
      *
      * @param limit — Query parameter limit
      * @param offset — Query offset
@@ -4229,6 +4413,8 @@ export function createClient(requester: Requester) {
      *
      * Test header parameter handling
      *
+     * Successful response
+     *
      * @param X-Custom-Header — Custom header
      * @param X-Trace-ID — Trace ID
      *
@@ -4258,6 +4444,8 @@ export function createClient(requester: Requester) {
      *
      * Test cookie parameter handling
      *
+     * Successful response
+     *
      * @param session_id — Session cookie
      *
      * @category parameters
@@ -4285,6 +4473,8 @@ export function createClient(requester: Requester) {
      * Post JSON body
      *
      * Test JSON request body
+     *
+     * Successful response
      *
      * @param body — request body
      *
@@ -4314,6 +4504,8 @@ export function createClient(requester: Requester) {
      *
      * Test form URL encoded request body
      *
+     * Successful response
+     *
      * @param body — request body
      *
      * @category request-bodies
@@ -4341,6 +4533,8 @@ export function createClient(requester: Requester) {
      * Post binary body
      *
      * Test binary request body
+     *
+     * Successful response
      *
      * @param body — request body
      *
@@ -4370,6 +4564,8 @@ export function createClient(requester: Requester) {
      *
      * Test multiple content types in request body
      *
+     * Successful response
+     *
      * @param body — request body
      *
      * @category request-bodies
@@ -4398,6 +4594,8 @@ export function createClient(requester: Requester) {
      *
      * Test optional request body
      *
+     * Successful response
+     *
      * @param body — request body
      *
      * @category request-bodies
@@ -4425,6 +4623,8 @@ export function createClient(requester: Requester) {
      * Error handling test
      *
      * Test various error responses
+     *
+     * Successful response
      *
      * @category error-handling
      */
@@ -4457,6 +4657,8 @@ export function createClient(requester: Requester) {
      *
      * Test security scheme handling
      *
+     * Successful response
+     *
      * @category security
      */
     getSecurityTest: decorateWithErrors<() => Promise<GetSecurityTestResponse>, never>(
@@ -4482,6 +4684,8 @@ export function createClient(requester: Requester) {
      * OAuth test
      *
      * Test OAuth scheme handling
+     *
+     * Successful response
      *
      * @category security
      */
@@ -4587,6 +4791,8 @@ export function createClient(requester: Requester) {
      *
      * Test 3.0 exclusive bounds as booleans
      *
+     * Successful response
+     *
      * @param exclusive_min — Exclusive minimum test (3.0 boolean)
      * @param exclusive_max — Exclusive maximum test (3.0 boolean)
      *
@@ -4642,6 +4848,8 @@ export function createClient(requester: Requester) {
      *
      * Test nullable keyword on request body object
      *
+     * Successful response
+     *
      * @param body — request body
      *
      * @category version-specific
@@ -4669,6 +4877,8 @@ export function createClient(requester: Requester) {
      * Tier 2 parameters test
      *
      * Test Tier 2 parameter features
+     *
+     * Successful response
      *
      * @param style_test — Style test parameter
      * @param empty_value_test — Allow empty value test
@@ -4702,6 +4912,8 @@ export function createClient(requester: Requester) {
      *
      * Test Tier 2 validation constraints
      *
+     * Successful response
+     *
      * @param min_items — Min items test
      * @param max_length — Max length test
      * @param pattern_test — Pattern test
@@ -4731,6 +4943,8 @@ export function createClient(requester: Requester) {
      * Get user post
      *
      * Test complex path with multiple params
+     *
+     * Successful response
      *
      * @param userId — User ID
      * @param postId — Post ID
@@ -4762,6 +4976,8 @@ export function createClient(requester: Requester) {
      * Inline schema test
      *
      * Test inline schema definition in operation
+     *
+     * Success
      *
      * @param body — request body
      *

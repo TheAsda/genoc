@@ -47,6 +47,8 @@ export function createClient(requester: Requester) {
   return {
     /**
      * Health check
+     *
+     * OK
      */
     getHealth: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {

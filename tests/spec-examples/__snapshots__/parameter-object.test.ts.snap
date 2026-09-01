@@ -28,6 +28,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * Session info
+     */
     getSession: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -90,6 +93,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getData: decorateWithErrors<(query?: GetDataQuery, headers?: GetDataHeaders) => Promise<void>, never>(
       async (query?: GetDataQuery, headers?: GetDataHeaders): Promise<void> => {
         try {
@@ -153,6 +159,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * User details
+     */
     getOrgsByOrgIdUsersByUserId: decorateWithErrors<(orgId: string, userId: string, query: GetOrgsOrgIdUsersUserIdQuery | undefined, headers: GetOrgsOrgIdUsersUserIdHeaders) => Promise<void>, never>(
       async (orgId: string, userId: string, query: GetOrgsOrgIdUsersUserIdQuery | undefined, headers: GetOrgsOrgIdUsersUserIdHeaders): Promise<void> => {
         try {
@@ -206,6 +215,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * User found
+     */
     getUsersByUserId: decorateWithErrors<(userId: string) => Promise<void>, never>(
       async (userId: string): Promise<void> => {
         try {
@@ -265,6 +277,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * User list
+     */
     getUsers: decorateWithErrors<(query?: GetUsersQuery) => Promise<void>, never>(
       async (query?: GetUsersQuery): Promise<void> => {
         try {
@@ -301,6 +316,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * OK
+     */
     getItemsByItemId: decorateWithErrors<(itemId: string) => Promise<void>, never>(
       async (itemId: string): Promise<void> => {
         try {
@@ -361,6 +379,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * Search results
+     */
     getSearch: decorateWithErrors<(query: GetSearchQuery) => Promise<void>, never>(
       async (query: GetSearchQuery): Promise<void> => {
         try {

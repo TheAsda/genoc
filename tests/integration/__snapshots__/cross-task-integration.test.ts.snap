@@ -14,6 +14,8 @@ export function createClient(requester: Requester) {
   return {
     /**
      * List all products
+     *
+     * List of products
      */
     getProducts: decorateWithErrors<(query: GetProductsQuery | undefined, headers: GetProductsHeaders) => Promise<GetProductsResponse>, GetProductsErrors>(
       async (query: GetProductsQuery | undefined, headers: GetProductsHeaders): Promise<GetProductsResponse> => {
@@ -37,6 +39,8 @@ export function createClient(requester: Requester) {
     ),
     /**
      * Create a product
+     *
+     * Product created
      *
      * @param body — request body
      */
@@ -62,6 +66,8 @@ export function createClient(requester: Requester) {
     ),
     /**
      * Get product by ID
+     *
+     * A product
      */
     getProductsByProductId: decorateWithErrors<(productId: string, headers?: GetProductsProductIdHeaders) => Promise<GetProductsProductIdResponse>, GetProductsProductIdErrors>(
       async (productId: string, headers?: GetProductsProductIdHeaders): Promise<GetProductsProductIdResponse> => {
@@ -85,6 +91,8 @@ export function createClient(requester: Requester) {
     ),
     /**
      * Delete product by ID
+     *
+     * Product deleted
      */
     deleteProductsByProductId: decorateWithErrors<(productId: string) => Promise<void>, DeleteProductsProductIdErrors>(
       async (productId: string): Promise<void> => {

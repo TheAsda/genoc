@@ -628,6 +628,116 @@ describe('generateMethod', () => {
     });
   });
 
+  describe('success response description in JSDoc', () => {
+    function describedResponse(statusCode: string, description: string): AnalyzedResponse {
+      return { ...successResponse(statusCode), description };
+    }
+
+    it('appends the lowest-numbered 2xx description when 200 and 201 are both described', () => {
+      const op = makeOp({
+        summary: 'List all products',
+        description: 'Returns a paginated list of products.',
+        responses: [
+          describedResponse('200', 'Full product payload.'),
+          describedResponse('201', 'Created product confirmation.'),
+        ],
+      });
+
+      const result = generateMethod(op);
+
+      expect(result.jsDoc).toBe(`/**
+ * List all products
+ *
+ * Returns a paginated list of products.
+ *
+ * Full product payload.
+ */`);
+      expect(result.jsDoc).not.toContain('Created product confirmation.');
+    });
+
+    it('emits the response description alone when there is no summary or other section', () => {
+      const op = makeOp({
+        responses: [describedResponse('200', 'Full product payload.')],
+      });
+
+      const result = generateMethod(op);
+
+      expect(result.jsDoc).toBe(`/**
+ * Full product payload.
+ */`);
+    });
+
+    it('emits nothing when the lowest 2xx is undescribed even if a later 2xx is described', () => {
+      const op = makeOp({
+        summary: 'Create a product',
+        responses: [
+          successResponse('200'),
+          describedResponse('201', 'Created product confirmation.'),
+        ],
+      });
+
+      const result = generateMethod(op);
+
+      expect(result.jsDoc).toBe(`/**
+ * Create a product
+ */`);
+    });
+
+    it('ignores error response descriptions', () => {
+      const op = makeOp({
+        responses: [
+          successResponse('200'),
+          { ...makeErrorResponse('404'), description: 'Not found text.' },
+        ],
+      });
+
+      const result = generateMethod(op);
+
+      expect(result.jsDoc).toBe('');
+    });
+
+    it('places the response description before @param and @category sections', () => {
+      const op = makeOp({
+        summary: 'List all products',
+        queryParams: [{ ...queryParam('page'), description: 'Page number.' }],
+        responses: [describedResponse('200', 'Full product payload.')],
+      });
+
+      const result = generateMethod(op);
+
+      const lines = result.jsDoc.split('\n');
+      const responseIndex = lines.findIndex((line) => line.includes('Full product payload.'));
+      const paramIndex = lines.findIndex((line) => line.includes('@param page'));
+      expect(responseIndex).toBeGreaterThan(0);
+      expect(paramIndex).toBeGreaterThan(responseIndex);
+    });
+
+    it('skips whitespace-only response descriptions', () => {
+      const op = makeOp({
+        summary: 'List all products',
+        responses: [describedResponse('200', '   \n\t  ')],
+      });
+
+      const result = generateMethod(op);
+
+      expect(result.jsDoc).toBe(`/**
+ * List all products
+ */`);
+    });
+
+    it('sanitizes asterisk-slash sequences and flattens newlines in the response description', () => {
+      const op = makeOp({
+        responses: [describedResponse('200', 'First line.\n\nSecond line with */ terminator.')],
+      });
+
+      const result = generateMethod(op);
+
+      expect(result.jsDoc).toBe(`/**
+ * First line.  Second line with *\\/ terminator.
+ */`);
+    });
+  });
+
   describe('error types in implementation', () => {
     it("uses 'never' for error type when no error responses", () => {
       const op = makeOp({

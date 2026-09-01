@@ -57,6 +57,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * User found
+     */
     getUsersByUserId: decorateWithErrors<(userId: string) => Promise<GetUsersUserIdResponse>, never>(
       async (userId: string): Promise<GetUsersUserIdResponse> => {
         try {
@@ -93,6 +96,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * Cache cleared
+     */
     deleteCache: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -172,6 +178,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * Pong
+     */
     getPing: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
@@ -246,6 +255,9 @@ export type { Requester } from 'genoc/runtime';
 
 export function createClient(requester: Requester) {
   return {
+    /**
+     * Order details
+     */
     getOrdersByOrderId: decorateWithErrors<(orderId: string) => Promise<GetOrdersOrderIdResponse>, GetOrdersOrderIdErrors>(
       async (orderId: string): Promise<GetOrdersOrderIdResponse> => {
         try {

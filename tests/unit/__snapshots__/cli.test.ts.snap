@@ -49,6 +49,8 @@ export function createClient(requester: Requester) {
   return {
     /**
      * Test endpoint
+     *
+     * Success
      */
     getTest: decorateWithErrors<() => Promise<GetTestResponse>, never>(
       async (): Promise<GetTestResponse> => {
@@ -99,6 +101,8 @@ export function createClient(requester: Requester) {
   return {
     /**
      * Test endpoint
+     *
+     * Success
      */
     getTest: decorateWithErrors<() => Promise<GetTestResponse>, never>(
       async (): Promise<GetTestResponse> => {
