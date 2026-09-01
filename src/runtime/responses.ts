@@ -20,15 +20,6 @@ export class StreamResponse {
   }
 }
 
-/** Convenience wrapper around the `StreamResponse` constructor. */
-export function streamResponse(
-  data: ReadableStream<Uint8Array>,
-  filename?: string,
-  headers?: Record<string, string>
-): StreamResponse {
-  return new StreamResponse(data, filename, headers ?? {});
-}
-
 /** Container for non-2xx responses returned by a `Requester`. */
 export class ErrorResponse {
   readonly status: number;
@@ -47,14 +38,4 @@ export class ErrorResponse {
     this.headers = headers;
     this.message = message;
   }
-}
-
-/** Convenience wrapper around the `ErrorResponse` constructor. */
-export function errorResponse(
-  status: number,
-  data: unknown,
-  headers?: Record<string, string>,
-  message?: string
-): ErrorResponse {
-  return new ErrorResponse(status, data, headers ?? {}, message);
 }

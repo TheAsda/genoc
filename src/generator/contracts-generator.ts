@@ -202,9 +202,7 @@ function buildRuntimeReexport(runtimeImportPath: string): string[] {
     '  DefaultApiError,',
     '  RequesterFailError,',
     '  StreamResponse,',
-    '  streamResponse,',
     '  ErrorResponse,',
-    '  errorResponse,',
     `} from '${runtimeImportPath}';`,
   ];
 }

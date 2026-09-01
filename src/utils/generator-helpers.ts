@@ -13,9 +13,6 @@ export const RESERVED_TYPE_NAMES: ReadonlySet<string> = new Set([
   'UnspecifiedApiError',
   'DefaultApiError',
   'RequesterFailError',
-  // Functions in contracts.ts
-  'streamResponse',
-  'errorResponse',
   // Types / functions in client.ts
   'Requester',
   'isDefinedError',

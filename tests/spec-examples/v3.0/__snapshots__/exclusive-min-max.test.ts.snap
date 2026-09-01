@@ -10,9 +10,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type Config = { priority: number; };"
@@ -28,9 +26,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type NullableBounded = number | null;"
@@ -46,9 +42,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type BoundedMax = number;"
@@ -64,9 +58,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type BoundedMin = number;"
@@ -82,9 +74,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type BothBounded = number;"
@@ -100,9 +90,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type NonExclusive = number;"
@@ -118,9 +106,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type PlainNumber = number;"

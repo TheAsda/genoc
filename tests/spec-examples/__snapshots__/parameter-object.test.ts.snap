@@ -10,9 +10,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type GetSessionResponse = void;"
@@ -64,9 +62,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type GetDataQuery = { page?: number; };
@@ -123,9 +119,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type GetOrgsOrgIdUsersUserIdQuery = { include?: string; fields?: string; };
@@ -182,9 +176,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type GetUsersUserIdResponse = void;"
@@ -236,9 +228,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type GetUsersQuery = { page?: number; limit?: number; };
@@ -329,9 +319,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type GetSearchQuery = { q: string; sort?: string; filter?: string; };

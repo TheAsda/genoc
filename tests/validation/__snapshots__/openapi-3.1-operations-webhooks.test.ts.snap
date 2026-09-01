@@ -10,9 +10,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type GetItemsResponse = string[];"
@@ -65,9 +63,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type GetResourceResponse = void;
@@ -266,9 +262,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type PostItemsBody = { name: string; };
@@ -326,9 +320,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type PutItemsIdBody = { name?: string; };
@@ -386,9 +378,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type PatchItemsIdBody = { name?: string; };
@@ -446,9 +436,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type DeleteItemsIdResponse = void;"
@@ -500,9 +488,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type OptionsItemsResponse = void;"
@@ -554,9 +540,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type HeadItemsResponse = void;"
@@ -608,9 +592,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type TraceItemsResponse = void;"
@@ -662,9 +644,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type GetItemsResponse = void;"
@@ -716,9 +696,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type GetItemsResponse = void;"
@@ -770,9 +748,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type GetItemsResponse = void;
@@ -845,9 +821,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type GetItemsResponse = void;"
@@ -902,9 +876,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type GetLegacyItemsResponse = void;"
@@ -966,9 +938,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type GetItemsResponse = void;"
@@ -1023,9 +993,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type GetItemsResponse = void;"
@@ -1082,9 +1050,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type GetItemsResponse = void;"
@@ -1142,9 +1108,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type GetLegacyItemsResponse = void;"
@@ -1201,9 +1165,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type OidcAuth = { type: "openIdConnect"; openIdConnectUrl: "https://example.com/.well-known/openid-configuration" };"
@@ -1219,9 +1181,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type BearerAuthAuth = { type: "http"; scheme: "bearer"; bearerFormat: "JWT" };
@@ -1275,9 +1235,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';"
 `;
 
@@ -1291,9 +1249,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 /** Server: https://{env}.api.example.com */
@@ -1313,9 +1269,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 /** Server: https://{env}.api.example.com */
@@ -1335,9 +1289,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 /** Server: https://{env}.api.example.com */
@@ -1357,9 +1309,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 /** Server: https://api.example.com/{version} */

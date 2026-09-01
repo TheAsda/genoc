@@ -131,9 +131,7 @@ export {
   DefaultApiError,
   RequesterFailError,
   StreamResponse,
-  streamResponse,
   ErrorResponse,
-  errorResponse,
 } from 'genoc/runtime';
 
 export type Pet = { id: string; name: string; tag?: string | null; status?: 'available' | 'pending' | 'sold'; };

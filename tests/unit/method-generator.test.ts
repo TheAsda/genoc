@@ -39,7 +39,7 @@ function successResponse(statusCode: string, tsType = 'unknown'): AnalyzedRespon
   };
 }
 
-function errorResponse(statusCode: string): AnalyzedResponse {
+function makeErrorResponse(statusCode: string): AnalyzedResponse {
   return {
     statusCode,
     description: undefined,
@@ -343,7 +343,7 @@ describe('generateMethod', () => {
   describe('return types', () => {
     it('returns Promise<unknown> when no success responses', () => {
       const op = makeOp({
-        responses: [errorResponse('400'), errorResponse('500')],
+        responses: [makeErrorResponse('400'), makeErrorResponse('500')],
       });
 
       const result = generateMethod(op);
@@ -641,7 +641,7 @@ describe('generateMethod', () => {
 
     it('uses status-specific error types when error responses exist', () => {
       const op = makeOp({
-        responses: [successResponse('200'), errorResponse('400'), errorResponse('404')],
+        responses: [successResponse('200'), makeErrorResponse('400'), makeErrorResponse('404')],
       });
 
       const result = generateMethod(op);
