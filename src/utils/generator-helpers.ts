@@ -1,5 +1,90 @@
 import type { AnalyzedOperation } from '../analyzer/path-analyzer.js';
 import type { SchemaObject } from '../types/openapi.js';
+/**
+ * TypeScript/JavaScript reserved words, matched case-sensitively: a type
+ * named "Null" or "Class" is legal, only the exact lowercase keywords are.
+ */
+const RESERVED_WORDS: ReadonlySet<string> = new Set([
+  'abstract',
+  'any',
+  'as',
+  'asserts',
+  'assert',
+  'async',
+  'await',
+  'boolean',
+  'break',
+  'case',
+  'catch',
+  'class',
+  'continue',
+  'const',
+  'constructor',
+  'debugger',
+  'declare',
+  'default',
+  'delete',
+  'do',
+  'else',
+  'enum',
+  'export',
+  'extends',
+  'false',
+  'finally',
+  'for',
+  'from',
+  'function',
+  'get',
+  'if',
+  'implements',
+  'import',
+  'in',
+  'infer',
+  'instanceof',
+  'interface',
+  'is',
+  'keyof',
+  'let',
+  'module',
+  'namespace',
+  'never',
+  'new',
+  'null',
+  'number',
+  'object',
+  'package',
+  'private',
+  'protected',
+  'public',
+  'readonly',
+  'require',
+  'return',
+  'satisfies',
+  'set',
+  'static',
+  'string',
+  'super',
+  'switch',
+  'symbol',
+  'this',
+  'throw',
+  'true',
+  'try',
+  'type',
+  'typeof',
+  'undefined',
+  'unique',
+  'unknown',
+  'var',
+  'void',
+  'while',
+  'with',
+  'yield',
+]);
+
+function isReservedTypeName(name: string): boolean {
+  return RESERVED_WORDS.has(name);
+}
 
 /**
  * Reserved type names used by the generated output's built-in classes,
@@ -27,22 +112,54 @@ export const RESERVED_TYPE_NAMES: ReadonlySet<string> = new Set([
 export const DEFAULT_RUNTIME_IMPORT_PATH = 'genoc/runtime';
 
 /**
- * Sanitize a schema type name by converting dot-separated segments into
- * PascalCase. Names without dots pass through unchanged.
+ * Sanitize a schema type name into a valid TypeScript identifier.
  *
- * "Api.Error" → "ApiError", "Simple" → "Simple"
+ * Any run of non-identifier characters (dots, brackets, backticks, hyphens,
+ * spaces, slashes, ...) splits the name into segments that are re-joined in
+ * PascalCase:
+ *
+ *   "Api.Error"  → "ApiError"
+ *   "User[Dto]"  → "UserDto"
+ *   "my-schema"  → "MySchema"
+ *   "payment id" → "PaymentId"
+ *
+ * Names that are already valid identifiers pass through unchanged
+ * ("User", "my_schema", "mySchema", "$Foo", "Данные"). Results that would
+ * start with a digit ("2FA") get an "_" prefix, as do exact reserved words
+ * ("class" → "_class"). Names with no usable characters collapse to "_".
  */
 export function sanitizeTypeName(name: string): string {
-  if (!name.includes('.')) return name;
-  return name
-    .split('.')
+  if (!name) return '_';
+
+  // Exact reserved words keep their casing and get an "_" prefix
+  // ("class" → "_class"), while "Null" / "Class" are legal and pass through.
+  if (isReservedTypeName(name)) return `_${name}`;
+
+  const isValidIdentifier = /^[\p{ID_Start}$_][\p{ID_Continue}$]*$/u.test(name);
+  if (isValidIdentifier) return name;
+
+  const segments = name.match(/[\p{ID_Continue}$]+/gu) ?? [];
+  const result = segments
     .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
     .join('');
+
+  // Covers empty results, ASCII digits, and non-ASCII digits (Nd but not
+  // ID_Start, e.g. Arabic-Indic) alike: anything not starting with a valid
+  // identifier start character gets the "_" prefix.
+  if (!/^[\p{ID_Start}$_]/u.test(result)) return `_${result}`;
+  if (isReservedTypeName(result)) return `_${result}`;
+  return result;
 }
 
 /**
- * Build a mapping of sanitized schema names → renamed names for any that
- * collide with reserved type names.
+ * Build a mapping of raw schema names → renamed names for any whose
+ * sanitized name collides with a reserved type name or with another
+ * schema's sanitized name (e.g. "User-Dto" and "User[Dto]" both → "UserDto").
+ *
+ * The map is keyed by the raw schema name (component keys are unique by
+ * construction), so callers resolve raw $ref segments / schema keys first
+ * and fall back to sanitizeTypeName for the common no-collision case.
+ * Numbered suffixes are used when the first renamed candidate also collides.
  */
 export function buildSchemaRenameMap(
   schemaNames: Iterable<string>,
@@ -50,11 +167,22 @@ export function buildSchemaRenameMap(
   suffix = 'Model'
 ): Map<string, string> {
   const renameMap = new Map<string, string>();
+  const used = new Set<string>(reserved);
+
   for (const name of schemaNames) {
     const sanitized = sanitizeTypeName(name);
-    if (reserved.has(sanitized)) {
-      renameMap.set(sanitized, `${sanitized}${suffix}`);
+    if (!used.has(sanitized)) {
+      used.add(sanitized);
+      continue;
     }
+    let candidate = `${sanitized}${suffix}`;
+    let counter = 2;
+    while (used.has(candidate)) {
+      candidate = `${sanitized}${suffix}${counter}`;
+      counter += 1;
+    }
+    used.add(candidate);
+    renameMap.set(name, candidate);
   }
   return renameMap;
 }
@@ -75,8 +203,17 @@ export function toPascalCase(str: string): string {
 /**
  * Build a PascalCase type-name prefix from an operation's method + path.
  * get + /api/v1/products → "GetApiV1Products"
+ *
+ * Returns the deduped prefix assigned by analyzePaths when available
+ * (distinct routes folding to the same identifier get numbered suffixes),
+ * otherwise computes it from the operation directly.
  */
 export function getOperationTypePrefix(op: AnalyzedOperation): string {
+  if (op.typePrefix) return op.typePrefix;
+  return computeOperationTypePrefix(op);
+}
+
+function computeOperationTypePrefix(op: AnalyzedOperation): string {
   const methodPascal = op.method.charAt(0).toUpperCase() + op.method.slice(1).toLowerCase();
 
   const segments = op.path
@@ -84,7 +221,7 @@ export function getOperationTypePrefix(op: AnalyzedOperation): string {
     .filter((s) => s.length > 0)
     .map((s) => {
       const cleaned = s.replace(/[{}]/g, '');
-      return toPascalCase(cleaned);
+      return sanitizeTypeName(toPascalCase(cleaned));
     });
 
   return methodPascal + segments.join('');

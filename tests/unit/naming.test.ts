@@ -380,3 +380,12 @@ describe('Integration tests - All 8 examples from specification', () => {
     });
   });
 });
+
+describe('generateMethodName — weird route symbols (issue #25)', () => {
+  it('sanitizes dots, tildes and brackets in path segments', () => {
+    expect(generateMethodName('get', '/api/v1.2/user-settings/{id}/list~all')).toBe(
+      'getApiV12UserSettingsByIdListAll'
+    );
+    expect(generateMethodName('post', '/payment.input')).toBe('postPaymentInput');
+  });
+});

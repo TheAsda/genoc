@@ -8,7 +8,7 @@ import type {
   ResponseObject,
   SchemaObject,
 } from '../types/openapi.js';
-import { sanitizeTypeName } from '../utils/generator-helpers.js';
+import { sanitizeTypeName, getOperationTypePrefix } from '../utils/generator-helpers.js';
 import { getMethodName } from './naming.js';
 
 export interface AnalyzedParameter {
@@ -45,6 +45,8 @@ export interface AnalyzedOperation {
   path: string;
   operationId: string | undefined;
   methodName: string;
+  /** Deduped by analyzePaths; computed from method + path when absent. */
+  typePrefix?: string;
   summary: string | undefined;
   description: string | undefined;
   deprecated: boolean;
@@ -310,6 +312,8 @@ export function analyzePaths(
 
   if (!doc.paths) return operations;
 
+  const usedTypePrefixes = new Set<string>();
+  const usedMethodNames = new Set<string>();
   for (const [urlPath, pathItem] of Object.entries(doc.paths)) {
     for (const method of HTTP_METHODS) {
       const operation = pathItem[method];
@@ -341,6 +345,34 @@ export function analyzePaths(
         responses,
       });
     }
+  }
+
+  // Dedupe type prefixes and method names so that distinct routes folding to
+  // the same identifier (e.g. "/weird" and "/weird-", or "/Weird" and
+  // "/weird") cannot produce duplicate exported types or client methods.
+  // NOTE: analyzePaths runs twice per generation (contracts pass + client
+  // pass); this assignment must stay deterministic - it relies on insertion
+  // order and the fixed HTTP_METHODS loop - so both passes agree.
+  for (const op of operations) {
+    const baseTypePrefix = getOperationTypePrefix(op);
+    let typePrefix = baseTypePrefix;
+    let n = 2;
+    while (usedTypePrefixes.has(typePrefix)) {
+      typePrefix = `${baseTypePrefix}${n}`;
+      n += 1;
+    }
+    usedTypePrefixes.add(typePrefix);
+    op.typePrefix = typePrefix;
+
+    const baseMethodName = op.methodName;
+    let methodName = baseMethodName;
+    n = 2;
+    while (usedMethodNames.has(methodName)) {
+      methodName = `${baseMethodName}${n}`;
+      n += 1;
+    }
+    usedMethodNames.add(methodName);
+    op.methodName = methodName;
   }
 
   return operations;

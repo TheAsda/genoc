@@ -43,9 +43,10 @@ function substituteDiscriminatedType(
   if (!refSchema || typeof refSchema !== 'object') return tsType;
 
   if (typeof refSchema.$ref === 'string') {
-    const schemaName = sanitizeTypeName((refSchema.$ref as string).split('/').pop()!);
+    const rawName = (refSchema.$ref as string).split('/').pop()!;
+    const schemaName = sanitizeTypeName(rawName);
     if (schemaName && discriminatorInfo.has(schemaName)) {
-      const renamed = renameMap.get(schemaName) ?? schemaName;
+      const renamed = renameMap.get(rawName) ?? schemaName;
       return tsType.replace(new RegExp(`\\b${renamed}\\b`, 'g'), `${renamed}Variant`);
     }
   }
@@ -53,9 +54,10 @@ function substituteDiscriminatedType(
   if (refSchema.items && typeof refSchema.items === 'object') {
     const items = refSchema.items as Record<string, unknown>;
     if (typeof items.$ref === 'string') {
-      const schemaName = sanitizeTypeName((items.$ref as string).split('/').pop()!);
+      const rawName = (items.$ref as string).split('/').pop()!;
+      const schemaName = sanitizeTypeName(rawName);
       if (schemaName && discriminatorInfo.has(schemaName)) {
-        const renamed = renameMap.get(schemaName) ?? schemaName;
+        const renamed = renameMap.get(rawName) ?? schemaName;
         return tsType.replace(new RegExp(`\\b${renamed}\\b`, 'g'), `${renamed}Variant`);
       }
     }
@@ -296,20 +298,20 @@ export function generateContracts(
     // TODO: Replace with structured logging solution
     // oxlint-disable-next-line no-console
     console.warn(
-      `Warning: Schema "${original}" collides with a built-in type and was renamed to "${renamed}".`
+      `Warning: Schema "${original}" collides with a built-in type or another schema and was renamed to "${renamed}".`
     );
   }
 
   const renamingTypeGenerator = (refString: string): string => {
     const segments = refString.split('/');
     const rawSegment = segments[segments.length - 1] || 'unknown';
-    const lastSegment = sanitizeTypeName(rawSegment);
-    return renameMap.get(lastSegment) ?? lastSegment;
+    return renameMap.get(rawSegment) ?? sanitizeTypeName(rawSegment);
   };
 
   const discriminatorInfo = new Map<
     string,
     {
+      rawName: string;
       propertyName: string;
       mapping: Map<string, string>;
     }
@@ -322,12 +324,13 @@ export function generateContracts(
         const mapping = new Map<string, string>();
         if (resolved.discriminator.mapping) {
           for (const [key, ref] of Object.entries(resolved.discriminator.mapping)) {
-            const targetName = sanitizeTypeName(ref.split('/').pop() || key);
-            const renamedTarget = renameMap.get(targetName) ?? targetName;
+            const rawTarget = ref.split('/').pop() || key;
+            const renamedTarget = renameMap.get(rawTarget) ?? sanitizeTypeName(rawTarget);
             mapping.set(key, renamedTarget);
           }
         }
         discriminatorInfo.set(sanitizeTypeName(name), {
+          rawName: name,
           propertyName: resolved.discriminator.propertyName,
           mapping,
         });
@@ -348,7 +351,7 @@ export function generateContracts(
   const allSchemaNames = new Set<string>();
   if (doc.components?.schemas) {
     for (const name of Object.keys(doc.components.schemas)) {
-      allSchemaNames.add(sanitizeTypeName(name));
+      allSchemaNames.add(renameMap.get(name) ?? sanitizeTypeName(name));
     }
   }
 
@@ -370,9 +373,8 @@ export function generateContracts(
 
   if (doc.components?.schemas) {
     for (const [name, schema] of Object.entries(doc.components.schemas)) {
-      const sanitizedName = sanitizeTypeName(name);
-      const renamedName = renameMap.get(sanitizedName) ?? sanitizedName;
-      const result = mapper.mapSchema(schema, sanitizedName);
+      const renamedName = renameMap.get(name) ?? sanitizeTypeName(name);
+      const result = mapper.mapSchema(schema, renamedName);
       const resolved = resolver.resolve<SchemaObject>(schema as SchemaObject | ReferenceObject);
 
       const definition = `export type ${renamedName} = ${result.tsType};`;
@@ -396,11 +398,11 @@ export function generateContracts(
     lines.push(entry.definition);
   }
 
-  for (const [baseName, info] of discriminatorInfo) {
+  for (const [, info] of discriminatorInfo) {
     const subtypeNames = Array.from(info.mapping.values());
     if (subtypeNames.length === 0) continue;
     const unionType = subtypeNames.join(' | ');
-    const renamedBase = renameMap.get(sanitizeTypeName(baseName)) ?? sanitizeTypeName(baseName);
+    const renamedBase = renameMap.get(info.rawName) ?? sanitizeTypeName(info.rawName);
     lines.push('');
     lines.push(`export type ${renamedBase}Variant = ${unionType};`);
     allSchemaNames.add(`${renamedBase}Variant`);
@@ -410,9 +412,17 @@ export function generateContracts(
   const securitySchemes = doc.components?.securitySchemes;
   if (securitySchemes && Object.keys(securitySchemes).length > 0) {
     const securityTypeNames: string[] = [];
+    const usedSecurityTypeNames = new Set<string>();
 
     for (const [schemeName, scheme] of Object.entries(securitySchemes)) {
-      const typeName = `${toPascalCase(schemeName)}Auth`;
+      const baseTypeName = `${sanitizeTypeName(toPascalCase(schemeName))}Auth`;
+      let typeName = baseTypeName;
+      let n = 2;
+      while (usedSecurityTypeNames.has(typeName)) {
+        typeName = `${baseTypeName}${n}`;
+        n += 1;
+      }
+      usedSecurityTypeNames.add(typeName);
       const tsType = securitySchemeToTsType(scheme);
       const schemeJsDoc = buildDescriptionJsDoc(scheme.description);
       if (schemeJsDoc !== '') {
