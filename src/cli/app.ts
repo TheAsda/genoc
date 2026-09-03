@@ -53,8 +53,7 @@ const command = buildCommand<Flags, [string]>({
       proxy: {
         kind: 'parsed',
         parse: String,
-        brief:
-          'HTTP(S) proxy URL for fetching specs (overrides HTTP_PROXY/HTTPS_PROXY env vars)',
+        brief: 'HTTP(S) proxy URL for fetching specs (overrides HTTP_PROXY/HTTPS_PROXY env vars)',
         optional: true,
         placeholder: 'url',
       },
