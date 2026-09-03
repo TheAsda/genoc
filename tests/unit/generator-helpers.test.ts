@@ -301,6 +301,12 @@ describe('sanitizeTypeName — weird symbols (issue #25)', () => {
     expect(sanitizeTypeName('type')).toBe('_type');
   });
 
+  it('prefixes non-ASCII digit leading characters', () => {
+    // Arabic-Indic ٥ is Nd (ID_Continue) but not ID_Start - the final-result
+    // guard must catch it, not just ASCII /^\d/.
+    expect(sanitizeTypeName('٥code')).toBe('_٥code');
+  });
+
   it('keeps PascalCase words that merely look like reserved words', () => {
     expect(sanitizeTypeName('Null')).toBe('Null');
     expect(sanitizeTypeName('Class')).toBe('Class');
