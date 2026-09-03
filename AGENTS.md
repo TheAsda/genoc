@@ -33,7 +33,7 @@ Update snapshots: `npx vitest run --update` (or `-u`).
 spec-reader → version detection → validation → ref-resolver → path-analyzer → schema-mapper
                                                                                      ↓
                                               contracts-generator ←────────────────┘
-                                              client-generator ←── method-generator + error-types
+                                              client-generator ←── method-generator
                                                      ↓
                                               write to disk
 ```
@@ -48,7 +48,6 @@ spec-reader → version detection → validation → ref-resolver → path-analy
 | `src/generator/contracts-generator.ts` | Generates the `*.contracts.ts` file                                                                               |
 | `src/generator/client-generator.ts`    | Generates the `*.client.ts` file (method bodies via `buildClientMethodBody`) + file I/O (`generateFullOutput`)    |
 | `src/generator/method-generator.ts`    | Generates individual API method signatures (params, JSDoc)                                                        |
-| `src/generator/error-types.ts`         | `ApiError<TStatus, TData>`, `DefaultApiError`, per-operation error type generation                                |
 | `src/utils/generator-helpers.ts`       | Shared codegen helpers: `toPascalCase`, `getOperationTypePrefix`, `getSuccessType`, `getErrorType`, `makeHeader`  |
 | `src/types/`                           | Shared types: `OpenAPIDocument`, `GeneratorConfig`, `MethodNameStrategy`, `SchemaObject`                          |
 | `src/utils/`                           | Case conversion (`case.ts`), string utils, URL helpers                                                            |
@@ -125,7 +124,7 @@ Integration tests compile generated output with `tsc --strict` to verify type co
 
 ## Generated output structure
 
-**Contracts file** (`*.contracts.ts`): schema types → security scheme types → server variable types → per-operation query/header/body/response/error types → `StreamResponse` class (headers as `Record<string, string>`) → `ErrorResponse` class (headers as `Record<string, string>`) → `ApiError<TStatus, TData>` class → `DefaultApiError<TData>` class → `RequesterFailError`. Also includes per-operation error union types and `DefaultErrorBody` when `default` responses are present. Helper functions: `streamResponse()`, `errorResponse()`.
+**Contracts file** (`*.contracts.ts`): schema types → security scheme types → server variable types → per-operation query/header/body/response/error types → `StreamResponse` class (headers as `Record<string, string>`) → `ErrorResponse` class (headers as `Record<string, string>`) → `ApiError<TStatus, TData>` class → `DefaultApiError<TData>` class → `RequesterFailError`. Also includes per-operation error union types.
 
 **Client file** (`*.client.ts`): imports from contracts file (`ApiError`, `UnspecifiedApiError`, `ErrorResponse`, `StreamResponse`, `RequesterFailError`) → `decorateWithErrors<T, E>()` (attaches `__definedErrors` property) → `Requester` type (returns `TResponse | StreamResponse | ErrorResponse`) → `isDefinedError` type guard (uses `__definedErrors` property for narrowing) → `createClient(requester)` factory → methods with try/catch wrapping `ApiError` throws + `StreamResponse` binary handling. Error codes attached via `decorateWithErrors(fn, [400, ...] as const)`.
 
