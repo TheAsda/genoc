@@ -12,6 +12,7 @@ interface Flags {
   specVersion?: string;
   strictVersion: boolean;
   runtimeImportPath?: string;
+  proxy?: string;
 }
 
 const command = buildCommand<Flags, [string]>({
@@ -48,6 +49,13 @@ const command = buildCommand<Flags, [string]>({
         brief: 'Module specifier for runtime imports (default: genoc/runtime)',
         optional: true,
         placeholder: 'module',
+      },
+      proxy: {
+        kind: 'parsed',
+        parse: String,
+        brief: 'HTTP(S) proxy URL for fetching specs (overrides HTTP_PROXY/HTTPS_PROXY env vars)',
+        optional: true,
+        placeholder: 'url',
       },
     },
     positional: {

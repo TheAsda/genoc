@@ -4,6 +4,7 @@ import { generateFullOutput } from '../generator/client-generator.js';
 import { load } from '../parser/spec-reader.js';
 import { validateSpec } from '../parser/validators.js';
 import { defaultRegistry } from '../parser/version/index.js';
+import { assertValidProxyUrl } from '../utils/proxy.js';
 import type { AppFlags as Flags } from './app.js';
 import { UserError } from './errors.js';
 
@@ -13,8 +14,16 @@ export default async function (
   spec: string
 ): Promise<void | Error> {
   try {
+    if (flags.proxy) {
+      try {
+        assertValidProxyUrl(flags.proxy);
+      } catch (err) {
+        throw new UserError((err as Error).message);
+      }
+    }
+
     this.process.stdout.write(`Loading spec from ${spec}...\n`);
-    const doc = await load(spec);
+    const doc = await load(spec, { proxy: flags.proxy });
     this.process.stdout.write(`Loaded OpenAPI ${doc.openapi} spec\n`);
 
     const strategy = flags.specVersion

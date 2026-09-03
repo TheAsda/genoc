@@ -48,6 +48,7 @@
   },
   "dependencies": {
     "@stricli/core": "^1.2.6",
+    "undici": "^6.13.0",
     "yaml": "^2.8.4"
   },
   "devDependencies": {
