@@ -170,13 +170,14 @@ genoc <spec> [flags]
 
 `<spec>` — Path or URL to an OpenAPI 3.0 / 3.1 spec (JSON or YAML).
 
-| Flag                     | Default         | Description                                                  |
-| ------------------------ | --------------- | ------------------------------------------------------------ |
-| `--output-dir`           | (required)      | Output directory for generated files                         |
-| `--method-name-strategy` | `path-based`    | Method naming strategy                                       |
-| `--spec-version`         | auto-detect     | Override version detection (`"3.0"` or `"3.1"`)              |
-| `--strict-version`       | `true`          | Warn if `--spec-version` mismatches detected version         |
-| `--runtime-import-path`  | `genoc/runtime` | Module specifier generated code imports runtime classes from |
+| Flag                     | Default         | Description                                                                                        |
+| ------------------------ | --------------- | -------------------------------------------------------------------------------------------------- |
+| `--output-dir`           | (required)      | Output directory for generated files                                                               |
+| `--method-name-strategy` | `path-based`    | Method naming strategy                                                                             |
+| `--spec-version`         | auto-detect     | Override version detection (`"3.0"` or `"3.1"`)                                                    |
+| `--strict-version`       | `true`          | Warn if `--spec-version` mismatches detected version                                               |
+| `--runtime-import-path`  | `genoc/runtime` | Module specifier generated code imports runtime classes from                                       |
+| `--proxy`                | (none)          | HTTP(S) proxy URL for fetching specs from URLs; overrides HTTP_PROXY/HTTPS_PROXY/NO_PROXY env vars |
 
 ## Method Naming Strategies
 
@@ -188,6 +189,27 @@ genoc <spec> [flags]
 
 - **`operationId-with-fallback`** — Use `operationId` if present, otherwise
   fall back to path-based naming.
+
+## Proxy Support
+
+When fetching a spec from a URL, `genoc` can route the request through an
+HTTP(S) proxy:
+
+```bash
+genoc https://api.example.com/openapi.yaml --output-dir ./src/api \
+  --proxy http://user:pass@proxy.example.com:8080
+```
+
+- Credentials are supported in the proxy URL (`user:pass@host:port`).
+- Without `--proxy`, the `HTTP_PROXY` / `HTTPS_PROXY` environment variables
+  (either casing) are respected automatically, minus `NO_PROXY` exclusions.
+- An explicit `--proxy` flag overrides environment detection entirely.
+- Programmatic equivalent: `proxy: 'http://proxy.example.com:8080'` in the
+  `generateClient` config, or an optional second argument `loadSpec(url, { proxy })`.
+- SOCKS proxies and `ALL_PROXY` are not supported.
+
+Note: if you already have `HTTP_PROXY` set in your environment, spec fetches
+now go through it (previously ignored). Use `NO_PROXY` to opt out.
 
 ## JSDoc Documentation Output
 
@@ -209,6 +231,7 @@ await generateClient({
   methodNameStrategy: 'path-based',
   specVersion: '3.1',
   strictVersion: true,
+  proxy: 'http://proxy.example.com:8080',
 });
 ```
 
