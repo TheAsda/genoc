@@ -70,6 +70,10 @@ export class SchemaMapper {
     discriminatorTargets?: Map<string, { propertyName: string; literalValue: string }>,
     reservedNames?: Set<string>
   ) {
+    // NOTE: discriminatorTargets must be keyed by names produced by the SAME
+    // (rename-aware) typeNameGenerator that resolves $refs. Passing targets
+    // keyed by raw schema names means renamed subtypes silently lose their
+    // `& { prop: 'literal' }` intersection in the generated output.
     this.resolver = resolver;
     this.typeNameGenerator = typeNameGenerator ?? defaultTypeNameGenerator;
     this.discriminatorTargets = discriminatorTargets ?? new Map();

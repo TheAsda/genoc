@@ -143,8 +143,10 @@ export function sanitizeTypeName(name: string): string {
     .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
     .join('');
 
-  if (result === '') return '_';
-  if (/^\d/.test(result)) return `_${result}`;
+  // Covers empty results, ASCII digits, and non-ASCII digits (Nd but not
+  // ID_Start, e.g. Arabic-Indic) alike: anything not starting with a valid
+  // identifier start character gets the "_" prefix.
+  if (!/^[\p{ID_Start}$_]/u.test(result)) return `_${result}`;
   if (isReservedTypeName(result)) return `_${result}`;
   return result;
 }

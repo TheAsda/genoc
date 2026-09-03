@@ -350,6 +350,9 @@ export function analyzePaths(
   // Dedupe type prefixes and method names so that distinct routes folding to
   // the same identifier (e.g. "/weird" and "/weird-", or "/Weird" and
   // "/weird") cannot produce duplicate exported types or client methods.
+  // NOTE: analyzePaths runs twice per generation (contracts pass + client
+  // pass); this assignment must stay deterministic - it relies on insertion
+  // order and the fixed HTTP_METHODS loop - so both passes agree.
   for (const op of operations) {
     const baseTypePrefix = getOperationTypePrefix(op);
     let typePrefix = baseTypePrefix;
