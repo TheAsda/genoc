@@ -1,4 +1,3 @@
-import { execSync } from 'child_process';
 import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'fs';
 import { mkdtemp } from 'fs/promises';
 import { tmpdir } from 'os';
@@ -13,23 +12,11 @@ import { RefResolver } from '../../src/parser/ref-resolver.js';
 import { loadFromFile } from '../../src/parser/spec-reader.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { expectFilesCompile } from '../helpers/compile-check.js';
 import { linkGenoc } from '../helpers/link-genoc.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FIXTURE_PATH = join(__dirname, '../fixtures/openapi-3.1-full.yaml');
-
-const TSC_FLAGS = [
-  '--strict',
-  '--noEmit',
-  '--esModuleInterop',
-  '--module',
-  'NodeNext',
-  '--moduleResolution',
-  'NodeNext',
-  '--target',
-  'ES2022',
-  '--skipLibCheck',
-].join(' ');
 
 describe('OpenAPI 3.1 Mega-Spec Integration Test', () => {
   let doc: OpenAPIDocument;
@@ -71,14 +58,7 @@ describe('OpenAPI 3.1 Mega-Spec Integration Test', () => {
     const contractsFile = join(tmpDir, 'contracts.ts');
     writeFileSync(contractsFile, contracts, 'utf-8');
 
-    const result = execSync(`npx tsc ${TSC_FLAGS} ${contractsFile}`, {
-      cwd: tmpDir,
-      encoding: 'utf-8',
-      timeout: 60000,
-    }).trim();
-
-    // tsc --noEmit produces no output on success
-    expect(result).toBe('');
+    expectFilesCompile([contractsFile]);
   });
 
   // 3. Client compiles with tsc (needs contracts file alongside)
@@ -88,13 +68,7 @@ describe('OpenAPI 3.1 Mega-Spec Integration Test', () => {
     writeFileSync(join(dir, 'contracts.ts'), contracts, 'utf-8');
     writeFileSync(join(dir, 'client.ts'), client, 'utf-8');
 
-    const result = execSync(`npx tsc ${TSC_FLAGS} client.ts`, {
-      cwd: dir,
-      encoding: 'utf-8',
-      timeout: 60000,
-    }).trim();
-
-    expect(result).toBe('');
+    expectFilesCompile([join(dir, 'client.ts')]);
   });
 
   // 18. Parameter types generated
@@ -145,9 +119,7 @@ describe('OpenAPI 3.1 Mega-Spec Integration Test', () => {
     });
 
     it('generated files on disk compile together with tsc', () => {
-      // Skip tsc compilation test due to environment issues
-      // The compilation was tested in the earlier tests that pass
-      expect(true).toBe(true); // Placeholder assertion
+      expectFilesCompile([join(fullTmpDir, 'client.ts'), join(fullTmpDir, 'contracts.ts')]);
     });
   });
 });
