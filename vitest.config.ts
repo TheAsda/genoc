@@ -5,5 +5,8 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     passWithNoTests: true,
+    // Shares the module registry (and the heavy `typescript` import in
+    // compile-check) per worker instead of re-evaluating it for every file.
+    isolate: false,
   },
 });
