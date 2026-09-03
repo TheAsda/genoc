@@ -16,6 +16,25 @@ function redactCredentials(proxyUrl: string): string {
   }
 }
 
+const MAX_CAUSE_DEPTH = 5;
+
+/**
+ * undici's fetch() nests the meaningful error up to 3 levels deep via `cause`
+ * (e.g. "fetch failed" → "Request was cancelled." → "Proxy response (502) !== 200...").
+ * Flatten the chain so the deepest message (proxy status, ECONNREFUSED, ...) is user-visible.
+ */
+function describeFetchError(err: unknown): string {
+  const messages: string[] = [];
+  let current: unknown = err;
+  for (let depth = 0; depth <= MAX_CAUSE_DEPTH && current instanceof Error; depth++) {
+    if (!messages.includes(current.message)) {
+      messages.push(current.message);
+    }
+    current = current.cause;
+  }
+  return messages.join(': ');
+}
+
 export function assertValidProxyUrl(url: string): void {
   let parsed: URL;
   try {
@@ -52,7 +71,7 @@ export async function fetchSpec(url: string, opts?: LoadOptions): Promise<Respon
       })) as unknown as Response;
     } catch (err) {
       throw new Error(
-        `Failed to fetch spec from URL via proxy ${redacted}: ${(err as Error).message}`,
+        `Failed to fetch spec from URL via proxy ${redacted}: ${describeFetchError(err)}`,
         {
           cause: err,
         }
@@ -67,7 +86,7 @@ export async function fetchSpec(url: string, opts?: LoadOptions): Promise<Respon
         dispatcher: new EnvHttpProxyAgent(),
       })) as unknown as Response;
     } catch (err) {
-      throw new Error(`Failed to fetch spec from URL via proxy env: ${(err as Error).message}`, {
+      throw new Error(`Failed to fetch spec from URL via proxy env: ${describeFetchError(err)}`, {
         cause: err,
       });
     }
