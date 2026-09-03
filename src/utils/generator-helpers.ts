@@ -201,8 +201,17 @@ export function toPascalCase(str: string): string {
 /**
  * Build a PascalCase type-name prefix from an operation's method + path.
  * get + /api/v1/products → "GetApiV1Products"
+ *
+ * Returns the deduped prefix assigned by analyzePaths when available
+ * (distinct routes folding to the same identifier get numbered suffixes),
+ * otherwise computes it from the operation directly.
  */
 export function getOperationTypePrefix(op: AnalyzedOperation): string {
+  if (op.typePrefix) return op.typePrefix;
+  return computeOperationTypePrefix(op);
+}
+
+function computeOperationTypePrefix(op: AnalyzedOperation): string {
   const methodPascal = op.method.charAt(0).toUpperCase() + op.method.slice(1).toLowerCase();
 
   const segments = op.path

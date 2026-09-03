@@ -66,6 +66,32 @@ describe('Weird symbol names integration', () => {
     }
   });
 
+  it('produces unique exported identifiers and unique client methods', () => {
+    const exported = [
+      ...contracts.matchAll(
+        /^export (?:type|class|function|const|interface) (\S+?)(?: <| =| \{)/gm
+      ),
+    ].map((m) => m[1]);
+    expect(new Set(exported).size).toBe(exported.length);
+
+    const methods = [...client.matchAll(/^\s+([A-Za-z0-9_$]+): decorateWithErrors/gm)].map(
+      (m) => m[1]
+    );
+    expect(new Set(methods).size).toBe(methods.length);
+  });
+
+  it('numbers a second route whose names fold into an earlier one', () => {
+    expect(client).toContain('postPaymentInput');
+    expect(client).toContain('postPaymentInput2');
+    expect(contracts).toContain('PostPaymentInput2Response');
+  });
+
+  it('numbers a second security scheme whose name folds into an earlier one', () => {
+    expect(contracts).toContain('BearerAuthAuth =');
+    expect(contracts).toContain('BearerAuthAuth2 =');
+    expect(contracts.match(/export type BearerAuthAuth =/g)).toHaveLength(1);
+  });
+
   it('sanitizes weird symbols in route-derived method names', () => {
     expect(client).toContain('getApiV12UserSettingsByIdListAll');
     expect(client).toContain('postPaymentInput');

@@ -412,9 +412,17 @@ export function generateContracts(
   const securitySchemes = doc.components?.securitySchemes;
   if (securitySchemes && Object.keys(securitySchemes).length > 0) {
     const securityTypeNames: string[] = [];
+    const usedSecurityTypeNames = new Set<string>();
 
     for (const [schemeName, scheme] of Object.entries(securitySchemes)) {
-      const typeName = `${sanitizeTypeName(toPascalCase(schemeName))}Auth`;
+      const baseTypeName = `${sanitizeTypeName(toPascalCase(schemeName))}Auth`;
+      let typeName = baseTypeName;
+      let n = 2;
+      while (usedSecurityTypeNames.has(typeName)) {
+        typeName = `${baseTypeName}${n}`;
+        n += 1;
+      }
+      usedSecurityTypeNames.add(typeName);
       const tsType = securitySchemeToTsType(scheme);
       const schemeJsDoc = buildDescriptionJsDoc(scheme.description);
       if (schemeJsDoc !== '') {
