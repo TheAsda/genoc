@@ -4,6 +4,7 @@ import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 
 import type { OpenAPIDocument } from '../types/openapi.js';
+import { fetchSpec, type LoadOptions } from '../utils/proxy.js';
 import { isUrl } from '../utils/url.js';
 
 const VALID_EXTENSIONS = ['.json', '.yaml', '.yml'];
@@ -92,10 +93,10 @@ export async function loadFromFile(filePath: string): Promise<OpenAPIDocument> {
   return doc;
 }
 
-export async function loadFromUrl(url: string): Promise<OpenAPIDocument> {
+export async function loadFromUrl(url: string, opts?: LoadOptions): Promise<OpenAPIDocument> {
   let response: Response;
   try {
-    response = await fetch(url);
+    response = await fetchSpec(url, opts);
   } catch (err) {
     throw new Error(`Failed to fetch spec from URL: ${(err as Error).message}`, { cause: err });
   }
@@ -135,9 +136,9 @@ export async function loadFromUrl(url: string): Promise<OpenAPIDocument> {
   return doc;
 }
 
-export async function load(source: string): Promise<OpenAPIDocument> {
+export async function load(source: string, opts?: LoadOptions): Promise<OpenAPIDocument> {
   if (isUrl(source)) {
-    return loadFromUrl(source);
+    return loadFromUrl(source, opts);
   }
   return loadFromFile(source);
 }
