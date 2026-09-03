@@ -124,7 +124,7 @@ Integration tests compile generated output with `tsc --strict` to verify type co
 
 ## Generated output structure
 
-**Contracts file** (`*.contracts.ts`): schema types → security scheme types → server variable types → per-operation query/header/body/response/error types → `StreamResponse` class (headers as `Record<string, string>`) → `ErrorResponse` class (headers as `Record<string, string>`) → `ApiError<TStatus, TData>` class → `DefaultApiError<TData>` class → `RequesterFailError`. Also includes per-operation error union types and `DefaultErrorBody` when `default` responses are present. Helper functions: `streamResponse()`, `errorResponse()`.
+**Contracts file** (`*.contracts.ts`): schema types → security scheme types → server variable types → per-operation query/header/body/response/error types → `StreamResponse` class (headers as `Record<string, string>`) → `ErrorResponse` class (headers as `Record<string, string>`) → `ApiError<TStatus, TData>` class → `DefaultApiError<TData>` class → `RequesterFailError`. Also includes per-operation error union types.
 
 **Client file** (`*.client.ts`): imports from contracts file (`ApiError`, `UnspecifiedApiError`, `ErrorResponse`, `StreamResponse`, `RequesterFailError`) → `decorateWithErrors<T, E>()` (attaches `__definedErrors` property) → `Requester` type (returns `TResponse | StreamResponse | ErrorResponse`) → `isDefinedError` type guard (uses `__definedErrors` property for narrowing) → `createClient(requester)` factory → methods with try/catch wrapping `ApiError` throws + `StreamResponse` binary handling. Error codes attached via `decorateWithErrors(fn, [400, ...] as const)`.
 
