@@ -1,4 +1,3 @@
-import { execSync } from 'child_process';
 import { readFileSync, writeFileSync, rmSync } from 'fs';
 import { mkdtemp } from 'fs/promises';
 import { tmpdir } from 'os';
@@ -13,25 +12,11 @@ import { RefResolver } from '../../src/parser/ref-resolver.js';
 import { loadFromFile } from '../../src/parser/spec-reader.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { expectFilesCompile } from '../helpers/compile-check.js';
 import { linkGenoc } from '../helpers/link-genoc.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FIXTURE_PATH = join(__dirname, '../fixtures/openapi-3.0-full.yaml');
-const PROJECT_ROOT = join(__dirname, '../../');
-
-const TSC = join(PROJECT_ROOT, 'node_modules/.bin/tsc');
-const TSC_FLAGS = [
-  '--strict',
-  '--noEmit',
-  '--esModuleInterop',
-  '--module',
-  'NodeNext',
-  '--moduleResolution',
-  'NodeNext',
-  '--target',
-  'ES2022',
-  '--skipLibCheck',
-].join(' ');
 
 describe('OpenAPI 3.0 Mega-Spec Integration Test', () => {
   let doc: OpenAPIDocument;
@@ -71,13 +56,7 @@ describe('OpenAPI 3.0 Mega-Spec Integration Test', () => {
     const contractsFile = join(tmpDir, 'contracts.ts');
     writeFileSync(contractsFile, contracts, 'utf-8');
 
-    const result = execSync(`${TSC} ${TSC_FLAGS} ${contractsFile}`, {
-      cwd: tmpDir,
-      encoding: 'utf-8',
-      timeout: 60000,
-    }).trim();
-
-    expect(result).toBe('');
+    expectFilesCompile([contractsFile]);
   });
 
   it('generated client compiles with tsc --strict --noEmit', async () => {
@@ -86,13 +65,7 @@ describe('OpenAPI 3.0 Mega-Spec Integration Test', () => {
     writeFileSync(join(dir, 'contracts.ts'), contracts, 'utf-8');
     writeFileSync(join(dir, 'client.ts'), client, 'utf-8');
 
-    const result = execSync(`${TSC} ${TSC_FLAGS} client.ts`, {
-      cwd: dir,
-      encoding: 'utf-8',
-      timeout: 60000,
-    }).trim();
-
-    expect(result).toBe('');
+    expectFilesCompile([join(dir, 'client.ts')]);
   });
 
   it('handles nullable keyword (3.0-specific)', () => {});

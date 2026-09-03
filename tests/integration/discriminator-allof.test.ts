@@ -1,4 +1,3 @@
-import { execSync } from 'child_process';
 import { writeFileSync } from 'fs';
 import { mkdtemp } from 'fs/promises';
 import { tmpdir } from 'os';
@@ -11,23 +10,11 @@ import { generateClient } from '../../src/generator/client-generator.js';
 import { loadFromFile } from '../../src/parser/spec-reader.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { expectFilesCompile } from '../helpers/compile-check.js';
 import { linkGenoc } from '../helpers/link-genoc.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FIXTURE_PATH = join(__dirname, '../fixtures/discriminator-allof.json');
-
-const TSC_FLAGS = [
-  '--strict',
-  '--noEmit',
-  '--esModuleInterop',
-  '--module',
-  'NodeNext',
-  '--moduleResolution',
-  'NodeNext',
-  '--target',
-  'ES2022',
-  '--skipLibCheck',
-].join(' ');
 
 describe('Discriminator allOf integration', () => {
   let doc: OpenAPIDocument;
@@ -81,13 +68,7 @@ describe('Discriminator allOf integration', () => {
     const contractsFile = join(tmpDir, 'contracts.ts');
     writeFileSync(contractsFile, contracts, 'utf-8');
 
-    const result = execSync(`npx tsc ${TSC_FLAGS} ${contractsFile}`, {
-      cwd: tmpDir,
-      encoding: 'utf-8',
-      timeout: 30000,
-    }).trim();
-
-    expect(result).toBe('');
+    expectFilesCompile([contractsFile]);
   });
 
   // 5. Client compiles with tsc (needs contracts file alongside)
@@ -97,12 +78,6 @@ describe('Discriminator allOf integration', () => {
     writeFileSync(join(dir, 'contracts.ts'), contracts, 'utf-8');
     writeFileSync(join(dir, 'client.ts'), client, 'utf-8');
 
-    const result = execSync(`npx tsc ${TSC_FLAGS} client.ts`, {
-      cwd: dir,
-      encoding: 'utf-8',
-      timeout: 30000,
-    }).trim();
-
-    expect(result).toBe('');
+    expectFilesCompile([join(dir, 'client.ts')]);
   });
 });
