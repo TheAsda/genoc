@@ -33,7 +33,7 @@ Update snapshots: `npx vitest run --update` (or `-u`).
 spec-reader → version detection → validation → ref-resolver → path-analyzer → schema-mapper
                                                                                      ↓
                                               contracts-generator ←────────────────┘
-                                              client-generator ←── method-generator + error-types
+                                              client-generator ←── method-generator
                                                      ↓
                                               write to disk
 ```
@@ -48,7 +48,6 @@ spec-reader → version detection → validation → ref-resolver → path-analy
 | `src/generator/contracts-generator.ts` | Generates the `*.contracts.ts` file                                                                               |
 | `src/generator/client-generator.ts`    | Generates the `*.client.ts` file (method bodies via `buildClientMethodBody`) + file I/O (`generateFullOutput`)    |
 | `src/generator/method-generator.ts`    | Generates individual API method signatures (params, JSDoc)                                                        |
-| `src/generator/error-types.ts`         | `ApiError<TStatus, TData>`, `DefaultApiError`, per-operation error type generation                                |
 | `src/utils/generator-helpers.ts`       | Shared codegen helpers: `toPascalCase`, `getOperationTypePrefix`, `getSuccessType`, `getErrorType`, `makeHeader`  |
 | `src/types/`                           | Shared types: `OpenAPIDocument`, `GeneratorConfig`, `MethodNameStrategy`, `SchemaObject`                          |
 | `src/utils/`                           | Case conversion (`case.ts`), string utils, URL helpers                                                            |
