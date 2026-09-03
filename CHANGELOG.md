@@ -1,5 +1,16 @@
 # genoc
 
+## 0.3.0
+
+### Minor Changes
+
+- 7b4dd43: Add HTTP(S) proxy support for fetching OpenAPI specs from URLs: new `--proxy` CLI flag and `proxy` programmatic option; `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY` environment variables are now respected when no flag is given (previously ignored — escape hatch: `NO_PROXY`).
+
+### Patch Changes
+
+- 5ab175a: Remove the dead `src/generator/error-types.ts` module. `generateErrorTypes` was never called by the generation pipeline and had diverged from the live inline scheme (methodName-based prefixes, un-renamed tsTypes, inline ApiError classes already emitted by contracts-generator).
+- 48289eb: Handle special characters in schema names and routes: any run of non-identifier symbols (brackets, backticks, hyphens, spaces, dots, tildes, ...) is folded into PascalCase, leading digits and exact reserved words get an `_` prefix, and schemas whose sanitized names collide are renamed with a `Model` suffix. Route-derived type prefixes and method names go through the same sanitization.
+
 ## 0.2.0
 
 ### Minor Changes
