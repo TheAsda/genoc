@@ -1,5 +1,6 @@
 import type { MethodNameStrategy } from '../types/client.js';
 import { toPascalCaseSegment } from '../utils/case.js';
+import { sanitizeTypeName } from '../utils/generator-helpers.js';
 import { sanitizeIdentifier } from '../utils/string.js';
 import { isPathParam, extractParamName } from '../utils/url.js';
 
@@ -51,9 +52,9 @@ export function generateMethodName(method: string, path: string): string {
 
   const transformedSegments = segments.map((segment, index) => {
     if (isParam[index]) {
-      return `By${toPascalCaseSegment(segment)}`;
+      return `By${sanitizeTypeName(toPascalCaseSegment(segment))}`;
     }
-    return toPascalCaseSegment(segment);
+    return sanitizeTypeName(toPascalCaseSegment(segment));
   });
 
   return lowerMethod + transformedSegments.join('');

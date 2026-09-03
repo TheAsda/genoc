@@ -9,6 +9,7 @@ import {
   formatJsDocValue,
   buildFieldJsDocLines,
   buildTypeJsDoc,
+  getOperationTypePrefix,
 } from '../../src/utils/generator-helpers.js';
 
 describe('sanitizeTypeName', () => {
@@ -38,14 +39,14 @@ describe('sanitizeTypeName', () => {
 });
 
 describe('buildSchemaRenameMap', () => {
-  it('detects collision after sanitization', () => {
+  it('detects collision after sanitization (map keyed by raw name)', () => {
     const map = buildSchemaRenameMap(['Api.Error'], RESERVED_TYPE_NAMES);
-    expect(map.get('ApiError')).toBe('ApiErrorModel');
+    expect(map.get('Api.Error')).toBe('ApiErrorModel');
   });
 
   it('does not rename non-colliding dotted names', () => {
     const map = buildSchemaRenameMap(['Models.User'], RESERVED_TYPE_NAMES);
-    expect(map.has('ModelsUser')).toBe(false);
+    expect(map.size).toBe(0);
   });
 
   it('detects direct collision without dots', () => {
@@ -55,6 +56,18 @@ describe('buildSchemaRenameMap', () => {
 
   it('returns empty map when no collisions', () => {
     const map = buildSchemaRenameMap(['User', 'Product'], RESERVED_TYPE_NAMES);
+    expect(map.size).toBe(0);
+  });
+
+  it('renames the later schema when sanitized names collide', () => {
+    const map = buildSchemaRenameMap(['User-Dto', 'User[Dto]'], RESERVED_TYPE_NAMES);
+    expect(map.size).toBe(1);
+    expect(map.get('User-Dto')).toBeUndefined();
+    expect(map.get('User[Dto]')).toBe('UserDtoModel');
+  });
+
+  it('does not rename when sanitized names stay distinct', () => {
+    const map = buildSchemaRenameMap(['User-Dto', 'User[Profile]'], RESERVED_TYPE_NAMES);
     expect(map.size).toBe(0);
   });
 });
@@ -256,5 +269,65 @@ describe('buildTypeJsDoc', () => {
     expect(buildTypeJsDoc({ description: 'A', default: 1, title: 'T' })).toBe(
       '/**\n * A\n *\n * @default 1\n *\n * @title T\n */'
     );
+  });
+});
+
+describe('sanitizeTypeName — weird symbols (issue #25)', () => {
+  it('folds bracket subscripts', () => {
+    expect(sanitizeTypeName('User[Dto]')).toBe('UserDto');
+  });
+
+  it('folds backticks and other punctuation', () => {
+    expect(sanitizeTypeName('We`ird')).toBe('WeIrd');
+    expect(sanitizeTypeName('list~all')).toBe('ListAll');
+  });
+
+  it('folds hyphens, underscores-as-separators and spaces into PascalCase', () => {
+    expect(sanitizeTypeName('my-schema')).toBe('MySchema');
+    expect(sanitizeTypeName('payment input')).toBe('PaymentInput');
+    expect(sanitizeTypeName('payment.input.v2')).toBe('PaymentInputV2');
+  });
+
+  it('keeps already-valid identifiers unchanged', () => {
+    expect(sanitizeTypeName('User')).toBe('User');
+    expect(sanitizeTypeName('mySchema')).toBe('mySchema');
+    expect(sanitizeTypeName('my_schema')).toBe('my_schema');
+    expect(sanitizeTypeName('$Foo')).toBe('$Foo');
+  });
+
+  it('prefixes leading digits and reserved words', () => {
+    expect(sanitizeTypeName('2FA-code')).toBe('_2FACode');
+    expect(sanitizeTypeName('class')).toBe('_class');
+    expect(sanitizeTypeName('type')).toBe('_type');
+  });
+
+  it('keeps PascalCase words that merely look like reserved words', () => {
+    expect(sanitizeTypeName('Null')).toBe('Null');
+    expect(sanitizeTypeName('Class')).toBe('Class');
+  });
+
+  it('collapses symbol-only names to underscore', () => {
+    expect(sanitizeTypeName('[]{}')).toBe('_');
+    expect(sanitizeTypeName('')).toBe('_');
+  });
+});
+
+describe('buildSchemaRenameMap — weird symbol collisions (issue #25)', () => {
+  it('numbers suffixes when several schemas fold to the same identifier', () => {
+    const map = buildSchemaRenameMap(['User[Dto]', 'User-Dto', 'User Dto'], RESERVED_TYPE_NAMES);
+    expect(map.size).toBe(2);
+    expect(map.get('User-Dto')).toBe('UserDtoModel');
+    expect(map.get('User Dto')).toBe('UserDtoModel2');
+  });
+});
+
+describe('getOperationTypePrefix — weird routes (issue #25)', () => {
+  it('sanitizes dots, tildes and mixed segments', () => {
+    expect(
+      getOperationTypePrefix({
+        method: 'get',
+        path: '/api/v1.2/user-settings/{id}/list~all',
+      } as never)
+    ).toBe('GetApiV12UserSettingsIdListAll');
   });
 });

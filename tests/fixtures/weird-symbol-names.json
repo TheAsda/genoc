@@ -1,0 +1,105 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Weird symbol names",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1.2/user-settings/{id}/list~all": {
+      "get": {
+        "summary": "List user settings",
+        "operationId": "listUserSettings",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User[Dto]" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payment.input": {
+      "post": {
+        "summary": "Submit payment",
+        "operationId": "submitPayment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/user-profile" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/2FA-code" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User[Dto]": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "tags": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "User-Dto": {
+        "type": "object",
+        "properties": {
+          "other": { "type": "string" }
+        }
+      },
+      "user-profile": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string" },
+          "dto": { "$ref": "#/components/schemas/User[Dto]" }
+        }
+      },
+      "payment.input": {
+        "type": "object",
+        "properties": {
+          "amount": { "type": "number" }
+        }
+      },
+      "2FA-code": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" }
+        }
+      },
+      "class": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" }
+        }
+      },
+      "We`ird": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

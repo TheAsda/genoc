@@ -303,7 +303,7 @@ export class SchemaMapper {
     schema: SchemaObject,
     refStr: string
   ): { propertyName: string; literalValue: string } | undefined {
-    const schemaName = sanitizeTypeName(refStr.split('/').pop()!);
+    const schemaName = this.typeNameGenerator(refStr);
     const target = this.discriminatorTargets.get(schemaName);
     if (target) return target;
 
