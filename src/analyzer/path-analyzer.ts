@@ -8,7 +8,11 @@ import type {
   ResponseObject,
   SchemaObject,
 } from '../types/openapi.js';
-import { sanitizeTypeName, getOperationTypePrefix } from '../utils/generator-helpers.js';
+import {
+  isBinaryContentType,
+  sanitizeTypeName,
+  getOperationTypePrefix,
+} from '../utils/generator-helpers.js';
 import { getMethodName } from './naming.js';
 
 export interface AnalyzedParameter {
@@ -64,14 +68,6 @@ const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'
 
 function isRef(obj: unknown): obj is ReferenceObject {
   return obj !== null && typeof obj === 'object' && '$ref' in (obj as Record<string, unknown>);
-}
-
-function isBinaryContentType(ct: string): boolean {
-  if (ct === 'application/octet-stream') return true;
-  if (ct.startsWith('image/')) return true;
-  if (ct.startsWith('video/')) return true;
-  if (ct.startsWith('audio/')) return true;
-  return false;
 }
 
 /**

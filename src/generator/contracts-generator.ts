@@ -22,19 +22,6 @@ import {
 } from '../utils/generator-helpers.js';
 
 /**
- * Dead since the request-body Blob gate switched to `AnalyzedRequestBody.isBinary`.
- * Kept (exported to satisfy `noUnusedLocals`) for the follow-up task that
- * removes this duplicate in favor of the analyzer-owned signal.
- */
-export function isBinaryContentType(ct: string): boolean {
-  if (ct === 'application/octet-stream') return true;
-  if (ct.startsWith('image/')) return true;
-  if (ct.startsWith('video/')) return true;
-  if (ct.startsWith('audio/')) return true;
-  return false;
-}
-
-/**
  * If the schema is a $ref to a discriminated base type (or an array whose items
  * are), replace the type name with the {Base}Variant union type.
  */

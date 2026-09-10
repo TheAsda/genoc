@@ -358,3 +358,11 @@ export function buildTypeJsDoc(schema: SchemaObject): string {
   if (lines.length === 1) return `/** ${lines[0]} */`;
   return `/**\n${lines.map((line) => ` * ${line}`).join('\n *\n')}\n */`;
 }
+
+export function isBinaryContentType(ct: string): boolean {
+  if (ct === 'application/octet-stream') return true;
+  if (ct.startsWith('image/')) return true;
+  if (ct.startsWith('video/')) return true;
+  if (ct.startsWith('audio/')) return true;
+  return false;
+}
