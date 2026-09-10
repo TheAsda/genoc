@@ -885,3 +885,145 @@ describe('OpenAPI 3.0 — Error handling edge cases', () => {
     expect(client).toMatchSnapshot();
   });
 });
+
+// ── Schema-driven binary classification (3.0-#68-#72) ───────────────────────
+
+describe('OpenAPI 3.0 — Schema-driven binary classification (3.0-#68-#72)', () => {
+  const VENDOR_CT = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+  // 3.0-#68: vendor CT + $ref binary schema — Tier 1
+  it('3.0-#68: vendor content type with $ref binary schema produces StreamResponse', () => {
+    const { contracts, client } = generateClientFromYaml(`
+      openapi: "3.0.3"
+      info: { title: Test, version: "1.0.0" }
+      components:
+        schemas:
+          File:
+            type: string
+            format: binary
+      paths:
+        /vendor-binary-response:
+          get:
+            responses:
+              "200":
+                description: Spreadsheet file download
+                content:
+                  ${VENDOR_CT}:
+                    schema:
+                      $ref: '#/components/schemas/File'
+    `);
+
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
+    expect(contracts).toContain('export type GetVendorBinaryResponseResponse = StreamResponse;');
+    expect(client).toContain('expectStream: true');
+  });
+
+  // 3.0-#69: default response with binary schema — Tier 1
+  it('3.0-#69: default response with vendor CT and $ref binary schema produces StreamResponse', () => {
+    const { contracts, client } = generateClientFromYaml(`
+      openapi: "3.0.3"
+      info: { title: Test, version: "1.0.0" }
+      components:
+        schemas:
+          File:
+            type: string
+            format: binary
+      paths:
+        /binary-default-response:
+          get:
+            responses:
+              default:
+                description: Binary payload
+                content:
+                  ${VENDOR_CT}:
+                    schema:
+                      $ref: '#/components/schemas/File'
+    `);
+
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
+    expect(contracts).toContain(
+      'export type GetBinaryDefaultResponseDefaultError = StreamResponse;'
+    );
+  });
+
+  // 3.0-#70: error response with binary schema — Tier 1
+  it('3.0-#70: 422 error response with vendor CT and $ref binary schema produces StreamResponse', () => {
+    const { contracts, client } = generateClientFromYaml(`
+      openapi: "3.0.3"
+      info: { title: Test, version: "1.0.0" }
+      components:
+        schemas:
+          File:
+            type: string
+            format: binary
+      paths:
+        /binary-error-response:
+          get:
+            responses:
+              "422":
+                description: Binary error payload
+                content:
+                  ${VENDOR_CT}:
+                    schema:
+                      $ref: '#/components/schemas/File'
+    `);
+
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
+    expect(contracts).toContain('export type GetBinaryErrorResponseError422 = StreamResponse;');
+    expect(client).toContain('instanceof StreamResponse');
+  });
+
+  // 3.0-#71: JSON content type with binary schema — Tier 1
+  it('3.0-#71: application/json content type with inline binary schema produces StreamResponse', () => {
+    const { contracts, client } = generateClientFromYaml(`
+      openapi: "3.0.3"
+      info: { title: Test, version: "1.0.0" }
+      paths:
+        /json-ct-binary-schema-response:
+          get:
+            responses:
+              "200":
+                description: Binary payload under JSON content type
+                content:
+                  application/json:
+                    schema:
+                      type: string
+                      format: binary
+    `);
+
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
+    expect(contracts).toContain(
+      'export type GetJsonCtBinarySchemaResponseResponse = StreamResponse;'
+    );
+    expect(client).toContain('expectStream: true');
+  });
+
+  // 3.0-#72: byte format is base64 string — Tier 1
+  it('3.0-#72: format byte stays string and does not produce StreamResponse', () => {
+    const { contracts, client } = generateClientFromYaml(`
+      openapi: "3.0.3"
+      info: { title: Test, version: "1.0.0" }
+      paths:
+        /byte-format-response:
+          get:
+            responses:
+              "200":
+                description: Base64 payload
+                content:
+                  application/json:
+                    schema:
+                      type: string
+                      format: byte
+    `);
+
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
+    expect(contracts).toContain('export type GetByteFormatResponseResponse = string;');
+    expect(contracts).not.toContain('GetByteFormatResponseResponse = StreamResponse');
+    expect(client).not.toContain('expectStream: true');
+  });
+});

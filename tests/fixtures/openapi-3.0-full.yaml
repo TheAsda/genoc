@@ -363,6 +363,13 @@ components:
               type: string
           required: [extra_field]
 
+    # Binary $ref target for schema-driven binary classification
+    # (vendor content type + binary schema => StreamResponse / Blob)
+    File:
+      type: string
+      format: binary
+      description: Raw file content
+
   parameters:
     PathParam:
       name: id
@@ -952,6 +959,94 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/ImageResponse'
+
+  /vendor-binary-response:
+    get:
+      operationId: getVendorBinaryResponse
+      summary: Vendor content type binary response
+      description: Vendor CT with $ref binary schema is classified as stream via schema signal
+      tags: [responses]
+      responses:
+        200:
+          description: Spreadsheet file download
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                $ref: '#/components/schemas/File'
+
+  /vendor-binary-body:
+    post:
+      operationId: postVendorBinaryBody
+      summary: Vendor content type binary request body
+      description: Vendor CT request body with $ref binary schema generates a Blob body
+      tags: [request-bodies]
+      requestBody:
+        required: true
+        content:
+          application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+            schema:
+              $ref: '#/components/schemas/File'
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /json-ct-binary-schema-response:
+    get:
+      operationId: getJsonCtBinarySchemaResponse
+      summary: JSON content type with binary schema
+      description: JSON CT with inline binary schema is classified as stream via schema signal
+      tags: [responses]
+      responses:
+        200:
+          description: Binary payload under JSON content type
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+
+  /byte-format-response:
+    get:
+      operationId: getByteFormatResponse
+      summary: Base64 byte format response
+      description: format byte is base64 string and must stay string, not stream
+      tags: [responses]
+      responses:
+        200:
+          description: Base64 payload
+          content:
+            application/json:
+              schema:
+                type: string
+                format: byte
+
+  /binary-default-response:
+    get:
+      operationId: getBinaryDefaultResponse
+      summary: Default response with vendor binary schema
+      description: Default response with vendor CT and $ref binary schema
+      tags: [responses]
+      responses:
+        default:
+          description: Binary payload
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                $ref: '#/components/schemas/File'
+
+  /binary-error-response:
+    get:
+      operationId: getBinaryErrorResponse
+      summary: Error response with vendor binary schema
+      description: 422 response with vendor CT and $ref binary schema
+      tags: [responses]
+      responses:
+        422:
+          description: Binary error payload
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                $ref: '#/components/schemas/File'
 
   /empty-response:
     get:

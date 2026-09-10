@@ -709,3 +709,34 @@ describe('OpenAPI 3.0 — Initial Responses (3.0-#53-#54)', () => {
     expect(client).toMatchSnapshot();
   });
 });
+
+describe('OpenAPI 3.0 — Schema-driven binary request bodies (3.0-#55)', () => {
+  // 3.0-#55: vendor CT + $ref binary request body — Tier 1
+  it('3.0-#55: vendor content type with $ref binary schema generates Blob body type', () => {
+    const { contracts, client } = generateClientFromYaml(`
+      openapi: "3.0.3"
+      info: { title: Test, version: "1.0.0" }
+      components:
+        schemas:
+          File:
+            type: string
+            format: binary
+      paths:
+        /vendor-binary-body:
+          post:
+            requestBody:
+              required: true
+              content:
+                application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+                  schema:
+                    $ref: '#/components/schemas/File'
+            responses:
+              "200": { description: OK }
+    `);
+
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
+    expect(contracts).toContain('export type PostVendorBinaryBodyBody = Blob;');
+    expect(contracts).not.toContain('PostVendorBinaryBodyBody = string');
+  });
+});
