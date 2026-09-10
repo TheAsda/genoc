@@ -8,7 +8,8 @@
 // 3.1-#48 (required/optional body), 3.1-#49 (examples in request body),
 // 3.1-#50 (format: binary), 3.1-#51 (format: byte),
 // 3.1-#52 (multipart with files), 3.1-#53 (file metadata),
-// 3.1-#54 (file validation)
+// 3.1-#54 (file validation),
+// 3.1-#73 (vendor content type request body with $ref binary schema)
 
 /**
  * Validation Tests — OpenAPI 3.1 Parameters, Request Bodies & File Uploads
@@ -611,5 +612,37 @@ describe('OpenAPI 3.1 — File Uploads (3.1-#50-#54)', () => {
     // No validation logic in client
     expect(client).not.toContain('validate');
     expect(client).not.toContain('if (file');
+  });
+});
+
+// ── Binary request body edge (3.1-#73) ────────────────────────────────────
+
+describe('OpenAPI 3.1 — Binary request body edge (3.1-#73)', () => {
+  // 3.1-#73: vendor content type + $ref'd binary schema body — Tier 1
+  it('3.1-#73: vendor content type with $ref binary schema generates Blob body', () => {
+    const { contracts, client } = generateClientFromYaml(`
+      openapi: "3.1.0"
+      info: { title: Test, version: "1.0.0" }
+      components:
+        schemas:
+          File:
+            type: string
+            format: binary
+            description: Raw file content
+      paths:
+        /spreadsheets/import:
+          post:
+            requestBody:
+              required: true
+              content:
+                application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+                  schema:
+                    $ref: "#/components/schemas/File"
+            responses:
+              "200": { description: Imported }
+    `);
+
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
   });
 });

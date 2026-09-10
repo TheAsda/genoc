@@ -4,7 +4,9 @@
 // 3.1-#63 (ApiError<TStatus,TData>), 3.1-#64 (UnspecifiedApiError),
 // 3.1-#65 (isError/isDefinedError type guard), 3.1-#66 (per-operation error unions),
 // 3.1-#67 (default error body), 3.1-#68 (status-based errors),
-// 3.1-#69 (error response mapping)
+// 3.1-#69 (error response mapping),
+// 3.1-#70 (binary response with $ref siblings), 3.1-#71 (typeless binary schema),
+// 3.1-#72 (type-array binary schema)
 
 /**
  * Validation Tests — OpenAPI 3.1 Responses & Error Handling
@@ -876,6 +878,103 @@ describe('OpenAPI 3.1 — Error handling edge cases', () => {
                 description: OK
               "500":
                 description: Error
+    `);
+
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
+  });
+});
+
+// ── 3.1-specific binary edges (3.1-#70-#72) ──────────────────────────────
+// These three edges are legal only in OpenAPI 3.1: $ref siblings, typeless
+// schemas, and type arrays. Classification is format-only, so each must
+// still produce a StreamResponse.
+
+describe('OpenAPI 3.1 — Binary response 3.1 edges (3.1-#70-#72)', () => {
+  // 3.1-#70: $ref siblings — Tier 1
+  it('3.1-#70: $ref sibling description merges without breaking binary classification', () => {
+    const yaml = `
+      openapi: "3.1.0"
+      info: { title: Test, version: "1.0.0" }
+      components:
+        schemas:
+          File:
+            type: string
+            format: binary
+            description: Raw file content
+      paths:
+        /vendor-binary:
+          get:
+            responses:
+              "200":
+                description: Spreadsheet file download
+                content:
+                  application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+                    schema:
+                      $ref: "#/components/schemas/File"
+                      description: Raw spreadsheet content from sibling
+    `;
+    const doc = parseYaml(yaml) as OpenAPIDocument;
+    const { contracts, client } = generateClientStrings(
+      doc,
+      { input: 'test.yaml', outputDir: '/tmp/test' },
+      { preserveRefSiblings: true }
+    );
+
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
+
+    // Pin the 3.1 merge itself: the sibling description lands on the resolved
+    // schema AND the binary signal survives the merge.
+    const resolver = new RefResolver(doc, undefined, { preserveRefSiblings: true });
+    const response200 = doc.paths!['/vendor-binary']!.get!.responses!['200'] as {
+      content: Record<string, { schema: { $ref: string; description: string } }>;
+    };
+    const merged = resolver.resolveSchema(
+      response200.content['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+        .schema
+    );
+    expect(merged.format).toBe('binary');
+    expect(merged.description).toBe('Raw spreadsheet content from sibling');
+  });
+
+  // 3.1-#71: typeless schema — Tier 1
+  it('3.1-#71: schema with only format binary (no type) produces StreamResponse', () => {
+    const { contracts, client } = generateClientFromYaml(`
+      openapi: "3.1.0"
+      info: { title: Test, version: "1.0.0" }
+      paths:
+        /raw-download:
+          get:
+            responses:
+              "200":
+                description: Raw binary download
+                content:
+                  application/octet-stream:
+                    schema:
+                      format: binary
+    `);
+
+    expect(contracts).toMatchSnapshot();
+    expect(client).toMatchSnapshot();
+  });
+
+  // 3.1-#72: type array — Tier 1
+  it('3.1-#72: type array with binary format produces StreamResponse', () => {
+    const { contracts, client } = generateClientFromYaml(`
+      openapi: "3.1.0"
+      info: { title: Test, version: "1.0.0" }
+      paths:
+        /nullable-download:
+          get:
+            responses:
+              "200":
+                description: Nullable binary download
+                content:
+                  application/octet-stream:
+                    schema:
+                      type: [string, "null"]
+                      format: binary
     `);
 
     expect(contracts).toMatchSnapshot();
