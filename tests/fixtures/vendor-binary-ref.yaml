@@ -1,0 +1,63 @@
+# Minimal reproduction of the Kaspersky PriceLists binary-response pattern:
+# a vendor spreadsheet content type whose schema is a $ref to a
+# `{ type: string, format: binary }` component. Neither the content type nor
+# the unresolved $ref looks binary — the signal only appears after $ref
+# resolution, which is exactly what this fixture locks in end-to-end.
+openapi: '3.0.3'
+info:
+  title: Vendor Binary API
+  version: '1.0.0'
+paths:
+  /files/{id}:
+    get:
+      summary: Download a spreadsheet export
+      operationId: downloadFile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Spreadsheet content
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                $ref: '#/components/schemas/File'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+    post:
+      summary: Upload a spreadsheet import
+      operationId: uploadFile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+            schema:
+              $ref: '#/components/schemas/File'
+      responses:
+        '204':
+          description: Uploaded
+components:
+  schemas:
+    File:
+      type: string
+      format: binary
+    NotFoundError:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
