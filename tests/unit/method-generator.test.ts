@@ -183,6 +183,7 @@ describe('generateMethod', () => {
         schema: { type: 'object' },
         tsType: 'PostApiV1ProductsBody',
         isMultipart: false,
+        isBinary: false,
       };
 
       const op = makeOp({
@@ -208,6 +209,7 @@ describe('generateMethod', () => {
         schema: { type: 'object' },
         tsType: 'PostApiV1ProductsBody',
         isMultipart: false,
+        isBinary: false,
       };
 
       const op = makeOp({
@@ -265,6 +267,7 @@ describe('generateMethod', () => {
         schema: { type: 'object' },
         tsType: 'PutOrganizationsOrgIdMembersBody',
         isMultipart: false,
+        isBinary: false,
       };
 
       const op = makeOp({
@@ -291,6 +294,7 @@ describe('generateMethod', () => {
         schema: { type: 'object' },
         tsType: 'PutOrganizationsOrgIdMembersBody',
         isMultipart: false,
+        isBinary: false,
       };
 
       const op = makeOp({
@@ -406,6 +410,7 @@ describe('generateMethod', () => {
         schema: { type: 'object' },
         tsType: 'PostApiV1ProductsBody',
         isMultipart: false,
+        isBinary: false,
       };
 
       const op = makeOp({
@@ -427,6 +432,7 @@ describe('generateMethod', () => {
         schema: { type: 'object' },
         tsType: 'PostApiV1ProductsBody',
         isMultipart: false,
+        isBinary: false,
       };
 
       const op = makeOp({
@@ -771,6 +777,7 @@ describe('generateMethod', () => {
         schema: { type: 'object' },
         tsType: 'SomeBody',
         isMultipart: false,
+        isBinary: false,
       };
 
       const op = makeOp({
@@ -940,6 +947,7 @@ describe('generateMethod', () => {
         },
         tsType: 'PostUploadBody',
         isMultipart: true,
+        isBinary: false,
       };
 
       const op = makeOp({
@@ -969,6 +977,7 @@ describe('generateMethod', () => {
         },
         tsType: 'PostUploadBody',
         isMultipart: true,
+        isBinary: false,
       };
 
       const op = makeOp({

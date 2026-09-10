@@ -28,6 +28,7 @@ export interface AnalyzedRequestBody {
   schema: SchemaObject | ReferenceObject | undefined;
   tsType: string;
   isMultipart: boolean;
+  isBinary: boolean;
   description?: string;
 }
 
@@ -220,12 +221,19 @@ function analyzeRequestBody(
 
   const isMultipart = contentTypes.length > 0 && contentTypes[0] === 'multipart/form-data';
 
+  // Contract with the generators: multipart bodies keep the FileInput shape
+  // and must never be Blob-ified, so the binary signals are bypassed.
+  const isBinary = isMultipart
+    ? false
+    : contentTypes.some(isBinaryContentType) || isBinarySchema(schema, resolver);
+
   return {
     required: resolved.required ?? false,
     contentTypes,
     schema,
     tsType,
     isMultipart,
+    isBinary,
     description: resolved.description,
   };
 }

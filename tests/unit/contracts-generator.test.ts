@@ -1334,6 +1334,73 @@ describe('generateContracts', () => {
     });
   });
 
+  describe('binary request body types', () => {
+    it('generates Blob body for vendor content type with $ref-ed binary schema', () => {
+      const doc = createDoc({
+        components: {
+          schemas: {
+            File: { type: 'string', format: 'binary' },
+          },
+        },
+        paths: {
+          '/price-lists/{id}/export': {
+            post: {
+              parameters: [
+                { name: 'id', in: 'path' as const, required: true, schema: { type: 'string' } },
+              ],
+              requestBody: {
+                required: true,
+                content: {
+                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {
+                    schema: { $ref: '#/components/schemas/File' },
+                  },
+                },
+              },
+              responses: { '200': { description: 'OK' } },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+      expect(result).toContain('export type PostPriceListsIdExportBody = Blob;');
+    });
+
+    it('keeps FileInput for multipart body with format: binary properties', () => {
+      const doc = createDoc({
+        paths: {
+          '/uploads': {
+            post: {
+              requestBody: {
+                required: true,
+                content: {
+                  'multipart/form-data': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        file: { type: 'string', format: 'binary' },
+                        attachments: {
+                          type: 'array',
+                          items: { type: 'string', format: 'binary' },
+                        },
+                        label: { type: 'string' },
+                      },
+                      required: ['file'],
+                    },
+                  },
+                },
+              },
+              responses: { '200': { description: 'OK' } },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+      expect(result).toContain('file: FileInput;');
+      expect(result).toContain('attachments?: FileInput[];');
+      expect(result).not.toContain('Body = Blob;');
+    });
+  });
+
   describe('reserved name collision handling', () => {
     it('renames user schema that collides with ErrorResponse', () => {
       const doc = createDoc({

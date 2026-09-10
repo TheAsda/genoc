@@ -5,6 +5,7 @@ import { RefResolver } from '../../src/parser/ref-resolver.js';
 import type {
   ComponentsObject,
   OpenAPIDocument,
+  RequestBodyObject,
   ResponsesObject,
 } from '../../src/types/openapi.js';
 import operationsSpec from '../fixtures/operations-spec.json' with { type: 'json' };
@@ -514,6 +515,96 @@ describe('analyzePaths', () => {
         },
       });
       expect(analyzeFirstResponse(spec).isBinary).toBe(false);
+    });
+  });
+
+  describe('request body binary classification', () => {
+    const VENDOR_CT = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+    function makeRequestBodySpec(
+      content: NonNullable<RequestBodyObject['content']>,
+      schemas?: ComponentsObject['schemas']
+    ): OpenAPIDocument {
+      return {
+        openapi: '3.1.0',
+        info: { title: 'Request Body Binary Test', version: '1.0.0' },
+        ...(schemas ? { components: { schemas } } : {}),
+        paths: {
+          '/files': {
+            post: {
+              requestBody: { required: true, content },
+              responses: { '200': { description: 'OK' } },
+            },
+          },
+        },
+      };
+    }
+
+    function analyzeFirstRequestBody(spec: OpenAPIDocument) {
+      const resolver = makeResolver(spec);
+      const ops = analyzePaths(spec, resolver);
+      expect(ops).toHaveLength(1);
+      expect(ops[0].requestBody).toBeDefined();
+      return ops[0].requestBody!;
+    }
+
+    it('classifies vendor content type with inline format: binary schema as binary', () => {
+      const spec = makeRequestBodySpec({
+        [VENDOR_CT]: { schema: { type: 'string', format: 'binary' } },
+      });
+      expect(analyzeFirstRequestBody(spec).isBinary).toBe(true);
+    });
+
+    it('classifies vendor content type with $ref-ed binary schema as binary', () => {
+      const spec = makeRequestBodySpec(
+        { [VENDOR_CT]: { schema: { $ref: '#/components/schemas/File' } } },
+        { File: { type: 'string', format: 'binary' } }
+      );
+      expect(analyzeFirstRequestBody(spec).isBinary).toBe(true);
+    });
+
+    it('classifies application/json with format: binary schema as binary (OR semantics)', () => {
+      const spec = makeRequestBodySpec({
+        'application/json': { schema: { type: 'string', format: 'binary' } },
+      });
+      expect(analyzeFirstRequestBody(spec).isBinary).toBe(true);
+    });
+
+    it('does not classify format: byte as binary', () => {
+      const spec = makeRequestBodySpec({
+        [VENDOR_CT]: { schema: { type: 'string', format: 'byte' } },
+      });
+      expect(analyzeFirstRequestBody(spec).isBinary).toBe(false);
+    });
+
+    it('classifies multi-content-type body when any content type is binary', () => {
+      const spec = makeRequestBodySpec({
+        'application/json': { schema: { type: 'object' } },
+        'application/octet-stream': { schema: { type: 'string' } },
+      });
+      expect(analyzeFirstRequestBody(spec).isBinary).toBe(true);
+    });
+
+    it('body without schema on vendor content type is not binary', () => {
+      const spec = makeRequestBodySpec({
+        [VENDOR_CT]: {},
+      });
+      expect(analyzeFirstRequestBody(spec).isBinary).toBe(false);
+    });
+
+    it('never classifies multipart bodies as binary (FileInput precedence)', () => {
+      const spec = makeRequestBodySpec({
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            properties: { file: { type: 'string', format: 'binary' } },
+            required: ['file'],
+          },
+        },
+      });
+      const body = analyzeFirstRequestBody(spec);
+      expect(body.isMultipart).toBe(true);
+      expect(body.isBinary).toBe(false);
     });
   });
 });

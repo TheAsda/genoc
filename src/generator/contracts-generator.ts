@@ -21,7 +21,12 @@ import {
   makeHeader,
 } from '../utils/generator-helpers.js';
 
-function isBinaryContentType(ct: string): boolean {
+/**
+ * Dead since the request-body Blob gate switched to `AnalyzedRequestBody.isBinary`.
+ * Kept (exported to satisfy `noUnusedLocals`) for the follow-up task that
+ * removes this duplicate in favor of the analyzer-owned signal.
+ */
+export function isBinaryContentType(ct: string): boolean {
   if (ct === 'application/octet-stream') return true;
   if (ct.startsWith('image/')) return true;
   if (ct.startsWith('video/')) return true;
@@ -553,8 +558,7 @@ export function generateContracts(
         );
       }
     } else if (op.requestBody?.schema) {
-      const hasBinaryContentType = op.requestBody.contentTypes.some(isBinaryContentType);
-      if (hasBinaryContentType) {
+      if (op.requestBody.isBinary) {
         opLines.push(attachTypeJsDoc(bodyJsDoc, `export type ${prefix}Body = Blob;`));
       } else {
         const result = mapper.mapSchema(op.requestBody.schema, undefined, 'request');
