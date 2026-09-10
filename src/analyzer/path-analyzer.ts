@@ -73,6 +73,18 @@ function isBinaryContentType(ct: string): boolean {
   return false;
 }
 
+/**
+ * Resolve a possibly-$ref-ed schema and check for an exact top-level `format: binary`
+ * match. Top-level only — intentionally no deep-walk into items/allOf/oneOf/anyOf.
+ */
+function isBinarySchema(
+  schema: SchemaObject | ReferenceObject | undefined,
+  resolver: RefResolver
+): boolean {
+  if (!schema) return false;
+  return resolver.resolveSchema(schema).format === 'binary';
+}
+
 function schemaToTsType(
   schema: SchemaObject | ReferenceObject | undefined,
   resolver: RefResolver
@@ -251,7 +263,9 @@ function analyzeResponses(
       tsType = 'void';
     }
 
-    const isBinary = contentTypes.length > 0 && isBinaryContentType(contentTypes[0]);
+    const isBinary =
+      contentTypes.length > 0 &&
+      (isBinaryContentType(contentTypes[0]) || isBinarySchema(schema, resolver));
 
     result.push({
       statusCode,

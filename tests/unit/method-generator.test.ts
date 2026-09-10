@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { analyzePaths } from '../../src/analyzer/path-analyzer.js';
 import type {
   AnalyzedOperation,
   AnalyzedParameter,
@@ -7,6 +8,8 @@ import type {
   AnalyzedResponse,
 } from '../../src/analyzer/path-analyzer.js';
 import { generateMethod } from '../../src/generator/method-generator.js';
+import { RefResolver } from '../../src/parser/ref-resolver.js';
+import type { OpenAPIDocument } from '../../src/types/openapi.js';
 
 function makeOp(overrides: Partial<AnalyzedOperation>): AnalyzedOperation {
   return {
@@ -1004,6 +1007,45 @@ describe('generateMethod', () => {
       const result = generateMethod(op);
 
       expect(result.implementation).toMatchSnapshot();
+    });
+
+    it('adds expectStream: true for vendor content type with $ref-ed binary schema (via analyzer)', () => {
+      const spec: OpenAPIDocument = {
+        openapi: '3.1.0',
+        info: { title: 'Analyzer Binary Test', version: '1.0.0' },
+        components: {
+          schemas: {
+            File: { type: 'string', format: 'binary' },
+          },
+        },
+        paths: {
+          '/files/{id}': {
+            get: {
+              parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+              responses: {
+                '200': {
+                  description: 'Spreadsheet download',
+                  content: {
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {
+                      schema: { $ref: '#/components/schemas/File' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const ops = analyzePaths(spec, new RefResolver(spec));
+
+      expect(ops).toHaveLength(1);
+      expect(ops[0].responses[0].isBinary).toBe(true);
+
+      const result = generateMethod(ops[0]);
+
+      expect(result.implementation).toContain('expectStream: true');
+      expect(result.implementation).toContain('Expected stream response');
+      expect(result.implementation).not.toContain('Unexpected stream response');
     });
 
     it('does not add responseType for non-binary response', () => {

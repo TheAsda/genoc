@@ -1276,6 +1276,37 @@ describe('generateContracts', () => {
       expect(result).toMatchSnapshot();
     });
 
+    it('generates StreamResponse for vendor content type with $ref-ed binary schema', () => {
+      const doc = createDoc({
+        components: {
+          schemas: {
+            File: { type: 'string', format: 'binary' },
+          },
+        },
+        paths: {
+          '/price-lists/{id}': {
+            get: {
+              parameters: [
+                { name: 'id', in: 'path' as const, required: true, schema: { type: 'string' } },
+              ],
+              responses: {
+                '200': {
+                  description: 'Spreadsheet download',
+                  content: {
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {
+                      schema: { $ref: '#/components/schemas/File' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      const result = generateContracts(doc, makeResolver(doc));
+      expect(result).toContain('export type GetPriceListsIdResponse = StreamResponse;');
+    });
+
     it('always emits StreamResponse class', () => {
       const doc = createDoc({
         paths: {
