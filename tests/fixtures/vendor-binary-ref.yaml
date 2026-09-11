@@ -1,4 +1,4 @@
-# Minimal reproduction of the Kaspersky PriceLists binary-response pattern:
+# Minimal reproduction of a real-world vendor binary-response pattern:
 # a vendor spreadsheet content type whose schema is a $ref to a
 # `{ type: string, format: binary }` component. Neither the content type nor
 # the unresolved $ref looks binary — the signal only appears after $ref
