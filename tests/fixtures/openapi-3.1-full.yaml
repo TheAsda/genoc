@@ -222,6 +222,13 @@ components:
       required: [file, text_file]
       description: File upload schema
 
+    # Binary $ref target for schema-driven binary classification
+    # (vendor content type + binary schema => StreamResponse / Blob)
+    File:
+      type: string
+      format: binary
+      description: Raw file content
+
     # Complex nested schema
     NestedSchema:
       type: object
@@ -823,6 +830,50 @@ paths:
         400:
           $ref: '#/components/responses/ErrorResponse'
 
+  /vendor-binary-response:
+    get:
+      operationId: getVendorBinaryResponse
+      summary: Vendor content type binary response with $ref siblings
+      description: Vendor CT with $ref binary schema plus sibling description is classified as stream via schema signal
+      tags: [responses]
+      responses:
+        200:
+          description: Spreadsheet file download
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                $ref: '#/components/schemas/File'
+                description: Raw spreadsheet content from sibling
+
+  /typeless-binary-response:
+    get:
+      operationId: getTypelessBinaryResponse
+      summary: Typeless binary response
+      description: Schema with only format binary (no type) is classified as stream
+      tags: [responses]
+      responses:
+        200:
+          description: Raw binary download
+          content:
+            application/octet-stream:
+              schema:
+                format: binary
+
+  /type-array-binary-response:
+    get:
+      operationId: getTypeArrayBinaryResponse
+      summary: Type array binary response
+      description: Nullable binary via type array is classified as stream
+      tags: [responses]
+      responses:
+        200:
+          description: Nullable binary download
+          content:
+            application/octet-stream:
+              schema:
+                type: [string, 'null']
+                format: binary
+
   /empty-response:
     get:
       operationId: getEmptyResponse
@@ -1050,6 +1101,22 @@ paths:
         $ref: '#/components/requestBodies/OctetStreamBody'
       responses:
         201:
+          $ref: '#/components/responses/SuccessResponse'
+
+  /vendor-binary-body:
+    post:
+      operationId: postVendorBinaryBody
+      summary: Vendor content type binary request body
+      description: Vendor CT request body with $ref binary schema generates a Blob body
+      tags: [request-bodies]
+      requestBody:
+        required: true
+        content:
+          application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+            schema:
+              $ref: '#/components/schemas/File'
+      responses:
+        200:
           $ref: '#/components/responses/SuccessResponse'
 
   # Error handling tests

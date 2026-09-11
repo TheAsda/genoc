@@ -10,6 +10,7 @@ import {
   buildFieldJsDocLines,
   buildTypeJsDoc,
   getOperationTypePrefix,
+  isBinaryContentType,
 } from '../../src/utils/generator-helpers.js';
 
 describe('sanitizeTypeName', () => {
@@ -335,5 +336,45 @@ describe('getOperationTypePrefix — weird routes (issue #25)', () => {
         path: '/api/v1.2/user-settings/{id}/list~all',
       } as never)
     ).toBe('GetApiV12UserSettingsIdListAll');
+  });
+});
+
+describe('isBinaryContentType', () => {
+  it('matches application/octet-stream exactly', () => {
+    expect(isBinaryContentType('application/octet-stream')).toBe(true);
+  });
+
+  it('matches image/ prefixed content types', () => {
+    expect(isBinaryContentType('image/png')).toBe(true);
+  });
+
+  it('matches video/ prefixed content types', () => {
+    expect(isBinaryContentType('video/mp4')).toBe(true);
+  });
+
+  it('matches audio/ prefixed content types', () => {
+    expect(isBinaryContentType('audio/ogg')).toBe(true);
+  });
+
+  it('rejects JSON content types', () => {
+    expect(isBinaryContentType('application/json')).toBe(false);
+  });
+
+  it('rejects spreadsheet content types', () => {
+    expect(
+      isBinaryContentType('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    ).toBe(false);
+  });
+
+  it('rejects text content types', () => {
+    expect(isBinaryContentType('text/csv')).toBe(false);
+  });
+
+  it('rejects PDF content types', () => {
+    expect(isBinaryContentType('application/pdf')).toBe(false);
+  });
+
+  it('rejects empty string', () => {
+    expect(isBinaryContentType('')).toBe(false);
   });
 });

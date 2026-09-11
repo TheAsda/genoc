@@ -8,7 +8,11 @@ import type {
   ResponseObject,
   SchemaObject,
 } from '../types/openapi.js';
-import { sanitizeTypeName, getOperationTypePrefix } from '../utils/generator-helpers.js';
+import {
+  isBinaryContentType,
+  sanitizeTypeName,
+  getOperationTypePrefix,
+} from '../utils/generator-helpers.js';
 import { getMethodName } from './naming.js';
 
 export interface AnalyzedParameter {
@@ -28,6 +32,7 @@ export interface AnalyzedRequestBody {
   schema: SchemaObject | ReferenceObject | undefined;
   tsType: string;
   isMultipart: boolean;
+  isBinary: boolean;
   description?: string;
 }
 
@@ -65,12 +70,16 @@ function isRef(obj: unknown): obj is ReferenceObject {
   return obj !== null && typeof obj === 'object' && '$ref' in (obj as Record<string, unknown>);
 }
 
-function isBinaryContentType(ct: string): boolean {
-  if (ct === 'application/octet-stream') return true;
-  if (ct.startsWith('image/')) return true;
-  if (ct.startsWith('video/')) return true;
-  if (ct.startsWith('audio/')) return true;
-  return false;
+/**
+ * Resolve a possibly-$ref-ed schema and check for an exact top-level `format: binary`
+ * match. Top-level only — intentionally no deep-walk into items/allOf/oneOf/anyOf.
+ */
+function isBinarySchema(
+  schema: SchemaObject | ReferenceObject | undefined,
+  resolver: RefResolver
+): boolean {
+  if (!schema) return false;
+  return resolver.resolveSchema(schema).format === 'binary';
 }
 
 function schemaToTsType(
@@ -208,12 +217,19 @@ function analyzeRequestBody(
 
   const isMultipart = contentTypes.length > 0 && contentTypes[0] === 'multipart/form-data';
 
+  // Contract with the generators: multipart bodies keep the FileInput shape
+  // and must never be Blob-ified, so the binary signals are bypassed.
+  const isBinary = isMultipart
+    ? false
+    : contentTypes.some(isBinaryContentType) || isBinarySchema(schema, resolver);
+
   return {
     required: resolved.required ?? false,
     contentTypes,
     schema,
     tsType,
     isMultipart,
+    isBinary,
     description: resolved.description,
   };
 }
@@ -251,7 +267,9 @@ function analyzeResponses(
       tsType = 'void';
     }
 
-    const isBinary = contentTypes.length > 0 && isBinaryContentType(contentTypes[0]);
+    const isBinary =
+      contentTypes.length > 0 &&
+      (isBinaryContentType(contentTypes[0]) || isBinarySchema(schema, resolver));
 
     result.push({
       statusCode,

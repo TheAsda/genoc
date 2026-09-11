@@ -21,14 +21,6 @@ import {
   makeHeader,
 } from '../utils/generator-helpers.js';
 
-function isBinaryContentType(ct: string): boolean {
-  if (ct === 'application/octet-stream') return true;
-  if (ct.startsWith('image/')) return true;
-  if (ct.startsWith('video/')) return true;
-  if (ct.startsWith('audio/')) return true;
-  return false;
-}
-
 /**
  * If the schema is a $ref to a discriminated base type (or an array whose items
  * are), replace the type name with the {Base}Variant union type.
@@ -553,8 +545,7 @@ export function generateContracts(
         );
       }
     } else if (op.requestBody?.schema) {
-      const hasBinaryContentType = op.requestBody.contentTypes.some(isBinaryContentType);
-      if (hasBinaryContentType) {
+      if (op.requestBody.isBinary) {
         opLines.push(attachTypeJsDoc(bodyJsDoc, `export type ${prefix}Body = Blob;`));
       } else {
         const result = mapper.mapSchema(op.requestBody.schema, undefined, 'request');
