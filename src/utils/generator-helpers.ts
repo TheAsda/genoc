@@ -104,6 +104,7 @@ export const RESERVED_TYPE_NAMES: ReadonlySet<string> = new Set([
   'isDefinedError',
   'decorateWithErrors',
   'ApiClient',
+  'createClient',
   // Interface in contracts.ts (when file uploads present)
   'FileInput',
 ]);
