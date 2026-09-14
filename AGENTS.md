@@ -2,7 +2,7 @@
 
 ## What this project does
 
-Generates typed TypeScript HTTP clients from OpenAPI 3.0 / 3.1 specs (JSON/YAML, file or URL). Outputs two files: `contracts.ts` (types) and `client.ts` (client with `createClient(requester)` factory) into the specified output directory. The user supplies a `Requester` implementation at runtime. Requires Node ≥ 18.
+Generates typed TypeScript HTTP clients from OpenAPI 3.0 / 3.1 specs (JSON/YAML, file or URL). Outputs three files: `contracts.ts` (types), `client.ts` (client with `createClient(requester)` factory), and `index.ts` (barrel re-exporting both) into the specified output directory. The user supplies a `Requester` implementation at runtime. Requires Node ≥ 18.
 
 ## Commands
 
@@ -90,7 +90,7 @@ import { load } from '../parser/spec-reader.js';
 
 - **Shared codegen helpers** (`toPascalCase`, `getOperationTypePrefix`, `getSuccessType`, `getErrorType`) live in `src/utils/generator-helpers.ts`. All generators import from this single source.
 - Type naming prefix: `{Method}{PathSegments}` in PascalCase (e.g., `GetApiV1Products`).
-- Output file names are fixed: `contracts.ts` and `client.ts`, written directly into the output directory.
+- Output file names are fixed: `contracts.ts`, `client.ts`, and `index.ts`, written directly into the output directory.
 - Method naming strategies: `path-based` (default, from HTTP method + path segments), `operationId` (from spec's `operationId`), `operationId-with-fallback` (uses `operationId` if present, else path-based).
 - Parameter order in generated methods: path → query → body → headers (headers always last).
 
@@ -127,6 +127,8 @@ Integration tests compile generated output with `tsc --strict` to verify type co
 **Contracts file** (`*.contracts.ts`): schema types → security scheme types → server variable types → per-operation query/header/body/response/error types → `StreamResponse` class (headers as `Record<string, string>`) → `ErrorResponse` class (headers as `Record<string, string>`) → `ApiError<TStatus, TData>` class → `DefaultApiError<TData>` class → `RequesterFailError`. Also includes per-operation error union types.
 
 **Client file** (`*.client.ts`): imports from contracts file (`ApiError`, `UnspecifiedApiError`, `ErrorResponse`, `StreamResponse`, `RequesterFailError`) → `decorateWithErrors<T, E>()` (attaches `__definedErrors` property) → `Requester` type (returns `TResponse | StreamResponse | ErrorResponse`) → `isDefinedError` type guard (uses `__definedErrors` property for narrowing) → `createClient(requester)` factory → methods with try/catch wrapping `ApiError` throws + `StreamResponse` binary handling. Error codes attached via `decorateWithErrors(fn, [400, ...] as const)`.
+
+**Index file** (`index.ts`): barrel under the standard genoc header with two star re-exports — `export * from './contracts.js';` + `export * from './client.js';`. Any future fixed value export must be added to `RESERVED_TYPE_NAMES` (`src/utils/generator-helpers.ts`), because star re-exports silently drop ambiguous names.
 
 ## Dependencies
 

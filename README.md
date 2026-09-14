@@ -36,10 +36,13 @@ Generate:
 genoc ./path/to/spec.yaml --output-dir ./src/api
 ```
 
-This creates two files in `./src/api`:
+This creates three files in `./src/api`:
 
 - `contracts.ts` — Type definitions, error classes, and helper types
 - `client.ts` — Typed client with `createClient(requester)` factory
+- `index.ts` — Barrel re-exporting both files, so you can import directly from the output directory
+
+The barrel means `import { createClient } from './index.js'` works too.
 
 ## Usage
 
