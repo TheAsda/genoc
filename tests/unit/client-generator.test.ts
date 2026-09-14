@@ -1,13 +1,13 @@
-import { readFile, rm, stat, mkdtemp } from 'fs/promises';
+import { access, readFile, rm, stat, mkdtemp } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
 import { describe, expect, it } from 'vitest';
 
 import { generateClient, generateFullOutput } from '../../src/generator/client-generator.js';
-import { makeHeader } from '../../src/utils/generator-helpers.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { makeHeader } from '../../src/utils/generator-helpers.js';
 
 function createDoc(overrides?: Partial<OpenAPIDocument>): OpenAPIDocument {
   return {
@@ -931,6 +931,35 @@ describe('generateFullOutput', () => {
 
       expect(contractsContent).toMatchSnapshot();
       expect(clientContent).toMatchSnapshot();
+    } finally {
+      await rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  it('writes index.ts to disk matching the string API barrel output', async () => {
+    const tmpDir = await mkdtemp(join(tmpdir(), 'client-gen-test-'));
+
+    try {
+      const doc = createDoc({
+        paths: {
+          '/items': {
+            get: {
+              responses: { '200': { description: 'OK' } },
+            },
+          },
+        },
+      });
+      const config = createConfig({ outputDir: tmpDir });
+
+      await generateFullOutput(doc, config);
+
+      const indexPath = join(tmpDir, 'index.ts');
+
+      await expect(access(indexPath)).resolves.toBeUndefined();
+
+      const onDiskContent = await readFile(indexPath, 'utf-8');
+      const { index } = generateClient(doc, config);
+      expect(onDiskContent).toBe(index);
     } finally {
       await rm(tmpDir, { recursive: true, force: true });
     }

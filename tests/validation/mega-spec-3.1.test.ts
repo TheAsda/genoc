@@ -119,7 +119,11 @@ describe('OpenAPI 3.1 Mega-Spec Integration Test', () => {
     });
 
     it('generated files on disk compile together with tsc', () => {
-      expectFilesCompile([join(fullTmpDir, 'client.ts'), join(fullTmpDir, 'contracts.ts')]);
+      expectFilesCompile([
+        join(fullTmpDir, 'client.ts'),
+        join(fullTmpDir, 'contracts.ts'),
+        join(fullTmpDir, 'index.ts'),
+      ]);
     });
   });
 });

@@ -348,17 +348,18 @@ export function generateClient(
 }
 
 /**
- * Generate and write both output files to disk.
+ * Generate and write all output files to disk.
  */
 export async function generateFullOutput(
   doc: OpenAPIDocument,
   config: GeneratorConfig,
   options?: GenerationOptions
 ): Promise<void> {
-  const { contracts, client } = generateClient(doc, config, options);
+  const { contracts, client, index } = generateClient(doc, config, options);
 
   await mkdir(config.outputDir, { recursive: true });
 
   await writeFile(join(config.outputDir, 'contracts.ts'), contracts, 'utf-8');
   await writeFile(join(config.outputDir, 'client.ts'), client, 'utf-8');
+  await writeFile(join(config.outputDir, 'index.ts'), index, 'utf-8');
 }

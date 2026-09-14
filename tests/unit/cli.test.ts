@@ -122,6 +122,7 @@ describe('CLI Entry Point', () => {
     expect(normalizePaths(captured.stdout)).toMatchSnapshot();
     expect(existsSync(join(OUTPUT_DIR, 'contracts.ts'))).toBe(true);
     expect(existsSync(join(OUTPUT_DIR, 'client.ts'))).toBe(true);
+    expect(existsSync(join(OUTPUT_DIR, 'index.ts'))).toBe(true);
   });
 
   it('generates files with operationId strategy', async () => {
@@ -157,6 +158,7 @@ describe('CLI Entry Point', () => {
     expect(normalizePaths(captured.stdout)).toMatchSnapshot();
     expect(existsSync(join(OUTPUT_DIR, 'contracts.ts'))).toBe(true);
     expect(existsSync(join(OUTPUT_DIR, 'client.ts'))).toBe(true);
+    expect(existsSync(join(OUTPUT_DIR, 'index.ts'))).toBe(true);
 
     const clientFile = readFileSync(join(OUTPUT_DIR, 'client.ts'), 'utf-8');
     expect(clientFile).toMatchSnapshot();
@@ -195,6 +197,7 @@ describe('CLI Entry Point', () => {
     expect(normalizePaths(captured.stdout)).toMatchSnapshot();
     expect(existsSync(join(OUTPUT_DIR, 'contracts.ts'))).toBe(true);
     expect(existsSync(join(OUTPUT_DIR, 'client.ts'))).toBe(true);
+    expect(existsSync(join(OUTPUT_DIR, 'index.ts'))).toBe(true);
 
     const clientFile = readFileSync(join(OUTPUT_DIR, 'client.ts'), 'utf-8');
     expect(clientFile).toMatchSnapshot();
@@ -246,5 +249,6 @@ describe('CLI Entry Point', () => {
     expect(existsSync(OUTPUT_DIR)).toBe(true);
     expect(existsSync(join(OUTPUT_DIR, 'contracts.ts'))).toBe(true);
     expect(existsSync(join(OUTPUT_DIR, 'client.ts'))).toBe(true);
+    expect(existsSync(join(OUTPUT_DIR, 'index.ts'))).toBe(true);
   });
 });

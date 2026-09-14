@@ -108,6 +108,10 @@ describe('Vendor binary full output pipeline', () => {
   });
 
   it('generated files on disk compile together with tsc', () => {
-    expectFilesCompile([join(tmpDir, 'client.ts'), join(tmpDir, 'contracts.ts')]);
+    expectFilesCompile([
+      join(tmpDir, 'client.ts'),
+      join(tmpDir, 'contracts.ts'),
+      join(tmpDir, 'index.ts'),
+    ]);
   });
 });
