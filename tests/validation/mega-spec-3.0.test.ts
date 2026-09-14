@@ -129,5 +129,13 @@ describe('OpenAPI 3.0 Mega-Spec Integration Test', () => {
       expect(contractsContent).toMatchSnapshot();
       expect(clientContent).toMatchSnapshot();
     });
+
+    it('generated files on disk compile together with tsc', () => {
+      expectFilesCompile([
+        join(fullTmpDir, 'client.ts'),
+        join(fullTmpDir, 'contracts.ts'),
+        join(fullTmpDir, 'index.ts'),
+      ]);
+    });
   });
 });

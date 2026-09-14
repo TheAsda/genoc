@@ -309,13 +309,28 @@ export interface GenerationOptions {
 }
 
 /**
- * Generate both the contracts and client file content from an OpenAPI document.
+ * Generate the `index.ts` barrel file content: re-exports everything from the
+ * generated contracts and client files.
+ */
+function buildIndexFile(version: string): string {
+  const lines: string[] = [];
+
+  lines.push(makeHeader(version));
+  lines.push('');
+  lines.push(`export * from './contracts.js';`);
+  lines.push(`export * from './client.js';`);
+
+  return lines.join('\n') + '\n';
+}
+
+/**
+ * Generate the contracts, client, and index barrel file content from an OpenAPI document.
  */
 export function generateClient(
   doc: OpenAPIDocument,
   config: GeneratorConfig,
   options?: GenerationOptions
-): { contracts: string; client: string } {
+): { contracts: string; client: string; index: string } {
   const resolver = new RefResolver(doc, undefined, {
     preserveRefSiblings: options?.preserveRefSiblings,
   });
@@ -327,21 +342,24 @@ export function generateClient(
 
   const client = buildClientFile(operations, doc.openapi, runtimeImportPath);
 
-  return { contracts, client };
+  const index = buildIndexFile(doc.openapi);
+
+  return { contracts, client, index };
 }
 
 /**
- * Generate and write both output files to disk.
+ * Generate and write all output files to disk.
  */
 export async function generateFullOutput(
   doc: OpenAPIDocument,
   config: GeneratorConfig,
   options?: GenerationOptions
 ): Promise<void> {
-  const { contracts, client } = generateClient(doc, config, options);
+  const { contracts, client, index } = generateClient(doc, config, options);
 
   await mkdir(config.outputDir, { recursive: true });
 
   await writeFile(join(config.outputDir, 'contracts.ts'), contracts, 'utf-8');
   await writeFile(join(config.outputDir, 'client.ts'), client, 'utf-8');
+  await writeFile(join(config.outputDir, 'index.ts'), index, 'utf-8');
 }

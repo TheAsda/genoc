@@ -55,6 +55,11 @@ describe('buildSchemaRenameMap', () => {
     expect(map.get('ApiError')).toBe('ApiErrorModel');
   });
 
+  it('reserves createClient as a fixed export name of client.ts', () => {
+    const map = buildSchemaRenameMap(['createClient'], RESERVED_TYPE_NAMES);
+    expect(map.get('createClient')).toBe('createClientModel');
+  });
+
   it('returns empty map when no collisions', () => {
     const map = buildSchemaRenameMap(['User', 'Product'], RESERVED_TYPE_NAMES);
     expect(map.size).toBe(0);

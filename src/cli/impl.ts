@@ -62,6 +62,7 @@ export default async function (
     this.process.stdout.write(`✅ Success! Generated client files:\n`);
     this.process.stdout.write(`  - ${flags.outputDir}/contracts.ts\n`);
     this.process.stdout.write(`  - ${flags.outputDir}/client.ts\n`);
+    this.process.stdout.write(`  - ${flags.outputDir}/index.ts\n`);
   } catch (error) {
     if (error instanceof UserError) {
       return error;

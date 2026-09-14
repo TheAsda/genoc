@@ -46,10 +46,12 @@ describe('Programmatic API', () => {
       // Check that output files were created
       const contractsFile = path.join(tempDir, 'contracts.ts');
       const clientFile = path.join(tempDir, 'client.ts');
+      const indexFile = path.join(tempDir, 'index.ts');
 
       // fs.access throws if file doesn't exist, so we expect it not to throw
       await expect(fs.access(contractsFile)).resolves.toBeUndefined();
       await expect(fs.access(clientFile)).resolves.toBeUndefined();
+      await expect(fs.access(indexFile)).resolves.toBeUndefined();
     });
 
     it('throws error for invalid OpenAPI specification', async () => {
