@@ -309,13 +309,28 @@ export interface GenerationOptions {
 }
 
 /**
- * Generate both the contracts and client file content from an OpenAPI document.
+ * Generate the `index.ts` barrel file content: re-exports everything from the
+ * generated contracts and client files.
+ */
+function buildIndexFile(version: string): string {
+  const lines: string[] = [];
+
+  lines.push(makeHeader(version));
+  lines.push('');
+  lines.push(`export * from './contracts.js';`);
+  lines.push(`export * from './client.js';`);
+
+  return lines.join('\n') + '\n';
+}
+
+/**
+ * Generate the contracts, client, and index barrel file content from an OpenAPI document.
  */
 export function generateClient(
   doc: OpenAPIDocument,
   config: GeneratorConfig,
   options?: GenerationOptions
-): { contracts: string; client: string } {
+): { contracts: string; client: string; index: string } {
   const resolver = new RefResolver(doc, undefined, {
     preserveRefSiblings: options?.preserveRefSiblings,
   });
@@ -327,7 +342,9 @@ export function generateClient(
 
   const client = buildClientFile(operations, doc.openapi, runtimeImportPath);
 
-  return { contracts, client };
+  const index = buildIndexFile(doc.openapi);
+
+  return { contracts, client, index };
 }
 
 /**

@@ -5,6 +5,7 @@ import { join } from 'path';
 import { describe, expect, it } from 'vitest';
 
 import { generateClient, generateFullOutput } from '../../src/generator/client-generator.js';
+import { makeHeader } from '../../src/utils/generator-helpers.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
 
@@ -36,6 +37,26 @@ describe('generateClient', () => {
       expect(typeof result.client).toBe('string');
       expect(result.contracts).toMatchSnapshot();
       expect(result.client).toMatchSnapshot();
+    });
+  });
+
+  describe('index barrel file', () => {
+    it('returns exact barrel content: header, blank line, two export * lines', () => {
+      const doc = createDoc();
+      const config = createConfig();
+      const { index } = generateClient(doc, config);
+      const expected = `${makeHeader(doc.openapi)}\n\nexport * from './contracts.js';\nexport * from './client.js';\n`;
+      expect(index).toBe(expected);
+    });
+
+    it('still returns contracts and client strings', () => {
+      const doc = createDoc();
+      const config = createConfig();
+      const result = generateClient(doc, config);
+      expect(typeof result.contracts).toBe('string');
+      expect(typeof result.client).toBe('string');
+      expect(result.contracts).toContain(makeHeader(doc.openapi));
+      expect(result.client).toContain(makeHeader(doc.openapi));
     });
   });
 
