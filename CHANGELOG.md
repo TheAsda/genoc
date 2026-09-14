@@ -1,5 +1,15 @@
 # genoc
 
+## 0.4.0
+
+### Minor Changes
+
+- 7e51e0c: Always generate an `index.ts` barrel alongside `contracts.ts` and `client.ts` in the output directory — `export * from './contracts.js';` plus `export * from './client.js';` under the standard genoc header — so the client factory can be imported straight from the output directory. Barrel generation is always on: no flag, no config option. Regenerating overwrites all three files, including any hand-authored `index.ts`. A spec schema named `createClient` would collide with the barrel's re-exported factory, so such schemas now rename to `createClientModel`.
+
+### Patch Changes
+
+- 1f5c750: Classify responses and request bodies as binary when the resolved schema has `format: binary` — vendor content types like `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` now generate `StreamResponse` returns with `expectStream: true` and `Blob` bodies instead of a broken `string` contract.
+
 ## 0.3.0
 
 ### Minor Changes
