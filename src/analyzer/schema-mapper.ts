@@ -62,13 +62,15 @@ export class SchemaMapper {
   private readonly reservedNames: Set<string>;
   private readonly brandedTypes: Map<string, { name: string; format: string; baseType: string }> =
     new Map();
-  private static nullableWarned = false;
+  private nullableWarned = false;
+  private readonly warnSink: (message: string) => void;
 
   constructor(
     resolver: RefResolver,
     typeNameGenerator?: TypeNameGenerator,
     discriminatorTargets?: Map<string, { propertyName: string; literalValue: string }>,
-    reservedNames?: Set<string>
+    reservedNames?: Set<string>,
+    warnSink?: (message: string) => void
   ) {
     // NOTE: discriminatorTargets must be keyed by names produced by the SAME
     // (rename-aware) typeNameGenerator that resolves $refs. Passing targets
@@ -78,6 +80,11 @@ export class SchemaMapper {
     this.typeNameGenerator = typeNameGenerator ?? defaultTypeNameGenerator;
     this.discriminatorTargets = discriminatorTargets ?? new Map();
     this.reservedNames = reservedNames ?? new Set();
+    this.warnSink =
+      warnSink ??
+      ((message) => {
+        process.stderr.write(message);
+      });
   }
 
   getBrandedTypes(): Map<string, { name: string; format: string; baseType: string }> {
@@ -163,13 +170,11 @@ export class SchemaMapper {
     // TODO: Remove deprecated nullable warning and handling when OpenAPI 3.1 support is complete
     // The 'nullable' property is deprecated in OpenAPI 3.1 in favor of type arrays like ["string", "null"]
     // This warning should be removed once full type array support is implemented
-    if (s.nullable === true && !SchemaMapper.nullableWarned) {
-      // TODO: Replace with structured logging solution
-      // oxlint-disable-next-line no-console
-      console.warn(
+    if (s.nullable === true && !this.nullableWarned) {
+      this.warnSink(
         'Warning: \'nullable\' is deprecated in OpenAPI 3.1. Use \'type: ["string", "null"]\' instead.'
       );
-      SchemaMapper.nullableWarned = true;
+      this.nullableWarned = true;
     }
 
     if (s.enum !== undefined && s.enum.length > 0) {

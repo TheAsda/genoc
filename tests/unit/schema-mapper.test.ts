@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { SchemaMapper } from '../../src/analyzer/schema-mapper.js';
 import type { TypeNameGenerator } from '../../src/analyzer/schema-mapper.js';
@@ -1358,6 +1358,74 @@ describe('SchemaMapper', () => {
         },
       });
       expect(result.tsType).toBe('{\n  "kind": string;\n  /** Name doc. */\n  name?: string;\n}');
+    });
+  });
+
+  describe('deprecated nullable warning', () => {
+    const nullableSchema: SchemaObject = { type: 'string', nullable: true };
+    const expectedMessage =
+      'Warning: \'nullable\' is deprecated in OpenAPI 3.1. Use \'type: ["string", "null"]\' instead.';
+
+    it('warns exactly once per instance when mapping a nullable schema', () => {
+      const writes: string[] = [];
+      const r = createResolver();
+      const m = new SchemaMapper(r, undefined, undefined, undefined, (msg) => {
+        writes.push(msg);
+      });
+
+      m.mapSchema(nullableSchema);
+      m.mapSchema(nullableSchema);
+      m.mapSchema(nullableSchema);
+
+      expect(writes).toEqual([expectedMessage]);
+    });
+
+    it('warns once per each of two instances with identical messages', () => {
+      const firstWrites: string[] = [];
+      const secondWrites: string[] = [];
+      const r = createResolver();
+      const first = new SchemaMapper(r, undefined, undefined, undefined, (msg) => {
+        firstWrites.push(msg);
+      });
+      const second = new SchemaMapper(r, undefined, undefined, undefined, (msg) => {
+        secondWrites.push(msg);
+      });
+
+      first.mapSchema(nullableSchema);
+      second.mapSchema(nullableSchema);
+
+      expect(firstWrites).toEqual([expectedMessage]);
+      expect(secondWrites).toEqual([expectedMessage]);
+    });
+
+    it('routes the warning through the injected sink, not console.warn', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      try {
+        const writes: string[] = [];
+        const r = createResolver();
+        const m = new SchemaMapper(r, undefined, undefined, undefined, (msg) => {
+          writes.push(msg);
+        });
+
+        m.mapSchema(nullableSchema);
+
+        expect(writes).toEqual([expectedMessage]);
+        expect(warnSpy).not.toHaveBeenCalled();
+      } finally {
+        warnSpy.mockRestore();
+      }
+    });
+
+    it('does not warn for schemas without nullable', () => {
+      const writes: string[] = [];
+      const r = createResolver();
+      const m = new SchemaMapper(r, undefined, undefined, undefined, (msg) => {
+        writes.push(msg);
+      });
+
+      m.mapSchema({ type: 'string' });
+
+      expect(writes).toEqual([]);
     });
   });
 });
