@@ -1,17 +1,36 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`CLI Entry Point > errors when --output-dir is missing 1`] = `
-"Expected input for flag --output-dir
+exports[`CLI Entry Point > config file wiring > multi-client: runs all targets in declaration order with summary line 1`] = `
+"Loading spec from <TEMP_DIR>/specs/petstore.json...
+Loaded OpenAPI 3.1.0 spec
+Generating client...
+✅ Success! Generated client files:
+  - <TEMP_DIR>/out-petstore/contracts.ts
+  - <TEMP_DIR>/out-petstore/client.ts
+  - <TEMP_DIR>/out-petstore/index.ts
+Loading spec from <TEMP_DIR>/specs/billing.json...
+Loaded OpenAPI 3.1.0 spec
+Generating client...
+✅ Success! Generated client files:
+  - <TEMP_DIR>/out-billing/contracts.ts
+  - <TEMP_DIR>/out-billing/client.ts
+  - <TEMP_DIR>/out-billing/index.ts
+Generated 2/2 clients
 "
+`;
+
+exports[`CLI Entry Point > config file wiring > targetNameFromInput derives display names from spec filename base 1`] = `
+[
+  "petstore",
+  "spec",
+  "openapi",
+  "no-extension",
+  "api",
+]
 `;
 
 exports[`CLI Entry Point > errors when invalid methodNameStrategy is used 1`] = `
 "Expected "invalid" to be one of (path-based|operationId|operationId-with-fallback)
-"
-`;
-
-exports[`CLI Entry Point > errors when spec positional is missing 1`] = `
-"Expected argument for spec
 "
 `;
 
@@ -146,23 +165,25 @@ exports[`CLI Entry Point > handles missing required fields 1`] = `
 
 exports[`CLI Entry Point > shows help when --help flag is used 1`] = `
 "USAGE
-  genoc (--output-dir dir) [--method-name-strategy path-based|operationId|operationId-with-fallback] [--spec-version version] [--strict-version] [--runtime-import-path module] [--proxy url] <spec>
+  genoc [--output-dir dir] [--method-name-strategy path-based|operationId|operationId-with-fallback] [--spec-version version] [--strict-version] [--runtime-import-path module] [--proxy url] [--config path] [--project name] [<spec>]
   genoc --help
   genoc --version
 
 Generate typed TypeScript HTTP clients from OpenAPI 3.0 / 3.1 specs (JSON/YAML, file or URL).
 
 FLAGS
-      --output-dir                           Directory to write generated files
+     [--output-dir]                          Directory to write generated files (or set outputDir in the config file)
      [--method-name-strategy]                Method naming strategy                                                           [path-based|operationId|operationId-with-fallback, default = path-based]
      [--spec-version]                        Override auto-detected OpenAPI version (e.g. "3.0", "3.1")
-     [--strict-version/--no-strict-version]  Enable strict version checking                                                   [default = true]
+     [--strict-version/--no-strict-version]  Warn when --spec-version mismatches the detected version (default: true)
      [--runtime-import-path]                 Module specifier for runtime imports (default: genoc/runtime)
      [--proxy]                               HTTP(S) proxy URL for fetching specs (overrides HTTP_PROXY/HTTPS_PROXY env vars)
+     [--config]                              Path to a genoc config file (.genocrc.yml / genoc.config.json); skips discovery
+     [--project]                             Run only the named client from a multi-client config
   -h  --help                                 Print help information and exit
   -v  --version                              Print version information and exit
 
 ARGUMENTS
-  spec  Path or URL to OpenAPI 3.0 or 3.1 spec (JSON/YAML)
+  [spec]  Path or URL to OpenAPI 3.0 or 3.1 spec (JSON/YAML); omit to use a config file
 "
 `;

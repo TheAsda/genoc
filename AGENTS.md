@@ -59,17 +59,23 @@ spec-reader → version detection → validation → ref-resolver → path-analy
   - `impl.ts` — Lazy-loaded implementation using `this.process.stdout.write()` (not `console.log`)
   - `index.ts` — Thin entry point: shebang + `run(app, args, { process })` + `process.exit()`
   - `errors.ts` — `UserError` class for CLI-facing errors
-  - Binary: `genoc <spec> [flags]` (positional spec arg, not `--input`)
+  - Binary: `genoc [<spec>] [flags]` (optional positional spec arg, not `--input`)
 - **Programmatic**: `src/index.ts` → `generateClient(config)`. Runtime exports: `generateClient`, `loadSpec`. Type exports: `GeneratorConfig`, `GenerationOptions`, `ApiClient`, `ApiError`, `DefaultApiError`.
 
 ### CLI flags
 
-| Flag                     | Default      | Description                                                  |
-| ------------------------ | ------------ | ------------------------------------------------------------ |
-| `--output-dir`           | (required)   | Output directory                                             |
-| `--method-name-strategy` | `path-based` | `path-based` \| `operationId` \| `operationId-with-fallback` |
-| `--spec-version`         | auto-detect  | Override version detection (`"3.0"` or `"3.1"`)              |
-| `--strict-version`       | `true`       | Warn if `--spec-version` mismatches detected version         |
+| Flag                     | Default         | Description                                                                                              |
+| ------------------------ | --------------- | -------------------------------------------------------------------------------------------------------- |
+| `--output-dir`           | (optional)      | Output directory; required when no config file supplies it                                               |
+| `--method-name-strategy` | `path-based`    | `path-based` \| `operationId` \| `operationId-with-fallback`                                             |
+| `--spec-version`         | auto-detect     | Override version detection (`"3.0"` or `"3.1"`)                                                          |
+| `--strict-version`       | `true`          | Warn if `--spec-version` mismatches detected version; config file value applies when the flag is omitted |
+| `--runtime-import-path`  | `genoc/runtime` | Module specifier generated code imports runtime classes from                                             |
+| `--proxy`                | (none)          | HTTP(S) proxy URL for fetching specs; overrides HTTP_PROXY/HTTPS_PROXY env vars                          |
+| `--config`               | (none)          | Path to `.genocrc.yml` / `genoc.config.json`; skips discovery                                            |
+| `--project`              | (none)          | Run only the named client from a multi-client config                                                     |
+
+Config files: `.genocrc.yml` (not `.genocrc.yaml`) and `genoc.config.json`, discovered per-directory then upward to the git boundary; `--config <path>` skips discovery. Relative `input`/`outputDir` resolve against the config file's directory. See the README "Configuration Files" section for shapes, precedence, and conflict rules.
 
 ## ESM module system
 
