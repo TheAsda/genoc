@@ -8,61 +8,90 @@ import { assertValidProxyUrl } from '../utils/proxy.js';
 import type { AppFlags as Flags } from './app.js';
 import { UserError } from './errors.js';
 
+type GenerationTarget = {
+  input: string;
+  outputDir: string;
+  methodNameStrategy: Flags['methodNameStrategy'];
+  specVersion: Flags['specVersion'];
+  strictVersion: Flags['strictVersion'];
+  runtimeImportPath: Flags['runtimeImportPath'];
+  proxy: Flags['proxy'];
+};
+
+function targetFromFlags(spec: string, flags: Flags): GenerationTarget {
+  return {
+    input: spec,
+    outputDir: flags.outputDir,
+    methodNameStrategy: flags.methodNameStrategy || 'path-based',
+    specVersion: flags.specVersion,
+    strictVersion: flags.strictVersion,
+    runtimeImportPath: flags.runtimeImportPath,
+    proxy: flags.proxy,
+  };
+}
+
+async function runOneTarget(target: GenerationTarget, context: CommandContext): Promise<void> {
+  if (target.proxy) {
+    try {
+      assertValidProxyUrl(target.proxy);
+    } catch (err) {
+      throw new UserError((err as Error).message);
+    }
+  }
+
+  context.process.stdout.write(`Loading spec from ${target.input}...\n`);
+  const doc = await load(target.input, { proxy: target.proxy });
+  context.process.stdout.write(`Loaded OpenAPI ${doc.openapi} spec\n`);
+
+  const strategy = target.specVersion
+    ? defaultRegistry.get(target.specVersion)
+    : defaultRegistry.detectAndResolve(doc);
+
+  if (target.specVersion && target.strictVersion !== false) {
+    const detected = defaultRegistry.detectAndResolve(doc);
+    if (detected.version() !== target.specVersion) {
+      context.process.stderr.write(
+        `Warning: Specified version ${target.specVersion} does not match detected version ${detected.version()}\n`
+      );
+    }
+  }
+
+  const validation = validateSpec(doc, strategy);
+  if (!validation.valid) {
+    throw new UserError(
+      `Invalid OpenAPI specification:\n${validation.errors.map((e) => `  - ${e}`).join('\n')}`
+    );
+  }
+
+  const config = {
+    input: target.input,
+    outputDir: target.outputDir,
+    methodNameStrategy: target.methodNameStrategy,
+    specVersion: target.specVersion,
+    strictVersion: target.strictVersion,
+    runtimeImportPath: target.runtimeImportPath,
+  };
+
+  const preserveRefSiblings = strategy.version() === '3.1';
+  context.process.stdout.write('Generating client...\n');
+  await generateFullOutput(doc, config, { preserveRefSiblings });
+
+  context.process.stdout.write(`✅ Success! Generated client files:\n`);
+  context.process.stdout.write(`  - ${target.outputDir}/contracts.ts\n`);
+  context.process.stdout.write(`  - ${target.outputDir}/client.ts\n`);
+  context.process.stdout.write(`  - ${target.outputDir}/index.ts\n`);
+}
+
 export default async function (
   this: CommandContext,
   flags: Flags,
   spec: string
 ): Promise<void | Error> {
   try {
-    if (flags.proxy) {
-      try {
-        assertValidProxyUrl(flags.proxy);
-      } catch (err) {
-        throw new UserError((err as Error).message);
-      }
+    const targets: GenerationTarget[] = [targetFromFlags(spec, flags)];
+    for (const target of targets) {
+      await runOneTarget(target, this);
     }
-
-    this.process.stdout.write(`Loading spec from ${spec}...\n`);
-    const doc = await load(spec, { proxy: flags.proxy });
-    this.process.stdout.write(`Loaded OpenAPI ${doc.openapi} spec\n`);
-
-    const strategy = flags.specVersion
-      ? defaultRegistry.get(flags.specVersion)
-      : defaultRegistry.detectAndResolve(doc);
-
-    if (flags.specVersion && flags.strictVersion !== false) {
-      const detected = defaultRegistry.detectAndResolve(doc);
-      if (detected.version() !== flags.specVersion) {
-        this.process.stderr.write(
-          `Warning: Specified version ${flags.specVersion} does not match detected version ${detected.version()}\n`
-        );
-      }
-    }
-
-    const validation = validateSpec(doc, strategy);
-    if (!validation.valid) {
-      throw new UserError(
-        `Invalid OpenAPI specification:\n${validation.errors.map((e) => `  - ${e}`).join('\n')}`
-      );
-    }
-
-    const config = {
-      input: spec,
-      outputDir: flags.outputDir,
-      methodNameStrategy: flags.methodNameStrategy || 'path-based',
-      specVersion: flags.specVersion,
-      strictVersion: flags.strictVersion,
-      runtimeImportPath: flags.runtimeImportPath,
-    };
-
-    const preserveRefSiblings = strategy.version() === '3.1';
-    this.process.stdout.write('Generating client...\n');
-    await generateFullOutput(doc, config, { preserveRefSiblings });
-
-    this.process.stdout.write(`✅ Success! Generated client files:\n`);
-    this.process.stdout.write(`  - ${flags.outputDir}/contracts.ts\n`);
-    this.process.stdout.write(`  - ${flags.outputDir}/client.ts\n`);
-    this.process.stdout.write(`  - ${flags.outputDir}/index.ts\n`);
   } catch (error) {
     if (error instanceof UserError) {
       return error;

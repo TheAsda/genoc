@@ -1,11 +1,23 @@
-import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, mkdtempSync } from 'fs';
+import {
+  copyFileSync,
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  existsSync,
+  rmSync,
+  mkdtempSync,
+} from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { fileURLToPath } from 'url';
 
 import { run } from '@stricli/core';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 import { app } from '../../src/cli/app.js';
+import type { AppFlags } from '../../src/cli/app.js';
+import { UserError } from '../../src/cli/errors.js';
+import impl from '../../src/cli/impl.js';
 
 let TEST_DIR: string;
 let OUTPUT_DIR: string;
@@ -60,6 +72,37 @@ function buildContext() {
       },
     },
   };
+}
+
+type ImplFn = (this: unknown, flags: AppFlags, spec: string) => Promise<void | Error>;
+
+/**
+ * Invoke the impl command function directly, bypassing stricli argument parsing.
+ * Returns whatever impl resolves with (undefined on success, Error on failure) —
+ * the stricli error-as-return contract.
+ */
+function callImpl(
+  context: ReturnType<typeof buildContext>['context'],
+  flags: AppFlags,
+  spec: string
+): Promise<void | Error> {
+  return (impl as unknown as ImplFn).call(context, flags, spec);
+}
+
+/** Mirrors the flags stricli's parser produces for `genoc <spec> --output-dir <dir>`. */
+function baseFlags(overrides: Partial<AppFlags> = {}): AppFlags {
+  return {
+    outputDir: OUTPUT_DIR,
+    methodNameStrategy: 'path-based',
+    strictVersion: true,
+    ...overrides,
+  };
+}
+
+function copyFixture(name: string): string {
+  const specPath = join(SPECS_DIR, name);
+  copyFileSync(join(fileURLToPath(new URL('../fixtures', import.meta.url)), name), specPath);
+  return specPath;
 }
 
 describe('CLI Entry Point', () => {
@@ -250,5 +293,153 @@ describe('CLI Entry Point', () => {
     expect(existsSync(join(OUTPUT_DIR, 'contracts.ts'))).toBe(true);
     expect(existsSync(join(OUTPUT_DIR, 'client.ts'))).toBe(true);
     expect(existsSync(join(OUTPUT_DIR, 'index.ts'))).toBe(true);
+  });
+
+  it('[characterization] happy path emits exact stdout byte sequence for petstore fixture', async () => {
+    const specPath = copyFixture('petstore.yaml');
+
+    const { captured, context } = buildContext();
+    await run(app, [specPath, '--output-dir', OUTPUT_DIR], context);
+
+    expect(captured.stderr).toBe('');
+    expect(captured.stdout).toBe(
+      [
+        `Loading spec from ${specPath}...\n`,
+        'Loaded OpenAPI 3.1.0 spec\n',
+        'Generating client...\n',
+        '✅ Success! Generated client files:\n',
+        `  - ${OUTPUT_DIR}/contracts.ts\n`,
+        `  - ${OUTPUT_DIR}/client.ts\n`,
+        `  - ${OUTPUT_DIR}/index.ts\n`,
+      ].join('')
+    );
+    expect(existsSync(join(OUTPUT_DIR, 'contracts.ts'))).toBe(true);
+    expect(existsSync(join(OUTPUT_DIR, 'client.ts'))).toBe(true);
+    expect(existsSync(join(OUTPUT_DIR, 'index.ts'))).toBe(true);
+  });
+
+  it('[characterization] methodNameStrategy undefined produces byte-identical output to explicit "path-based"', async () => {
+    const specPath = join(SPECS_DIR, 'test.json');
+    writeFileSync(specPath, JSON.stringify(createTestSpec(), null, 2));
+
+    const generateWith = async (strategy: AppFlags['methodNameStrategy']) => {
+      const outDir = join(TEST_DIR, `out-${strategy ?? 'undefined'}`);
+      const { context } = buildContext();
+      const result = await callImpl(
+        context,
+        baseFlags({ outputDir: outDir, methodNameStrategy: strategy }),
+        specPath
+      );
+      expect(result).toBeUndefined();
+      return {
+        client: readFileSync(join(outDir, 'client.ts'), 'utf-8'),
+        contracts: readFileSync(join(outDir, 'contracts.ts'), 'utf-8'),
+        index: readFileSync(join(outDir, 'index.ts'), 'utf-8'),
+      };
+    };
+
+    const implicit = await generateWith(undefined);
+    const explicit = await generateWith('path-based');
+
+    expect(implicit).toEqual(explicit);
+    expect(explicit.client).toContain('getTest');
+  });
+
+  it('[characterization] strictVersion gate: mismatch warning emitted by default', async () => {
+    const specPath = join(SPECS_DIR, 'test.json');
+    writeFileSync(specPath, JSON.stringify(createTestSpec(), null, 2));
+
+    const { captured, context } = buildContext();
+    await run(app, [specPath, '--output-dir', OUTPUT_DIR, '--spec-version', '3.0'], context);
+
+    expect(captured.stderr).toContain(
+      'Warning: Specified version 3.0 does not match detected version 3.1'
+    );
+  });
+
+  it('[characterization] strictVersion gate: strictVersion=false suppresses the warning (direct impl)', async () => {
+    const specPath = join(SPECS_DIR, 'test.json');
+    writeFileSync(specPath, JSON.stringify(createTestSpec(), null, 2));
+
+    const { captured, context } = buildContext();
+    const result = await callImpl(
+      context,
+      baseFlags({ specVersion: '3.0', strictVersion: false }),
+      specPath
+    );
+
+    expect(captured.stderr).toBe('');
+    expect(result).toBeInstanceOf(UserError);
+    expect((result as UserError).message).toContain('Invalid OpenAPI specification');
+  });
+
+  it('[characterization] strictVersion gate: --strict-version=false suppresses the warning via CLI', async () => {
+    const specPath = join(SPECS_DIR, 'test.json');
+    writeFileSync(specPath, JSON.stringify(createTestSpec(), null, 2));
+
+    const { captured, context } = buildContext();
+    await run(
+      app,
+      [specPath, '--output-dir', OUTPUT_DIR, '--spec-version', '3.0', '--strict-version=false'],
+      context
+    );
+
+    expect(captured.stderr).not.toContain('Warning: Specified version');
+  });
+
+  it('[characterization] proxy: invalid proxy URL returns UserError before any output', async () => {
+    const specPath = join(SPECS_DIR, 'test.json');
+    writeFileSync(specPath, JSON.stringify(createTestSpec(), null, 2));
+
+    const { captured, context } = buildContext();
+    const result = await callImpl(
+      context,
+      baseFlags({ proxy: 'socks5://127.0.0.1:1080' }),
+      specPath
+    );
+
+    expect(result).toBeInstanceOf(UserError);
+    expect((result as UserError).message).toContain('Invalid proxy URL');
+    expect((result as UserError).name).toBe('UserError');
+    expect(captured.stdout).toBe('');
+    expect(captured.stderr).toBe('');
+  });
+
+  it('[characterization] proxy: flows to load() only — generated bytes identical with and without proxy', async () => {
+    const specPath = join(SPECS_DIR, 'test.json');
+    writeFileSync(specPath, JSON.stringify(createTestSpec(), null, 2));
+
+    const outPlain = join(TEST_DIR, 'out-plain');
+    const outProxy = join(TEST_DIR, 'out-proxy');
+
+    const plainResult = await callImpl(
+      buildContext().context,
+      baseFlags({ outputDir: outPlain }),
+      specPath
+    );
+    const proxyResult = await callImpl(
+      buildContext().context,
+      baseFlags({ outputDir: outProxy, proxy: 'http://127.0.0.1:9' }),
+      specPath
+    );
+
+    expect(plainResult).toBeUndefined();
+    expect(proxyResult).toBeUndefined();
+
+    for (const file of ['contracts.ts', 'client.ts', 'index.ts']) {
+      expect(readFileSync(join(outProxy, file))).toEqual(readFileSync(join(outPlain, file)));
+    }
+  });
+
+  it('[characterization] invalid spec resolves with UserError (stricli error-as-return contract)', async () => {
+    const specPath = join(SPECS_DIR, 'invalid.json');
+    writeFileSync(specPath, JSON.stringify({ openapi: '3.1.0' }, null, 2));
+
+    const { captured, context } = buildContext();
+    const result = await callImpl(context, baseFlags(), specPath);
+
+    expect(result).toBeInstanceOf(UserError);
+    expect((result as UserError).message).toContain('Invalid OpenAPI specification');
+    expect((result as UserError).name).toBe('UserError');
   });
 });
