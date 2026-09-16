@@ -93,20 +93,6 @@ describe('generateMethod', () => {
         'getApiV1Products(query?: GetApiV1ProductsQuery): Promise<GetApiV1ProductsResponse>'
       );
     });
-
-    it('generates implementation with query string construction', () => {
-      const op = makeOp({
-        method: 'get',
-        path: '/api/v1/products',
-        methodName: 'getApiV1Products',
-        queryParams: [queryParam('page'), queryParam('limit')],
-        responses: [successResponse('200', 'Product[]')],
-      });
-
-      const result = generateMethod(op);
-
-      expect(result.implementation).toMatchSnapshot();
-    });
   });
 
   describe('Section 7.2 Example 2: GET /api/v1/products/{productId}', () => {
@@ -126,20 +112,6 @@ describe('generateMethod', () => {
         'getApiV1ProductsByProductId(productId: string): Promise<GetApiV1ProductsProductIdResponse>'
       );
     });
-
-    it('generates URL with encodeURIComponent for path params', () => {
-      const op = makeOp({
-        method: 'get',
-        path: '/api/v1/products/{productId}',
-        methodName: 'getApiV1ProductsByProductId',
-        pathParams: [pathParam('productId')],
-        responses: [successResponse('200')],
-      });
-
-      const result = generateMethod(op);
-
-      expect(result.implementation).toMatchSnapshot();
-    });
   });
 
   describe('Section 7.2 Example 3: GET /users/{userId}/posts/{postId}', () => {
@@ -158,20 +130,6 @@ describe('generateMethod', () => {
       expect(result.signature).toBe(
         'getUsersByUserIdPostsByPostId(userId: string, postId: string): Promise<GetUsersUserIdPostsPostIdResponse>'
       );
-    });
-
-    it('generates URL with both path params encoded', () => {
-      const op = makeOp({
-        method: 'get',
-        path: '/users/{userId}/posts/{postId}',
-        methodName: 'getUsersByUserIdPostsByPostId',
-        pathParams: [pathParam('userId'), pathParam('postId')],
-        responses: [successResponse('200')],
-      });
-
-      const result = generateMethod(op);
-
-      expect(result.implementation).toMatchSnapshot();
     });
   });
 
@@ -201,29 +159,6 @@ describe('generateMethod', () => {
         'postApiV1Products(body: PostApiV1ProductsBody): Promise<PostApiV1ProductsResponse>'
       );
     });
-
-    it('generates implementation with body in requester options', () => {
-      const requestBody: AnalyzedRequestBody = {
-        required: true,
-        contentTypes: ['application/json'],
-        schema: { type: 'object' },
-        tsType: 'PostApiV1ProductsBody',
-        isMultipart: false,
-        isBinary: false,
-      };
-
-      const op = makeOp({
-        method: 'post',
-        path: '/api/v1/products',
-        methodName: 'postApiV1Products',
-        requestBody,
-        responses: [successResponse('201')],
-      });
-
-      const result = generateMethod(op);
-
-      expect(result.implementation).toMatchSnapshot();
-    });
   });
 
   describe('Section 7.2 Example 5: PATCH /api/v1/products:changeQuantity', () => {
@@ -242,20 +177,6 @@ describe('generateMethod', () => {
       expect(result.signature).toBe(
         'patchApiV1ProductsChangeQuantity(query?: PatchApiV1ProductsChangeQuantityQuery): Promise<void>'
       );
-    });
-
-    it('generates requester call with void return type for 204', () => {
-      const op = makeOp({
-        method: 'patch',
-        path: '/api/v1/products:changeQuantity',
-        methodName: 'patchApiV1ProductsChangeQuantity',
-        queryParams: [queryParam('delta', false)],
-        responses: [successResponse('204', 'void')],
-      });
-
-      const result = generateMethod(op);
-
-      expect(result.implementation).toMatchSnapshot();
     });
   });
 
@@ -286,30 +207,6 @@ describe('generateMethod', () => {
         'putOrganizationsByOrgIdMembers(orgId: string, body: PutOrganizationsOrgIdMembersBody): Promise<PutOrganizationsOrgIdMembersResponse>'
       );
     });
-
-    it('generates implementation with both params and body', () => {
-      const requestBody: AnalyzedRequestBody = {
-        required: true,
-        contentTypes: ['application/json'],
-        schema: { type: 'object' },
-        tsType: 'PutOrganizationsOrgIdMembersBody',
-        isMultipart: false,
-        isBinary: false,
-      };
-
-      const op = makeOp({
-        method: 'put',
-        path: '/organizations/{orgId}/members',
-        methodName: 'putOrganizationsByOrgIdMembers',
-        pathParams: [pathParam('orgId')],
-        requestBody,
-        responses: [successResponse('200')],
-      });
-
-      const result = generateMethod(op);
-
-      expect(result.implementation).toMatchSnapshot();
-    });
   });
 
   describe('Section 7.2 Example 7: GET /items/{itemId}/reviews', () => {
@@ -329,21 +226,6 @@ describe('generateMethod', () => {
       expect(result.signature).toBe(
         'getItemsByItemIdReviews(itemId: string, query?: GetItemsItemIdReviewsQuery): Promise<GetItemsItemIdReviewsResponse>'
       );
-    });
-
-    it('generates implementation with path param, query, and correct type prefix', () => {
-      const op = makeOp({
-        method: 'get',
-        path: '/items/{itemId}/reviews',
-        methodName: 'getItemsByItemIdReviews',
-        pathParams: [pathParam('itemId')],
-        queryParams: [queryParam('sort', false)],
-        responses: [successResponse('200')],
-      });
-
-      const result = generateMethod(op);
-
-      expect(result.implementation).toMatchSnapshot();
     });
   });
 
@@ -747,28 +629,6 @@ describe('generateMethod', () => {
     });
   });
 
-  describe('error types in implementation', () => {
-    it("uses 'never' for error type when no error responses", () => {
-      const op = makeOp({
-        responses: [successResponse('200')],
-      });
-
-      const result = generateMethod(op);
-
-      expect(result.implementation).toMatchSnapshot();
-    });
-
-    it('uses status-specific error types when error responses exist', () => {
-      const op = makeOp({
-        responses: [successResponse('200'), makeErrorResponse('400'), makeErrorResponse('404')],
-      });
-
-      const result = generateMethod(op);
-
-      expect(result.implementation).toMatchSnapshot();
-    });
-  });
-
   describe('optional body', () => {
     it('marks body as optional when requestBody.required is false', () => {
       const requestBody: AnalyzedRequestBody = {
@@ -804,16 +664,6 @@ describe('generateMethod', () => {
 
       expect(result.signature).toBe('getApiV1Products(): Promise<GetApiV1ProductsResponse>');
     });
-
-    it('implementation uses empty object for requester options with no params', () => {
-      const op = makeOp({
-        responses: [successResponse('200')],
-      });
-
-      const result = generateMethod(op);
-
-      expect(result.implementation).toMatchSnapshot();
-    });
   });
 
   describe('header params included in signature', () => {
@@ -835,7 +685,6 @@ describe('generateMethod', () => {
       const result = generateMethod(op);
 
       expect(result.signature).toContain('headers?: GetApiV1ProductsHeaders');
-      expect(result.implementation).toMatchSnapshot();
     });
 
     it('includes required header params without optional marker', () => {
@@ -906,7 +755,7 @@ describe('generateMethod', () => {
   });
 
   describe('GeneratedMethod structure', () => {
-    it('returns object with all four required fields', () => {
+    it('returns object with all three required fields', () => {
       const op = makeOp({
         summary: 'Test',
         responses: [successResponse('200')],
@@ -917,108 +766,11 @@ describe('generateMethod', () => {
       expect(result).toHaveProperty('name');
       expect(result).toHaveProperty('jsDoc');
       expect(result).toHaveProperty('signature');
-      expect(result).toHaveProperty('implementation');
-    });
-
-    it('implementation starts with signature and wraps in function body', () => {
-      const op = makeOp({
-        responses: [successResponse('200')],
-      });
-
-      const result = generateMethod(op);
-
-      expect(result.implementation.startsWith(result.signature)).toBe(true);
-      expect(result.implementation).toMatchSnapshot();
-    });
-  });
-
-  describe('multipart form data', () => {
-    it('generates FormData construction for multipart body', () => {
-      const requestBody: AnalyzedRequestBody = {
-        required: true,
-        contentTypes: ['multipart/form-data'],
-        schema: {
-          type: 'object',
-          properties: {
-            file: { type: 'string', format: 'binary' },
-            name: { type: 'string' },
-          },
-          required: ['file'],
-        },
-        tsType: 'PostUploadBody',
-        isMultipart: true,
-        isBinary: false,
-      };
-
-      const op = makeOp({
-        method: 'post',
-        path: '/upload',
-        methodName: 'postUpload',
-        requestBody,
-        responses: [successResponse('200')],
-      });
-
-      const result = generateMethod(op);
-
-      expect(result.implementation).toMatchSnapshot();
-    });
-
-    it('generates optional binary field with undefined check in multipart body', () => {
-      const requestBody: AnalyzedRequestBody = {
-        required: true,
-        contentTypes: ['multipart/form-data'],
-        schema: {
-          type: 'object',
-          properties: {
-            avatar: { type: 'string', format: 'binary' },
-            thumbnail: { type: 'string', format: 'binary' },
-          },
-          required: ['avatar'],
-        },
-        tsType: 'PostUploadBody',
-        isMultipart: true,
-        isBinary: false,
-      };
-
-      const op = makeOp({
-        method: 'post',
-        path: '/upload',
-        methodName: 'postUpload',
-        requestBody,
-        responses: [successResponse('200')],
-      });
-
-      const result = generateMethod(op);
-
-      expect(result.implementation).toMatchSnapshot();
     });
   });
 
   describe('binary stream response', () => {
-    it('adds expectStream: true for binary success response', () => {
-      const binaryResponse: AnalyzedResponse = {
-        statusCode: '200',
-        description: undefined,
-        schema: { type: 'string', format: 'binary' },
-        tsType: 'StreamResponse',
-        isSuccess: true,
-        isBinary: true,
-      };
-
-      const op = makeOp({
-        method: 'get',
-        path: '/files/{id}',
-        methodName: 'getFilesId',
-        pathParams: [pathParam('id')],
-        responses: [binaryResponse],
-      });
-
-      const result = generateMethod(op);
-
-      expect(result.implementation).toMatchSnapshot();
-    });
-
-    it('adds expectStream: true for vendor content type with $ref-ed binary schema (via analyzer)', () => {
+    it('marks vendor content type with $ref-ed binary schema as binary (via analyzer)', () => {
       const spec: OpenAPIDocument = {
         openapi: '3.1.0',
         info: { title: 'Analyzer Binary Test', version: '1.0.0' },
@@ -1049,26 +801,6 @@ describe('generateMethod', () => {
 
       expect(ops).toHaveLength(1);
       expect(ops[0].responses[0].isBinary).toBe(true);
-
-      const result = generateMethod(ops[0]);
-
-      expect(result.implementation).toContain('expectStream: true');
-      expect(result.implementation).toContain('Expected stream response');
-      expect(result.implementation).not.toContain('Unexpected stream response');
-    });
-
-    it('does not add responseType for non-binary response', () => {
-      const op = makeOp({
-        method: 'get',
-        path: '/files/{id}',
-        methodName: 'getFilesId',
-        pathParams: [pathParam('id')],
-        responses: [successResponse('200', 'string')],
-      });
-
-      const result = generateMethod(op);
-
-      expect(result.implementation).not.toContain('responseType');
     });
   });
 
@@ -1081,7 +813,6 @@ describe('generateMethod', () => {
       const result = generateMethod(op);
 
       expect(result.signature).toContain('Promise<void>');
-      expect(result.implementation).toMatchSnapshot();
     });
 
     it('201 no-content produces void signature', () => {
@@ -1095,7 +826,6 @@ describe('generateMethod', () => {
       const result = generateMethod(op);
 
       expect(result.signature).toContain('Promise<void>');
-      expect(result.implementation).toMatchSnapshot();
     });
 
     it('mixed 200+schema and 204 void returns schema type', () => {
