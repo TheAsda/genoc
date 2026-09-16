@@ -9,7 +9,7 @@ import { parseConfig } from './config-schema.js';
 import type { ClientEntry, FlatConfig, ParsedConfig } from './config-schema.js';
 import { UserError } from './errors.js';
 
-const SEARCH_PLACES = ['.genocrc.yml', 'genoc.config.json'];
+const SEARCH_PLACES = ['.genocrc.yml', '.genocrc.json'];
 const SUPPORTED_EXTENSIONS = ['.yml', '.json'];
 
 export interface LoadConfigFileOptions {
@@ -211,7 +211,7 @@ async function discoverConfigFile(searchDir: string): Promise<LoadedConfigFile |
 
 /**
  * Load the genoc config file. With `explicitPath`, loads exactly that file
- * (skipping discovery). Otherwise discovers `.genocrc.yml` / `genoc.config.json`
+ * (skipping discovery). Otherwise discovers `.genocrc.yml` / `.genocrc.json`
  * walking up from `searchDir` (default `process.cwd()`), stopping at the git
  * boundary (fs root fallback). Returns `null` when no config file is found;
  * throws `UserError` for parse errors, schema violations, empty documents,

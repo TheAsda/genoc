@@ -46,12 +46,12 @@ afterEach(() => {
 });
 
 describe('loadConfigFile — discovery (order, upward search, git boundary)', () => {
-  it('prefers .genocrc.yml over genoc.config.json in the same directory', async () => {
+  it('prefers .genocrc.yml over .genocrc.json in the same directory', async () => {
     const dir = makeTmpDir();
     const ymlPath = writeConfigFile(dir, '.genocrc.yml', FLAT_YML);
     writeConfigFile(
       dir,
-      'genoc.config.json',
+      '.genocrc.json',
       JSON.stringify({ input: './other.json', outputDir: './other-out' })
     );
 
@@ -66,14 +66,14 @@ describe('loadConfigFile — discovery (order, upward search, git boundary)', ()
     });
   });
 
-  it('finds a genoc.config.json in the search dir before walking up to a parent .genocrc.yml', async () => {
+  it('finds a .genocrc.json in the search dir before walking up to a parent .genocrc.yml', async () => {
     const repo = makeTmpDir();
     mkdirSync(path.join(repo, '.git'), { recursive: true });
     writeConfigFile(repo, '.genocrc.yml', FLAT_YML);
     const sub = makeDir(repo, 'sub');
     const jsonPath = writeConfigFile(
       sub,
-      'genoc.config.json',
+      '.genocrc.json',
       JSON.stringify({
         clients: {
           petstore: { input: './specs/petstore.yaml', outputDir: './src/petstore' },
@@ -121,6 +121,17 @@ describe('loadConfigFile — discovery (order, upward search, git boundary)', ()
   it('ignores .genocrc.yaml (unsupported)', async () => {
     const dir = makeTmpDir();
     writeConfigFile(dir, '.genocrc.yaml', FLAT_YML);
+
+    expect(await loadConfigFile({ searchDir: dir })).toBeNull();
+  });
+
+  it('genoc.config.json is not discovered', async () => {
+    const dir = makeTmpDir();
+    writeConfigFile(
+      dir,
+      'genoc.config.json',
+      JSON.stringify({ input: './other.json', outputDir: './other-out' })
+    );
 
     expect(await loadConfigFile({ searchDir: dir })).toBeNull();
   });
@@ -190,7 +201,7 @@ describe('loadConfigFile — explicit path (--config)', () => {
 
   it('rejects an unsupported .js extension listing supported extensions', async () => {
     const dir = makeTmpDir();
-    const jsPath = writeConfigFile(dir, 'genoc.config.js', 'export default {};\n');
+    const jsPath = writeConfigFile(dir, '.genocrc.js', 'export default {};\n');
 
     const err = await expectUserError(loadConfigFile({ explicitPath: jsPath }));
 
@@ -234,6 +245,23 @@ describe('loadConfigFile — explicit path (--config)', () => {
     const jsonPath = writeConfigFile(
       dir,
       'custom.json',
+      JSON.stringify({ input: './a.yaml', outputDir: './out' })
+    );
+
+    const result = await loadConfigFile({ explicitPath: jsonPath });
+
+    expect(result?.filepath).toBe(jsonPath);
+    expect(result?.config).toEqual({
+      input: path.resolve(dir, 'a.yaml'),
+      outputDir: path.resolve(dir, 'out'),
+    });
+  });
+
+  it('--config accepts a file named genoc.config.json (explicit paths are name-agnostic)', async () => {
+    const dir = makeTmpDir();
+    const jsonPath = writeConfigFile(
+      dir,
+      'genoc.config.json',
       JSON.stringify({ input: './a.yaml', outputDir: './out' })
     );
 
@@ -326,7 +354,7 @@ describe('loadConfigFile — parse errors', () => {
 
   it('rejects an invalid JSON config file with a UserError', async () => {
     const dir = makeTmpDir();
-    const jsonPath = writeConfigFile(dir, 'genoc.config.json', '{ not json');
+    const jsonPath = writeConfigFile(dir, '.genocrc.json', '{ not json');
 
     const err = await expectUserError(loadConfigFile({ searchDir: dir }));
 
@@ -377,7 +405,7 @@ describe('loadConfigFile — validation and path resolution', () => {
     const dir = makeTmpDir();
     writeConfigFile(
       dir,
-      'genoc.config.json',
+      '.genocrc.json',
       JSON.stringify({ input: '/abs/spec.json', outputDir: '/abs/out' })
     );
 
@@ -392,7 +420,7 @@ describe('loadConfigFile — validation and path resolution', () => {
     // resolve to the same absolute directory — the loader must reject this.
     writeConfigFile(
       dir,
-      'genoc.config.json',
+      '.genocrc.json',
       JSON.stringify({
         clients: {
           a: { input: './a.yaml', outputDir: './src/a' },
@@ -412,7 +440,7 @@ describe('loadConfigFile — validation and path resolution', () => {
     const dir = makeTmpDir();
     writeConfigFile(
       dir,
-      'genoc.config.json',
+      '.genocrc.json',
       JSON.stringify({
         clients: {
           petstore: { input: './petstore.yaml', outputDir: './src/petstore' },

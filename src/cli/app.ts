@@ -63,7 +63,7 @@ const command = buildCommand<Flags, [string | undefined]>({
       config: {
         kind: 'parsed',
         parse: String,
-        brief: 'Path to a genoc config file (.genocrc.yml / genoc.config.json); skips discovery',
+        brief: 'Path to a genoc config file (.genocrc.yml / .genocrc.json); skips discovery',
         optional: true,
         placeholder: 'path',
       },

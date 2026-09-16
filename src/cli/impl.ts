@@ -72,7 +72,7 @@ function buildTarget(
   if (outputDir === undefined) {
     throw new UserError(
       'No output directory provided. Pass --output-dir, or set "outputDir" in a config file ' +
-        '(.genocrc.yml / genoc.config.json).'
+        '(.genocrc.yml / .genocrc.json).'
     );
   }
   return {
@@ -166,7 +166,7 @@ async function resolveTargets(
 
   if (flags.project !== undefined) {
     throw new UserError(
-      'No config file found; --project requires a config file (.genocrc.yml / genoc.config.json) ' +
+      'No config file found; --project requires a config file (.genocrc.yml / .genocrc.json) ' +
         'that defines clients.'
     );
   }
@@ -185,13 +185,13 @@ function resolveFlatOrSingleTarget(
     if (cli.outputDir === undefined && flat?.outputDir === undefined) {
       throw new UserError(
         'No spec input and no output directory were provided. Pass a spec path as the positional ' +
-          'argument and --output-dir, or use a config file (.genocrc.yml / genoc.config.json) that ' +
+          'argument and --output-dir, or use a config file (.genocrc.yml / .genocrc.json) that ' +
           'provides "input" and "outputDir".'
       );
     }
     throw new UserError(
       'No spec input provided. Pass a spec path as the positional argument, or set "input" in a ' +
-        'config file (.genocrc.yml / genoc.config.json).'
+        'config file (.genocrc.yml / .genocrc.json).'
     );
   }
   return {

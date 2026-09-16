@@ -178,7 +178,7 @@ FLAGS
      [--strict-version/--no-strict-version]  Warn when --spec-version mismatches the detected version (default: true)
      [--runtime-import-path]                 Module specifier for runtime imports (default: genoc/runtime)
      [--proxy]                               HTTP(S) proxy URL for fetching specs (overrides HTTP_PROXY/HTTPS_PROXY env vars)
-     [--config]                              Path to a genoc config file (.genocrc.yml / genoc.config.json); skips discovery
+     [--config]                              Path to a genoc config file (.genocrc.yml / .genocrc.json); skips discovery
      [--project]                             Run only the named client from a multi-client config
   -h  --help                                 Print help information and exit
   -v  --version                              Print version information and exit

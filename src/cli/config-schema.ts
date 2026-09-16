@@ -4,7 +4,7 @@ import type { MethodNameStrategy } from '../types/client.js';
 import { UserError } from './errors.js';
 
 /**
- * Zod-based validation for the genoc config file (`.genocrc.yml` / `genoc.config.json`).
+ * Zod-based validation for the genoc config file (`.genocrc.yml` / `.genocrc.json`).
  *
  * Two mutually exclusive shapes:
  *  - flat (single client): the 7 generator option keys, all optional at the schema level

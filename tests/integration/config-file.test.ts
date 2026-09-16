@@ -91,6 +91,21 @@ describe('Config file end-to-end (real CLI process)', () => {
     expectGeneratedFiles(join(root, 'out'));
   });
 
+  // Scenario 1b — flat .genocrc.json happy path
+  it('flat .genocrc.json with input+outputDir generates with zero arguments', () => {
+    const root = makeProject('flat-json');
+    copyFixtureIn(root, PETSTORE_31_FIXTURE, 'petstore.yaml');
+    writeConfig(root, { input: './petstore.yaml', outputDir: './out' }, '.genocrc.json');
+
+    const result = runCli([], root);
+
+    expect(result.status).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout).toContain('✅ Success! Generated client files:');
+    expect(result.stdout).toContain('Generated 1/1 clients');
+    expectGeneratedFiles(join(root, 'out'));
+  });
+
   // Scenario 2 — multi-client config, both targets, declaration order, compile check
   it('multi-client config generates both targets in declaration order and output compiles', () => {
     const root = makeProject('multi');
