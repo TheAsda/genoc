@@ -182,7 +182,7 @@ config file supplies the input; see [Configuration Files](#configuration-files).
 | `--strict-version`       | `true`          | Warn if `--spec-version` mismatches detected version; a config file value applies when the flag is omitted |
 | `--runtime-import-path`  | `genoc/runtime` | Module specifier generated code imports runtime classes from                                               |
 | `--proxy`                | (none)          | HTTP(S) proxy URL for fetching specs from URLs; overrides HTTP_PROXY/HTTPS_PROXY/NO_PROXY env vars         |
-| `--config`               | (none)          | Path to a config file (`.genocrc.yml` or `genoc.config.json`); skips config discovery                      |
+| `--config`               | (none)          | Path to a config file (`.genocrc.yml` or `.genocrc.json`); skips config discovery                          |
 | `--project`              | (none)          | Run only the named client from a multi-client config; omit to run all clients                              |
 
 ## Configuration Files
@@ -195,7 +195,7 @@ from a config file.
 Two file names are recognized:
 
 - `.genocrc.yml` (YAML)
-- `genoc.config.json` (JSON)
+- `.genocrc.json` (JSON)
 
 `.genocrc.yaml` is **not** supported — the YAML variant must be named
 `.genocrc.yml`. TypeScript configs, a `genoc` section in `package.json`,
@@ -206,7 +206,7 @@ either.
 
 Run without `--config`, `genoc` searches for a config file:
 
-1. In the current directory, `.genocrc.yml` wins over `genoc.config.json`
+1. In the current directory, `.genocrc.yml` wins over `.genocrc.json`
 2. Then upward, one directory at a time
 3. The search stops at the git repository boundary (the first directory
    containing `.git`)

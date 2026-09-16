@@ -72,10 +72,10 @@ spec-reader → version detection → validation → ref-resolver → path-analy
 | `--strict-version`       | `true`          | Warn if `--spec-version` mismatches detected version; config file value applies when the flag is omitted |
 | `--runtime-import-path`  | `genoc/runtime` | Module specifier generated code imports runtime classes from                                             |
 | `--proxy`                | (none)          | HTTP(S) proxy URL for fetching specs; overrides HTTP_PROXY/HTTPS_PROXY env vars                          |
-| `--config`               | (none)          | Path to `.genocrc.yml` / `genoc.config.json`; skips discovery                                            |
+| `--config`               | (none)          | Path to `.genocrc.yml` / `.genocrc.json`; skips discovery                                                |
 | `--project`              | (none)          | Run only the named client from a multi-client config                                                     |
 
-Config files: `.genocrc.yml` (not `.genocrc.yaml`) and `genoc.config.json`, discovered per-directory then upward to the git boundary; `--config <path>` skips discovery. Relative `input`/`outputDir` resolve against the config file's directory. See the README "Configuration Files" section for shapes, precedence, and conflict rules.
+Config files: `.genocrc.yml` (not `.genocrc.yaml`) and `.genocrc.json`, discovered per-directory then upward to the git boundary; `--config <path>` skips discovery. Relative `input`/`outputDir` resolve against the config file's directory. See the README "Configuration Files" section for shapes, precedence, and conflict rules.
 
 ## ESM module system
 
