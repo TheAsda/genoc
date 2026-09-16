@@ -298,10 +298,6 @@ function buildClientFile(
   return lines.join('\n');
 }
 
-export type ApiClient = {
-  [key: string]: (...args: any[]) => Promise<any>;
-};
-
 /** Options for controlling generation behavior. */
 export interface GenerationOptions {
   /** When true, sibling properties alongside $ref are preserved (OpenAPI 3.1 behavior). */
