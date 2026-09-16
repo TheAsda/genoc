@@ -168,7 +168,7 @@ class StreamResponse {
 ## CLI Reference
 
 ```bash
-genoc [--output-dir dir] [--method-name-strategy path-based|operationId|operationId-with-fallback] [--spec-version version] [--strict-version] [--runtime-import-path module] [--proxy url] [--config path] [--project name] [<spec>]
+genoc [--output-dir dir | -o dir] [--method-name-strategy path-based|operationId|operationId-with-fallback] [--spec-version version] [--strict-version] [--runtime-import-path module] [--proxy url] [--config path] [--project name] [<spec>]
 ```
 
 `<spec>` — Path or URL to an OpenAPI 3.0 / 3.1 spec (JSON or YAML). Optional when a
@@ -176,7 +176,7 @@ config file supplies the input; see [Configuration Files](#configuration-files).
 
 | Flag                     | Default         | Description                                                                                                |
 | ------------------------ | --------------- | ---------------------------------------------------------------------------------------------------------- |
-| `--output-dir`           | (optional)      | Output directory for generated files; required when no config file supplies `outputDir`                    |
+| `--output-dir`, `-o`     | (optional)      | Output directory for generated files; required when no config file supplies `outputDir`                    |
 | `--method-name-strategy` | `path-based`    | Method naming strategy                                                                                     |
 | `--spec-version`         | auto-detect     | Override version detection (`"3.0"` or `"3.1"`)                                                            |
 | `--strict-version`       | `true`          | Warn if `--spec-version` mismatches detected version; a config file value applies when the flag is omitted |

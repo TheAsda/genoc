@@ -75,6 +75,9 @@ const command = buildCommand<Flags, [string | undefined]>({
         placeholder: 'name',
       },
     },
+    aliases: {
+      o: 'outputDir',
+    },
     positional: {
       kind: 'tuple',
       parameters: [

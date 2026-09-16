@@ -216,6 +216,19 @@ describe('CLI Entry Point', () => {
     expect(existsSync(join(OUTPUT_DIR, 'index.ts'))).toBe(true);
   });
 
+  it('accepts -o as an alias for --output-dir', async () => {
+    const specPath = writeSpecFile();
+
+    const { captured, context } = buildContext();
+    await run(app, [specPath, '-o', OUTPUT_DIR], context);
+
+    expect(captured.stderr).toBe('');
+    expect(normalizePaths(captured.stdout)).toContain('✅ Success! Generated client files:');
+    expect(existsSync(join(OUTPUT_DIR, 'contracts.ts'))).toBe(true);
+    expect(existsSync(join(OUTPUT_DIR, 'client.ts'))).toBe(true);
+    expect(existsSync(join(OUTPUT_DIR, 'index.ts'))).toBe(true);
+  });
+
   it('generates files with operationId strategy', async () => {
     const spec = {
       openapi: '3.1.0',
