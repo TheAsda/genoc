@@ -4,6 +4,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -264,8 +265,13 @@ describe('Config file end-to-end (real CLI process)', () => {
   });
 
   // Scenario 9 — import-graph guard: zod/lilconfig quarantined to the CLI subtree
-  it('dist/index.js contains no zod or lilconfig imports (programmatic surface stays clean)', () => {
-    const bundle = readFileSync(join(REPO_ROOT, 'dist/index.js'), 'utf8');
-    expect(bundle.match(/zod|lilconfig/g) ?? []).toEqual([]);
+  it('dist/runtime contains no zod or lilconfig imports (published runtime stays clean)', () => {
+    const runtimeDir = join(REPO_ROOT, 'dist', 'runtime');
+    const files = readdirSync(runtimeDir).filter((file) => file.endsWith('.js'));
+    expect(files.length).toBeGreaterThan(0);
+    for (const file of files) {
+      const bundle = readFileSync(join(runtimeDir, file), 'utf8');
+      expect(bundle.match(/zod|lilconfig/g) ?? []).toEqual([]);
+    }
   });
 });

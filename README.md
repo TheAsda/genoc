@@ -17,7 +17,6 @@ Generated code depends only on the tiny `genoc/runtime` module. Full type safety
 - Error types with per-status-code narrowing and type guards
 - File and binary upload/download with stream handling
 - Flexible method naming strategies (path-based, operationId, operationId-with-fallback)
-- CLI and programmatic API
 
 ## Quick Start
 
@@ -133,7 +132,7 @@ export const requester: Requester = async (method, path, options) => {
 ```
 
 To pin a specific version or point at a mirror, override the import specifier
-via `--runtime-import-path` (CLI) or `runtimeImportPath` (programmatic config).
+via the `--runtime-import-path` flag or the `runtimeImportPath` config-file key.
 
 ## Binary / File Responses
 
@@ -359,8 +358,6 @@ genoc https://api.example.com/openapi.yaml --output-dir ./src/api \
 - Without `--proxy`, the `HTTP_PROXY` / `HTTPS_PROXY` environment variables
   (either casing) are respected automatically, minus `NO_PROXY` exclusions.
 - An explicit `--proxy` flag overrides environment detection entirely.
-- Programmatic equivalent: `proxy: 'http://proxy.example.com:8080'` in the
-  `generateClient` config, or an optional second argument `loadSpec(url, { proxy })`.
 - SOCKS proxies and `ALL_PROXY` are not supported.
 
 Note: if you already have `HTTP_PROXY` set in your environment, spec fetches
@@ -374,21 +371,6 @@ type properties, named schemas, and client methods. Object types are always
 emitted multi-line, so per-property JSDoc stays aligned at each nesting depth.
 `@deprecated` tags give you editor strikethrough on deprecated fields and
 methods for free.
-
-## Programmatic API
-
-```typescript
-import { generateClient } from 'genoc';
-
-await generateClient({
-  input: './openapi.yaml',
-  outputDir: './src/api',
-  methodNameStrategy: 'path-based',
-  specVersion: '3.1',
-  strictVersion: true,
-  proxy: 'http://proxy.example.com:8080',
-});
-```
 
 ## Error Handling
 
