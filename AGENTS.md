@@ -60,7 +60,7 @@ spec-reader → version detection → validation → ref-resolver → path-analy
   - `index.ts` — Thin entry point: shebang + `run(app, args, { process })` + `process.exit()`
   - `errors.ts` — `UserError` class for CLI-facing errors
   - Binary: `genoc [<spec>] [flags]` (optional positional spec arg, not `--input`)
-- **Programmatic**: `src/index.ts` → `generateClient(config)`. Runtime exports: `generateClient`, `loadSpec`. Type exports: `GeneratorConfig`, `GenerationOptions`, `ApiClient`, `ApiError`, `DefaultApiError`.
+- **Runtime**: `src/runtime/` — published as the `genoc/runtime` package export (the only export; the package root exports nothing and there is no programmatic API). Generated code imports `Requester`, response/error classes, and `isDefinedError` from here.
 
 ### CLI flags
 
