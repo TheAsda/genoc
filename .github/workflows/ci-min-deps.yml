@@ -1,0 +1,42 @@
+name: CI (min deps)
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+env:
+  YAML_FLOOR: '2.2.2'
+  ZOD_FLOOR: '4.0.0'
+
+jobs:
+  min-deps:
+    name: Min Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - run: npm ci
+
+      - run: npm install --no-save yaml@${{ env.YAML_FLOOR }} zod@${{ env.ZOD_FLOOR }}
+
+      - run: |
+          installed="$(node -p "require('./node_modules/yaml/package.json').version + ' ' + require('./node_modules/zod/package.json').version")"
+          expected="$YAML_FLOOR $ZOD_FLOOR"
+          echo "installed: $installed"
+          echo "expected:  $expected"
+          [ "$installed" = "$expected" ]
+
+      - run: npm run build
+
+      - run: npm run check
+
+      - run: npm run test
