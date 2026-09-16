@@ -168,19 +168,171 @@ class StreamResponse {
 ## CLI Reference
 
 ```bash
-genoc <spec> [flags]
+genoc [--output-dir dir] [--method-name-strategy path-based|operationId|operationId-with-fallback] [--spec-version version] [--strict-version] [--runtime-import-path module] [--proxy url] [--config path] [--project name] [<spec>]
 ```
 
-`<spec>` — Path or URL to an OpenAPI 3.0 / 3.1 spec (JSON or YAML).
+`<spec>` — Path or URL to an OpenAPI 3.0 / 3.1 spec (JSON or YAML). Optional when a
+config file supplies the input; see [Configuration Files](#configuration-files).
 
-| Flag                     | Default         | Description                                                                                        |
-| ------------------------ | --------------- | -------------------------------------------------------------------------------------------------- |
-| `--output-dir`           | (required)      | Output directory for generated files                                                               |
-| `--method-name-strategy` | `path-based`    | Method naming strategy                                                                             |
-| `--spec-version`         | auto-detect     | Override version detection (`"3.0"` or `"3.1"`)                                                    |
-| `--strict-version`       | `true`          | Warn if `--spec-version` mismatches detected version                                               |
-| `--runtime-import-path`  | `genoc/runtime` | Module specifier generated code imports runtime classes from                                       |
-| `--proxy`                | (none)          | HTTP(S) proxy URL for fetching specs from URLs; overrides HTTP_PROXY/HTTPS_PROXY/NO_PROXY env vars |
+| Flag                     | Default         | Description                                                                                                |
+| ------------------------ | --------------- | ---------------------------------------------------------------------------------------------------------- |
+| `--output-dir`           | (optional)      | Output directory for generated files; required when no config file supplies `outputDir`                    |
+| `--method-name-strategy` | `path-based`    | Method naming strategy                                                                                     |
+| `--spec-version`         | auto-detect     | Override version detection (`"3.0"` or `"3.1"`)                                                            |
+| `--strict-version`       | `true`          | Warn if `--spec-version` mismatches detected version; a config file value applies when the flag is omitted |
+| `--runtime-import-path`  | `genoc/runtime` | Module specifier generated code imports runtime classes from                                               |
+| `--proxy`                | (none)          | HTTP(S) proxy URL for fetching specs from URLs; overrides HTTP_PROXY/HTTPS_PROXY/NO_PROXY env vars         |
+| `--config`               | (none)          | Path to a config file (`.genocrc.yml` or `.genocrc.json`); skips config discovery                          |
+| `--project`              | (none)          | Run only the named client from a multi-client config; omit to run all clients                              |
+
+## Configuration Files
+
+Instead of repeating flags on every invocation, `genoc` can read its settings
+from a config file.
+
+### Supported files
+
+Two file names are recognized:
+
+- `.genocrc.yml` (YAML)
+- `.genocrc.json` (JSON)
+
+`.genocrc.yaml` is **not** supported — the YAML variant must be named
+`.genocrc.yml`. TypeScript configs, a `genoc` section in `package.json`,
+extensionless `.genocrc`, JSON5, and remote (URL) configs are not supported
+either.
+
+### Discovery
+
+Run without `--config`, `genoc` searches for a config file:
+
+1. In the current directory, `.genocrc.yml` wins over `.genocrc.json`
+2. Then upward, one directory at a time
+3. The search stops at the git repository boundary (the first directory
+   containing `.git`)
+
+`--config <path>` skips discovery and loads exactly the file you name
+(`.yml` or `.json` extension required — `.yaml` is rejected).
+
+### Config shapes
+
+**Flat** — one client; the keys mirror the CLI flags:
+
+```yaml
+# .genocrc.yml
+input: ./openapi/petstore.yaml
+outputDir: ./src/api/petstore
+methodNameStrategy: operationId-with-fallback
+```
+
+```json
+{
+  "input": "./openapi/petstore.yaml",
+  "outputDir": "./src/api/petstore"
+}
+```
+
+**`clients` map** — several clients in one file, each with its own `input` and
+`outputDir` plus the optional strategy options:
+
+```yaml
+# .genocrc.yml
+clients:
+  petstore:
+    input: ./openapi/petstore.yaml
+    outputDir: ./src/api/petstore
+  billing:
+    input: ./openapi/billing.json
+    outputDir: ./src/api/billing
+    methodNameStrategy: operationId
+    strictVersion: false
+```
+
+```json
+{
+  "clients": {
+    "petstore": {
+      "input": "./openapi/petstore.yaml",
+      "outputDir": "./src/api/petstore"
+    },
+    "billing": {
+      "input": "./openapi/billing.json",
+      "outputDir": "./src/api/billing",
+      "methodNameStrategy": "operationId"
+    }
+  }
+}
+```
+
+Allowed keys: `input`, `outputDir`, `methodNameStrategy`, `specVersion`,
+`strictVersion`, `runtimeImportPath`, `proxy` (flat: all optional), plus
+`clients` at the root for the multi shape. Mixing flat keys and `clients` in
+one file is an error.
+
+### Precedence
+
+Values resolve as: explicitly passed CLI flag > config file > built-in default.
+One honest caveat: for flags with declared defaults (e.g.
+`--method-name-strategy`), passing the default value is indistinguishable from
+omitting the flag, so in that case the config file wins.
+
+`strictVersion` is tri-state: an explicit `--strict-version` (or
+`--no-strict-version`) always beats the file. With the flag omitted, a config
+file's `strictVersion: false` applies (the built-in default is `true`, so the
+mismatch warning stays on without config).
+
+### Path resolution
+
+Relative `input` and `outputDir` paths resolve against the directory containing
+the config file, not your current working directory — running `genoc` from a
+subdirectory of your project works as expected. `http(s)://` URLs are never
+touched.
+
+### Selecting clients (`--project`)
+
+With a `clients` config, `genoc` runs **all** clients by default.
+`--project <name>` runs a single client:
+
+- Unknown name → error listing the available client names
+- `--project` with a flat config → error (there is nothing to select)
+
+### Conflicts
+
+These combinations are rejected:
+
+- `spec` positional + `clients` config → error; use `--project` to pick a client
+- Running all clients with an explicit `--output-dir` → error (one directory
+  cannot serve every target)
+- `--project <name>` + `--output-dir` → allowed; the flag overrides that
+  target's `outputDir`
+
+### Validation
+
+Configs are validated up front, before any client runs:
+
+- Unknown keys are rejected; the error names the offending key path and the
+  allowed keys
+- Flat keys together with `clients` → error
+- Two clients resolving to the same `outputDir` → error naming both clients
+- Empty file, `null` document, or `{}` → error
+
+### Multi-client execution
+
+Clients run sequentially in declaration order. A failing target does not stop
+the run — the remaining clients still execute. At the end, failures are
+aggregated:
+
+```text
+× client "billing": <error message>
+1/2 targets failed
+```
+
+The process exits with code `1`. Files already written by successful targets
+are kept; a partial run is not rolled back.
+
+### YAML notes
+
+Duplicate keys in a YAML config follow standard YAML semantics: last one wins.
 
 ## Method Naming Strategies
 

@@ -7,23 +7,26 @@ const VERSION = JSON.parse(
 ).version;
 
 interface Flags {
-  outputDir: string;
+  outputDir?: string;
   methodNameStrategy: 'path-based' | 'operationId' | 'operationId-with-fallback';
   specVersion?: string;
-  strictVersion: boolean;
+  strictVersion?: boolean;
   runtimeImportPath?: string;
   proxy?: string;
+  config?: string;
+  project?: string;
 }
 
-const command = buildCommand<Flags, [string]>({
+const command = buildCommand<Flags, [string | undefined]>({
   loader: async () => import('./impl.js'),
   parameters: {
     flags: {
       outputDir: {
         kind: 'parsed',
         parse: String,
-        brief: 'Directory to write generated files',
+        brief: 'Directory to write generated files (or set outputDir in the config file)',
         placeholder: 'dir',
+        optional: true,
       },
       methodNameStrategy: {
         kind: 'enum',
@@ -40,8 +43,8 @@ const command = buildCommand<Flags, [string]>({
       },
       strictVersion: {
         kind: 'boolean',
-        default: true,
-        brief: 'Enable strict version checking',
+        brief: 'Warn when --spec-version mismatches the detected version (default: true)',
+        optional: true,
       },
       runtimeImportPath: {
         kind: 'parsed',
@@ -57,14 +60,29 @@ const command = buildCommand<Flags, [string]>({
         optional: true,
         placeholder: 'url',
       },
+      config: {
+        kind: 'parsed',
+        parse: String,
+        brief: 'Path to a genoc config file (.genocrc.yml / .genocrc.json); skips discovery',
+        optional: true,
+        placeholder: 'path',
+      },
+      project: {
+        kind: 'parsed',
+        parse: String,
+        brief: 'Run only the named client from a multi-client config',
+        optional: true,
+        placeholder: 'name',
+      },
     },
     positional: {
       kind: 'tuple',
       parameters: [
         {
-          brief: 'Path or URL to OpenAPI 3.0 or 3.1 spec (JSON/YAML)',
+          brief: 'Path or URL to OpenAPI 3.0 or 3.1 spec (JSON/YAML); omit to use a config file',
           parse: String,
           placeholder: 'spec',
+          optional: true,
         },
       ],
     },
