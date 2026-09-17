@@ -40,17 +40,18 @@ spec-reader → version detection → validation → ref-resolver → path-analy
 
 ### Key modules
 
-| Directory / File                       | Purpose                                                                                                           |
-| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `src/parser/`                          | Spec loading (`spec-reader`), `$ref` resolution (`ref-resolver`), validation                                      |
-| `src/parser/version/`                  | `VersionStrategy` interface with `v3.0/`, `v3.1/`, `v3.2/` (stub) implementations. Registry auto-detects version. |
-| `src/analyzer/`                        | Path → `AnalyzedOperation[]`, schema → TS type strings (`SchemaMapper`), method naming (`naming.ts`)              |
-| `src/generator/contracts-generator.ts` | Generates the `*.contracts.ts` file                                                                               |
-| `src/generator/client-generator.ts`    | Generates the `*.client.ts` file (method bodies via `buildClientMethodBody`) + file I/O (`generateFullOutput`)    |
-| `src/generator/method-generator.ts`    | Generates individual API method signatures (params, JSDoc)                                                        |
-| `src/utils/generator-helpers.ts`       | Shared codegen helpers: `toPascalCase`, `getOperationTypePrefix`, `getSuccessType`, `getErrorType`, `makeHeader`  |
-| `src/types/`                           | Shared types: `OpenAPIDocument`, `GeneratorConfig`, `MethodNameStrategy`, `SchemaObject`                          |
-| `src/utils/`                           | Case conversion (`case.ts`), string utils, URL helpers                                                            |
+| Directory / File                       | Purpose                                                                                                                                                            |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/parser/`                          | Spec loading (`spec-reader`), `$ref` resolution (`ref-resolver`), validation                                                                                       |
+| `src/parser/version/`                  | `VersionStrategy` interface with `v3.0/`, `v3.1/`, `v3.2/` (stub) implementations. Registry auto-detects version.                                                  |
+| `src/analyzer/`                        | Path → `AnalyzedOperation[]`, schema → TS type strings (`SchemaMapper`), method naming (`naming.ts`)                                                               |
+| `src/generator/contracts-generator.ts` | Generates the `*.contracts.ts` file                                                                                                                                |
+| `src/generator/client-generator.ts`    | Generates the `*.client.ts` file (method bodies via `buildClientMethodBody`) + file I/O (`generateFullOutput`)                                                     |
+| `src/generator/method-generator.ts`    | Generates individual API method signatures (params, JSDoc)                                                                                                         |
+| `src/utils/generator-helpers.ts`       | Shared codegen helpers: `toPascalCase`, `makeHeader`, `sanitizeTypeName`, `buildSchemaRenameMap`, JSDoc builders                                                   |
+| `src/utils/operation-naming.ts`        | Single source of operation-derived names: `getOperationTypePrefix`, `getSuccessType`, `getErrorType`, runtime/client name constants, derived `RESERVED_TYPE_NAMES` |
+| `src/types/`                           | Shared types: `OpenAPIDocument`, `GeneratorConfig`, `MethodNameStrategy`, `SchemaObject`                                                                           |
+| `src/utils/`                           | Case conversion (`case.ts`), string utils, URL helpers                                                                                                             |
 
 ### Entry points
 
@@ -94,7 +95,7 @@ import { load } from '../parser/spec-reader.js';
 
 ## Key conventions
 
-- **Shared codegen helpers** (`toPascalCase`, `getOperationTypePrefix`, `getSuccessType`, `getErrorType`) live in `src/utils/generator-helpers.ts`. All generators import from this single source.
+- **Operation naming lives in one module** (`src/utils/operation-naming.ts`): the operation type-prefix helpers, runtime/client name constants, and the derived `RESERVED_TYPE_NAMES`. All generators import names from this single source.
 - Type naming prefix: `{Method}{PathSegments}` in PascalCase (e.g., `GetApiV1Products`).
 - Output file names are fixed: `contracts.ts`, `client.ts`, and `index.ts`, written directly into the output directory.
 - Method naming strategies: `path-based` (default, from HTTP method + path segments), `operationId` (from spec's `operationId`), `operationId-with-fallback` (uses `operationId` if present, else path-based).
@@ -134,7 +135,7 @@ Integration tests compile generated output with `tsc --strict` to verify type co
 
 **Client file** (`*.client.ts`): imports from contracts file (`ApiError`, `UnspecifiedApiError`, `ErrorResponse`, `StreamResponse`, `RequesterFailError`) → `decorateWithErrors<T, E>()` (attaches `__definedErrors` property) → `Requester` type (returns `TResponse | StreamResponse | ErrorResponse`) → `isDefinedError` type guard (uses `__definedErrors` property for narrowing) → `createClient(requester)` factory → methods with try/catch wrapping `ApiError` throws + `StreamResponse` binary handling. Error codes attached via `decorateWithErrors(fn, [400, ...] as const)`.
 
-**Index file** (`index.ts`): barrel under the standard genoc header with two star re-exports — `export * from './contracts.js';` + `export * from './client.js';`. Any future fixed value export must be added to `RESERVED_TYPE_NAMES` (`src/utils/generator-helpers.ts`), because star re-exports silently drop ambiguous names.
+**Index file** (`index.ts`): barrel under the standard genoc header with two star re-exports — `export * from './contracts.js';` + `export * from './client.js';`. Any future fixed value export must be added to the owning constant in `src/utils/operation-naming.ts` (`RUNTIME_CLASS_NAMES` / `CLIENT_SURFACE_NAMES`, so `RESERVED_TYPE_NAMES` derives it automatically), because star re-exports silently drop ambiguous names.
 
 ## Dependencies
 

@@ -5,13 +5,14 @@ import { analyzePaths, type AnalyzedOperation } from '../analyzer/path-analyzer.
 import { RefResolver } from '../parser/ref-resolver.js';
 import type { GeneratorConfig } from '../types/client.js';
 import type { OpenAPIDocument, SchemaObject } from '../types/openapi.js';
+import { DEFAULT_RUNTIME_IMPORT_PATH, makeHeader } from '../utils/generator-helpers.js';
 import {
-  DEFAULT_RUNTIME_IMPORT_PATH,
-  getOperationTypePrefix,
-  getSuccessType,
+  clientImportedNames,
+  clientValueImports,
   getErrorType,
-  makeHeader,
-} from '../utils/generator-helpers.js';
+  getSuccessType,
+  operationEmissions,
+} from '../utils/operation-naming.js';
 import { generateContracts } from './contracts-generator.js';
 import { generateMethod } from './method-generator.js';
 
@@ -19,37 +20,8 @@ function collectImportTypes(operations: AnalyzedOperation[]): string[] {
   const types = new Set<string>();
 
   for (const op of operations) {
-    const prefix = getOperationTypePrefix(op);
-
-    if (op.queryParams.length > 0) {
-      types.add(`${prefix}Query`);
-    }
-
-    if (op.headerParams.length > 0) {
-      types.add(`${prefix}Headers`);
-    }
-
-    if (op.requestBody?.schema) {
-      types.add(`${prefix}Body`);
-    }
-
-    const successType = getSuccessType(op);
-    if (successType !== 'void' && successType !== 'unknown' && /^[A-Z]/.test(successType)) {
-      types.add(successType);
-    }
-
-    const errorResponses = op.responses.filter((r) => !r.isSuccess && r.statusCode !== 'default');
-    for (const errResp of errorResponses) {
-      types.add(`${prefix}Error${errResp.statusCode}`);
-    }
-
-    const errorType = getErrorType(op);
-    if (errorType !== 'never') {
-      types.add(errorType);
-    }
-
-    if (op.responses.some((r) => !r.isSuccess && r.statusCode === 'default')) {
-      types.add(`${prefix}DefaultError`);
+    for (const name of clientImportedNames(op)) {
+      types.add(name);
     }
   }
 
@@ -59,6 +31,7 @@ function collectImportTypes(operations: AnalyzedOperation[]): string[] {
 
 function buildClientMethodBody(op: AnalyzedOperation): string {
   const successType = getSuccessType(op);
+  const emissions = operationEmissions(op);
 
   let urlTemplate = op.path;
   for (const param of op.pathParams) {
@@ -67,19 +40,15 @@ function buildClientMethodBody(op: AnalyzedOperation): string {
 
   const urlExpr = `\`${urlTemplate}\``;
 
-  const prefix = getOperationTypePrefix(op);
-  const hasDefaultResponse = op.responses.some((r) => !r.isSuccess && r.statusCode === 'default');
-  const errorResponses = op.responses.filter((r) => !r.isSuccess && r.statusCode !== 'default');
   const errorCheckLines: string[] = [];
-  for (const errResp of errorResponses) {
-    const status = errResp.statusCode;
+  for (const statusError of emissions.statusErrors) {
     errorCheckLines.push(
-      `if (result.status === ${status}) throw new ApiError(${status}, result.data as ${prefix}Error${status}, result.message ?? \`Request failed with status ${status}\`);`
+      `if (result.status === ${statusError.status}) throw new ApiError(${statusError.status}, result.data as ${statusError.name}, result.message ?? \`Request failed with status ${statusError.status}\`);`
     );
   }
-  if (hasDefaultResponse) {
+  if (emissions.defaultError !== undefined) {
     errorCheckLines.push(
-      `throw new DefaultApiError(result.status, result.data as ${prefix}DefaultError, result.message ?? \`Request failed with status \${result.status}\`);`
+      `throw new DefaultApiError(result.status, result.data as ${emissions.defaultError}, result.message ?? \`Request failed with status \${result.status}\`);`
     );
   } else {
     errorCheckLines.push(
@@ -211,19 +180,7 @@ function buildClientFile(
   lines.push(makeHeader(version));
 
   const importTypes = collectImportTypes(operations);
-  const needsDefaultApiError = operations.some((op) =>
-    op.responses.some((r) => !r.isSuccess && r.statusCode === 'default')
-  );
-  const valueImports = [
-    'ApiError',
-    'UnspecifiedApiError',
-    'ErrorResponse',
-    'StreamResponse',
-    'RequesterFailError',
-  ];
-  if (needsDefaultApiError) {
-    valueImports.push('DefaultApiError');
-  }
+  const valueImports = clientValueImports(operations);
   const typeImports = importTypes.filter((t) => !valueImports.includes(t));
 
   lines.push(`import { ${valueImports.join(', ')} } from './contracts.js';`);
@@ -270,8 +227,8 @@ function buildClientFile(
     const methodName = method.name;
     const errorType = getErrorType(op);
 
-    const errorResponses = op.responses.filter((r) => !r.isSuccess && r.statusCode !== 'default');
-    const errorCodes = errorResponses.map((r) => r.statusCode);
+    const emissions = operationEmissions(op);
+    const errorCodes = emissions.statusErrors.map((statusError) => statusError.status);
     const errorCodeArray =
       errorCodes.length > 0 ? `[${errorCodes.join(', ')}] as const` : '[] as const';
 

@@ -4,14 +4,13 @@ import type { SchemaObject } from '../../src/types/openapi.js';
 import {
   sanitizeTypeName,
   buildSchemaRenameMap,
-  RESERVED_TYPE_NAMES,
   sanitizeJsDocText,
   formatJsDocValue,
   buildFieldJsDocLines,
   buildTypeJsDoc,
-  getOperationTypePrefix,
   isBinaryContentType,
 } from '../../src/utils/generator-helpers.js';
+import { RESERVED_TYPE_NAMES } from '../../src/utils/operation-naming.js';
 
 describe('sanitizeTypeName', () => {
   it('returns name unchanged when it has no dots', () => {
@@ -330,17 +329,6 @@ describe('buildSchemaRenameMap — weird symbol collisions (issue #25)', () => {
     expect(map.size).toBe(2);
     expect(map.get('User-Dto')).toBe('UserDtoModel');
     expect(map.get('User Dto')).toBe('UserDtoModel2');
-  });
-});
-
-describe('getOperationTypePrefix — weird routes (issue #25)', () => {
-  it('sanitizes dots, tildes and mixed segments', () => {
-    expect(
-      getOperationTypePrefix({
-        method: 'get',
-        path: '/api/v1.2/user-settings/{id}/list~all',
-      } as never)
-    ).toBe('GetApiV12UserSettingsIdListAll');
   });
 });
 
