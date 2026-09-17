@@ -1,87 +1,9 @@
-import { analyze, buildDescriptionJsDoc } from '../analyzer/analyze.js';
+import { analyze } from '../analyzer/analyze.js';
 import type { AnalyzedSpec } from '../analyzer/types.js';
 import { RefResolver } from '../parser/ref-resolver.js';
-import type {
-  OpenAPIDocument,
-  SecuritySchemeObject,
-  ServerVariableObject,
-} from '../types/openapi.js';
-import {
-  DEFAULT_RUNTIME_IMPORT_PATH,
-  makeHeader,
-  sanitizeJsDocText,
-  sanitizeTypeName,
-  toPascalCase,
-} from '../utils/generator-helpers.js';
+import type { OpenAPIDocument } from '../types/openapi.js';
+import { DEFAULT_RUNTIME_IMPORT_PATH, makeHeader } from '../utils/generator-helpers.js';
 import { RUNTIME_CLASS_NAMES } from '../utils/operation-naming.js';
-
-function securitySchemeToTsType(scheme: SecuritySchemeObject): string {
-  const parts: string[] = [`type: "${scheme.type}"`];
-
-  if (scheme.description) {
-    parts.push(`description: "${scheme.description}"`);
-  }
-
-  if (scheme.type === 'apiKey') {
-    if (scheme.name) parts.push(`name: "${scheme.name}"`);
-    if (scheme.in) parts.push(`in: "${scheme.in}"`);
-  }
-
-  if (scheme.type === 'http') {
-    if (scheme.scheme) parts.push(`scheme: "${scheme.scheme}"`);
-    if (scheme.bearerFormat) parts.push(`bearerFormat: "${scheme.bearerFormat}"`);
-  }
-
-  if (scheme.type === 'oauth2' && scheme.flows) {
-    const flowParts: string[] = [];
-    const flows = scheme.flows;
-    if (flows.implicit) {
-      flowParts.push(`implicit: ${oAuth2FlowToTs(flows.implicit, true)}`);
-    }
-    if (flows.password) {
-      flowParts.push(`password: ${oAuth2FlowToTs(flows.password, false)}`);
-    }
-    if (flows.clientCredentials) {
-      flowParts.push(`clientCredentials: ${oAuth2FlowToTs(flows.clientCredentials, false)}`);
-    }
-    if (flows.authorizationCode) {
-      flowParts.push(`authorizationCode: ${oAuth2FlowToTs(flows.authorizationCode, true)}`);
-    }
-    parts.push(`flows: { ${flowParts.join('; ')} }`);
-  }
-
-  if (scheme.type === 'openIdConnect' && scheme.openIdConnectUrl) {
-    parts.push(`openIdConnectUrl: "${scheme.openIdConnectUrl}"`);
-  }
-
-  return `{ ${parts.join('; ')} }`;
-}
-
-function oAuth2FlowToTs(
-  flow: {
-    authorizationUrl?: string;
-    tokenUrl?: string;
-    refreshUrl?: string;
-    scopes: Record<string, string>;
-  },
-  hasAuthUrl: boolean
-): string {
-  const entries: string[] = [];
-  if (hasAuthUrl && flow.authorizationUrl) {
-    entries.push(`authorizationUrl: "${flow.authorizationUrl}"`);
-  }
-  if (flow.tokenUrl) {
-    entries.push(`tokenUrl: "${flow.tokenUrl}"`);
-  }
-  if (flow.refreshUrl) {
-    entries.push(`refreshUrl: "${flow.refreshUrl}"`);
-  }
-  const scopeEntries = Object.entries(flow.scopes)
-    .map(([k, v]) => `"${k}": "${v}"`)
-    .join('; ');
-  entries.push(`scopes: { ${scopeEntries} }`);
-  return `{ ${entries.join('; ')} }`;
-}
 
 /**
  * Build the import + re-export block for the shared runtime classes.
@@ -106,8 +28,9 @@ function buildRuntimeReexport(runtimeImportPath: string): string[] {
  * Sections produced:
  * 1. Header comment
  * 2. Schema types from `components/schemas` (finished model entries)
- * 3. Security scheme types (transitional raw passthrough — T3 translates)
- * 4. Server variable types (transitional raw passthrough — T3 translates)
+ * 3. Security scheme types (finished model entries; `SecuritySchemes` union
+ *    when more than one)
+ * 4. Server variable types (finished model entries)
  * 5. `FileInput` when any operation uploads files
  * 6. Operation-derived types (finished emission lines from the model)
  * 7. Runtime re-export block (shared classes from the genoc runtime package)
@@ -133,87 +56,35 @@ export function renderContracts(
     lines.push(entry.definition);
   }
 
-  // Section 1b: Security scheme types
-  const securitySchemes = analyzed.securitySchemes;
-  if (securitySchemes && Object.keys(securitySchemes).length > 0) {
-    const securityTypeNames: string[] = [];
-    const usedSecurityTypeNames = new Set<string>();
-
-    for (const [schemeName, scheme] of Object.entries(securitySchemes)) {
-      const baseTypeName = `${sanitizeTypeName(toPascalCase(schemeName))}Auth`;
-      let typeName = baseTypeName;
-      let n = 2;
-      while (usedSecurityTypeNames.has(typeName)) {
-        typeName = `${baseTypeName}${n}`;
-        n += 1;
-      }
-      usedSecurityTypeNames.add(typeName);
-      const tsType = securitySchemeToTsType(scheme);
-      const schemeJsDoc = buildDescriptionJsDoc(scheme.description);
-      if (schemeJsDoc !== '') {
+  // Section 1b: Security scheme types (finished entries in spec key order)
+  if (analyzed.securitySchemeTypes.length > 0) {
+    for (const entry of analyzed.securitySchemeTypes) {
+      if (entry.jsDoc !== '') {
         lines.push('');
-        lines.push(schemeJsDoc);
+        lines.push(entry.jsDoc);
       }
       lines.push('');
-      lines.push(`export type ${typeName} = ${tsType};`);
-      securityTypeNames.push(typeName);
+      lines.push(`export type ${entry.name} = ${entry.tsType};`);
     }
 
-    if (securityTypeNames.length > 1) {
+    if (analyzed.securitySchemeTypes.length > 1) {
+      const unionMembers = analyzed.securitySchemeTypes.map((entry) => entry.name).join(' | ');
       lines.push('');
-      lines.push(`export type SecuritySchemes = ${securityTypeNames.join(' | ')};`);
+      lines.push(`export type SecuritySchemes = ${unionMembers};`);
     }
   }
 
-  // Section 1c: Server variable types
-  const servers = analyzed.servers;
-  if (servers) {
-    for (let serverIdx = 0; serverIdx < servers.length; serverIdx++) {
-      const server = servers[serverIdx];
-      if (!server.variables || Object.keys(server.variables).length === 0) {
-        continue;
-      }
-
-      const typeName = servers.length === 1 ? 'ServerParams' : `Server${serverIdx + 1}Params`;
-
-      const props: string[] = [];
-      for (const [varName, variable] of Object.entries(server.variables)) {
-        const sv = variable as ServerVariableObject;
-        const jsDocParts: string[] = [];
-        if (sv.description) {
-          const description = sanitizeJsDocText(sv.description);
-          if (description !== '') {
-            jsDocParts.push(description);
-          }
-        }
-        if (sv.default !== undefined) {
-          jsDocParts.push(`@default ${sanitizeJsDocText(String(sv.default))}`);
-        }
-
-        let tsType: string;
-        if (sv.enum && sv.enum.length > 0) {
-          tsType = sv.enum.map((v: string) => `"${v}"`).join(' | ');
-        } else {
-          tsType = 'string';
-        }
-
-        const jsDoc = jsDocParts.length > 0 ? `  /** ${jsDocParts.join(' ')} */` : null;
-        if (jsDoc) {
-          props.push(jsDoc);
-        }
-        props.push(`  ${varName}: ${tsType};`);
-      }
-
-      lines.push('');
-      if (server.url) {
-        lines.push(`/** Server: ${server.url} */`);
-      }
-      lines.push(`export interface ${typeName} {`);
-      for (const prop of props) {
-        lines.push(prop);
-      }
-      lines.push('}');
+  // Section 1c: Server variable types (finished entries in spec order)
+  for (const entry of analyzed.serverTypes) {
+    lines.push('');
+    if (entry.url) {
+      lines.push(`/** Server: ${entry.url} */`);
     }
+    lines.push(`export interface ${entry.name} {`);
+    for (const prop of entry.propertyLines) {
+      lines.push(prop);
+    }
+    lines.push('}');
   }
 
   if (analyzed.hasFileUpload) {

@@ -1,11 +1,19 @@
 import { RefResolver } from '../parser/ref-resolver.js';
 import type { ContractEntry } from '../types/contracts.js';
-import type { OpenAPIDocument, ReferenceObject, SchemaObject } from '../types/openapi.js';
+import type {
+  OpenAPIDocument,
+  ReferenceObject,
+  SchemaObject,
+  SecuritySchemeObject,
+  ServerObject,
+  ServerVariableObject,
+} from '../types/openapi.js';
 import {
   buildSchemaRenameMap,
   buildTypeJsDoc,
   sanitizeJsDocText,
   sanitizeTypeName,
+  toPascalCase,
 } from '../utils/generator-helpers.js';
 import { operationEmissions, RESERVED_TYPE_NAMES } from '../utils/operation-naming.js';
 import { analyzePaths, type AnalyzedParameter } from './path-analyzer.js';
@@ -16,6 +24,8 @@ import type {
   BrandedTypeDeclaration,
   FileUploadPropertyFact,
   FinishedOperation,
+  SecuritySchemeTypeDeclaration,
+  ServerTypeDeclaration,
   TypeDeclaration,
 } from './types.js';
 
@@ -174,6 +184,165 @@ function topologicalSort(entries: ContractEntry[], allNames: Set<string>): Contr
   }
 
   return sorted;
+}
+
+function securitySchemeToTsType(scheme: SecuritySchemeObject): string {
+  const parts: string[] = [`type: "${scheme.type}"`];
+
+  if (scheme.description) {
+    parts.push(`description: "${scheme.description}"`);
+  }
+
+  if (scheme.type === 'apiKey') {
+    if (scheme.name) parts.push(`name: "${scheme.name}"`);
+    if (scheme.in) parts.push(`in: "${scheme.in}"`);
+  }
+
+  if (scheme.type === 'http') {
+    if (scheme.scheme) parts.push(`scheme: "${scheme.scheme}"`);
+    if (scheme.bearerFormat) parts.push(`bearerFormat: "${scheme.bearerFormat}"`);
+  }
+
+  if (scheme.type === 'oauth2' && scheme.flows) {
+    const flowParts: string[] = [];
+    const flows = scheme.flows;
+    if (flows.implicit) {
+      flowParts.push(`implicit: ${oAuth2FlowToTs(flows.implicit, true)}`);
+    }
+    if (flows.password) {
+      flowParts.push(`password: ${oAuth2FlowToTs(flows.password, false)}`);
+    }
+    if (flows.clientCredentials) {
+      flowParts.push(`clientCredentials: ${oAuth2FlowToTs(flows.clientCredentials, false)}`);
+    }
+    if (flows.authorizationCode) {
+      flowParts.push(`authorizationCode: ${oAuth2FlowToTs(flows.authorizationCode, true)}`);
+    }
+    parts.push(`flows: { ${flowParts.join('; ')} }`);
+  }
+
+  if (scheme.type === 'openIdConnect' && scheme.openIdConnectUrl) {
+    parts.push(`openIdConnectUrl: "${scheme.openIdConnectUrl}"`);
+  }
+
+  return `{ ${parts.join('; ')} }`;
+}
+
+function oAuth2FlowToTs(
+  flow: {
+    authorizationUrl?: string;
+    tokenUrl?: string;
+    refreshUrl?: string;
+    scopes: Record<string, string>;
+  },
+  hasAuthUrl: boolean
+): string {
+  const entries: string[] = [];
+  if (hasAuthUrl && flow.authorizationUrl) {
+    entries.push(`authorizationUrl: "${flow.authorizationUrl}"`);
+  }
+  if (flow.tokenUrl) {
+    entries.push(`tokenUrl: "${flow.tokenUrl}"`);
+  }
+  if (flow.refreshUrl) {
+    entries.push(`refreshUrl: "${flow.refreshUrl}"`);
+  }
+  const scopeEntries = Object.entries(flow.scopes)
+    .map(([k, v]) => `"${k}": "${v}"`)
+    .join('; ');
+  entries.push(`scopes: { ${scopeEntries} }`);
+  return `{ ${entries.join('; ')} }`;
+}
+
+/**
+ * Translate `components.securitySchemes` into finished `{Name}Auth` type
+ * declarations: sanitize + PascalCase the key, number collisions, render the
+ * object type text and the description JSDoc. Spec key order preserved.
+ */
+function analyzeSecuritySchemes(
+  securitySchemes: Record<string, SecuritySchemeObject> | undefined
+): SecuritySchemeTypeDeclaration[] {
+  const entries: SecuritySchemeTypeDeclaration[] = [];
+  if (!securitySchemes || Object.keys(securitySchemes).length === 0) {
+    return entries;
+  }
+
+  const usedSecurityTypeNames = new Set<string>();
+
+  for (const [schemeName, scheme] of Object.entries(securitySchemes)) {
+    const baseTypeName = `${sanitizeTypeName(toPascalCase(schemeName))}Auth`;
+    let typeName = baseTypeName;
+    let n = 2;
+    while (usedSecurityTypeNames.has(typeName)) {
+      typeName = `${baseTypeName}${n}`;
+      n += 1;
+    }
+    usedSecurityTypeNames.add(typeName);
+    entries.push({
+      name: typeName,
+      tsType: securitySchemeToTsType(scheme),
+      jsDoc: buildDescriptionJsDoc(scheme.description),
+    });
+  }
+
+  return entries;
+}
+
+/**
+ * Translate `doc.servers` into finished server variable interface
+ * declarations, one per server that declares variables. Names are index-aware
+ * over ALL servers (`ServerParams` for a single-server document,
+ * `Server{i}Params` otherwise), so variable-less servers still occupy an
+ * index. Property lines carry their JSDoc and indentation.
+ */
+function analyzeServers(servers: ServerObject[] | undefined): ServerTypeDeclaration[] {
+  const entries: ServerTypeDeclaration[] = [];
+  if (!servers) return entries;
+
+  for (let serverIdx = 0; serverIdx < servers.length; serverIdx++) {
+    const server = servers[serverIdx];
+    if (!server.variables || Object.keys(server.variables).length === 0) {
+      continue;
+    }
+
+    const typeName = servers.length === 1 ? 'ServerParams' : `Server${serverIdx + 1}Params`;
+
+    const props: string[] = [];
+    for (const [varName, variable] of Object.entries(server.variables)) {
+      const sv = variable as ServerVariableObject;
+      const jsDocParts: string[] = [];
+      if (sv.description) {
+        const description = sanitizeJsDocText(sv.description);
+        if (description !== '') {
+          jsDocParts.push(description);
+        }
+      }
+      if (sv.default !== undefined) {
+        jsDocParts.push(`@default ${sanitizeJsDocText(String(sv.default))}`);
+      }
+
+      let tsType: string;
+      if (sv.enum && sv.enum.length > 0) {
+        tsType = sv.enum.map((v: string) => `"${v}"`).join(' | ');
+      } else {
+        tsType = 'string';
+      }
+
+      const jsDoc = jsDocParts.length > 0 ? `  /** ${jsDocParts.join(' ')} */` : null;
+      if (jsDoc) {
+        props.push(jsDoc);
+      }
+      props.push(`  ${varName}: ${tsType};`);
+    }
+
+    entries.push({
+      name: typeName,
+      url: server.url,
+      propertyLines: props,
+    });
+  }
+
+  return entries;
 }
 
 /**
@@ -467,15 +636,16 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
   // pre-refactor read position at the end of generateContracts.
   const brandedTypes: BrandedTypeDeclaration[] = Array.from(mapper.getBrandedTypes().values());
 
+  const securitySchemeTypes = analyzeSecuritySchemes(doc.components?.securitySchemes);
+  const serverTypes = analyzeServers(doc.servers);
+
   return {
     specVersion: doc.openapi,
     operations,
     schemaTypes,
     brandedTypes,
     hasFileUpload,
-    // transitional — translated to finished types in T3
-    securitySchemes: doc.components?.securitySchemes,
-    // transitional — translated to finished types in T3
-    servers: doc.servers,
+    securitySchemeTypes,
+    serverTypes,
   };
 }

@@ -1,6 +1,5 @@
 import type { RefResolver } from '../parser/ref-resolver.js';
 import type { MethodNameStrategy } from '../types/client.js';
-import type { SecuritySchemeObject, ServerObject } from '../types/openapi.js';
 import type { AnalyzedOperation } from './path-analyzer.js';
 
 /**
@@ -17,6 +16,34 @@ export interface TypeDeclaration {
   jsDoc?: string;
 }
 
+/**
+ * Finished security scheme type declaration (contracts Section 1b): the
+ * collision-deduped `{Name}Auth` type name, the rendered object type text,
+ * and the description-only JSDoc block ('' when absent).
+ */
+export interface SecuritySchemeTypeDeclaration {
+  /** Emitted `{Name}Auth` type name (sanitized, numbered on collision). */
+  name: string;
+  /** Rendered object type text — the `securitySchemeToTsType` output. */
+  tsType: string;
+  /** Description JSDoc block; '' when the scheme carries no description. */
+  jsDoc: string;
+}
+
+/**
+ * Finished server variable type declaration (contracts Section 1c). Names
+ * are index-aware over ALL `doc.servers` — `ServerParams` when the document
+ * declares a single server, `Server{i}Params` otherwise — so servers without
+ * variables still occupy an index.
+ */
+export interface ServerTypeDeclaration {
+  name: string;
+  /** Server URL, emitted as the `/** Server: url *\/` comment when present. */
+  url?: string;
+  /** Finished interface body lines — variable JSDoc comments and property lines, indentation included. */
+  propertyLines: string[];
+}
+
 /** Branded format type discovered by the schema mapper during translation. */
 export interface BrandedTypeDeclaration {
   name: string;
@@ -25,11 +52,9 @@ export interface BrandedTypeDeclaration {
 }
 
 /**
- * One multipart `FileInput` property fact from the ref-resolving (contracts)
- * walk of a multipart request body.
- *
- * transitional — carried on the model since T1; consumed by the client
- * generator in T2, replacing its divergent non-ref-resolving walk.
+ * One multipart `FileInput` property fact from the ref-resolving walk of a
+ * multipart request body ($refs followed; a resolved `format: binary`
+ * property is a `file`/`file-array`, not a `field`).
  */
 export interface FileUploadPropertyFact {
   /** Property name in the multipart schema. */
@@ -85,17 +110,12 @@ export interface AnalyzedSpec {
   /** Any operation has a multipart request body → contracts emits `FileInput`. */
   hasFileUpload: boolean;
   /**
-   * Raw `doc.components.securitySchemes` passthrough.
-   * transitional — translated to finished types in T3; the contracts renderer
-   * still renders from this raw field.
+   * Finished security scheme type declarations (`{Name}Auth`), in spec key
+   * order. The `SecuritySchemes` union is emitted when more than one exists.
    */
-  securitySchemes: Record<string, SecuritySchemeObject> | undefined;
-  /**
-   * Raw `doc.servers` passthrough.
-   * transitional — translated to finished types in T3; the contracts renderer
-   * still renders from this raw field.
-   */
-  servers: ServerObject[] | undefined;
+  securitySchemeTypes: SecuritySchemeTypeDeclaration[];
+  /** Finished server variable interface declarations, in spec order. */
+  serverTypes: ServerTypeDeclaration[];
 }
 
 /** Options for `analyze()`. */
