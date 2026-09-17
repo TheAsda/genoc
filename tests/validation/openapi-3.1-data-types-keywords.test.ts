@@ -14,31 +14,28 @@
  * Tests every feature from the "Data Types" (3.1-#1-#8) and "Schema Keywords"
  * (3.1-#9-#32) sections of the feature enumeration.
  *
- * Tier 1 (3.1-#1-#22): generateContracts + string matching on TypeScript output
+ * Tier 1 (3.1-#1-#22): renderContracts + string matching on TypeScript output
  * Tier 2 (3.1-#23-#29): verify no crash + constraint NOT emitted in output
  * Tier 3 (3.1-#30-#32): version-specific normalization comparison (3.0 vs 3.1)
  */
 import { describe, expect, it } from 'vitest';
-import { parse as parseYaml } from 'yaml';
 
-import { generateClient as generateClientStrings } from '../../src/generator/client-generator.js';
-import { generateContracts } from '../../src/generator/contracts-generator.js';
+import { generateOutput as generateClientStrings } from '../../src/generator/client-generator.js';
+import { renderContracts } from '../../src/generator/contracts-generator.js';
 import { RefResolver } from '../../src/parser/ref-resolver.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { analyzeFixture, analyzeYaml } from '../analyze-fixture.js';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function generateFromYaml(yaml: string): string {
-  const doc = parseYaml(yaml) as OpenAPIDocument;
-  const resolver = new RefResolver(doc);
-  return generateContracts(doc, resolver);
+  return renderContracts(analyzeYaml(yaml));
 }
 
 function generateClientFromYaml(yaml: string): { contracts: string; client: string } {
-  const doc = parseYaml(yaml) as OpenAPIDocument;
   const config: GeneratorConfig = { input: 'test.yaml', outputDir: '/tmp/test' };
-  return generateClientStrings(doc, config);
+  return generateClientStrings(analyzeYaml(yaml), config);
 }
 
 const BASE_SPEC = (schemasYaml: string) => `
@@ -745,8 +742,7 @@ describe('OpenAPI 3.1 — Exclusive Bounds, Tier 3 (3.1-#30-#31)', () => {
         },
       },
     };
-    const resolver = new RefResolver(doc);
-    const result = generateContracts(doc, resolver);
+    const result = renderContracts(analyzeFixture(doc));
     expect(result).toMatchSnapshot();
   });
 
@@ -777,8 +773,7 @@ describe('OpenAPI 3.1 — Exclusive Bounds, Tier 3 (3.1-#30-#31)', () => {
         },
       },
     };
-    const resolver = new RefResolver(doc);
-    const result = generateContracts(doc, resolver);
+    const result = renderContracts(analyzeFixture(doc));
     expect(result).toMatchSnapshot();
   });
 
@@ -809,8 +804,7 @@ describe('OpenAPI 3.1 — Exclusive Bounds, Tier 3 (3.1-#30-#31)', () => {
         },
       },
     };
-    const resolver = new RefResolver(doc30);
-    const result30 = generateContracts(doc30, resolver);
+    const result30 = renderContracts(analyzeFixture(doc30));
 
     expect(result31).toMatchSnapshot();
     expect(result30).toMatchSnapshot();
@@ -852,8 +846,7 @@ describe('OpenAPI 3.1 — Examples, Tier 3 (3.1-#32)', () => {
         },
       },
     };
-    const resolver = new RefResolver(doc);
-    const result = generateContracts(doc, resolver);
+    const result = renderContracts(analyzeFixture(doc));
     expect(result).toMatchSnapshot();
   });
 
@@ -881,8 +874,7 @@ describe('OpenAPI 3.1 — Examples, Tier 3 (3.1-#32)', () => {
         },
       },
     };
-    const resolver = new RefResolver(doc30);
-    const result30 = generateContracts(doc30, resolver);
+    const result30 = renderContracts(analyzeFixture(doc30));
 
     expect(result31).toMatchSnapshot();
     expect(result30).toMatchSnapshot();

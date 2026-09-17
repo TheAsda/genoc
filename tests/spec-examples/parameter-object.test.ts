@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
 
-import { generateClient } from '../../src/generator/client-generator.js';
-import { generateContracts } from '../../src/generator/contracts-generator.js';
+import { generateOutput } from '../../src/generator/client-generator.js';
+import { renderContracts } from '../../src/generator/contracts-generator.js';
 import { RefResolver } from '../../src/parser/ref-resolver.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { analyzeFixture } from '../analyze-fixture.js';
 
 function createDoc(overrides?: Partial<OpenAPIDocument>): OpenAPIDocument {
   return {
@@ -41,11 +42,11 @@ describe('Parameter Object spec examples', () => {
       const resolver = new RefResolver(doc);
 
       // Contracts: no query type generated for path-only params
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
       expect(contracts).not.toContain('Query =');
 
       // Client: path param becomes flat string argument in method signature
-      const { client } = generateClient(doc, createConfig());
+      const { client } = generateOutput(analyzeFixture(doc), createConfig());
       expect(contracts).toMatchSnapshot();
       expect(client).toMatchSnapshot();
     });
@@ -75,12 +76,12 @@ describe('Parameter Object spec examples', () => {
         },
       });
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       expect(contracts).toMatchSnapshot();
 
       // Client method receives query object
-      const { client } = generateClient(doc, createConfig());
+      const { client } = generateOutput(analyzeFixture(doc), createConfig());
       expect(client).toMatchSnapshot();
     });
   });
@@ -117,14 +118,14 @@ describe('Parameter Object spec examples', () => {
         },
       });
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       expect(contracts).toMatchSnapshot();
       // required: true → non-optional
       expect(contracts).not.toMatch(/q\?:/);
 
       // Client: not all optional, so query is required arg
-      const { client } = generateClient(doc, createConfig());
+      const { client } = generateOutput(analyzeFixture(doc), createConfig());
       expect(client).toMatchSnapshot();
     });
 
@@ -146,7 +147,7 @@ describe('Parameter Object spec examples', () => {
           },
         },
       });
-      const { client } = generateClient(doc, createConfig());
+      const { client } = generateOutput(analyzeFixture(doc), createConfig());
       expect(client).toMatchSnapshot();
     });
   });
@@ -175,11 +176,11 @@ describe('Parameter Object spec examples', () => {
         },
       });
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       expect(contracts).toMatchSnapshot();
 
-      const { client } = generateClient(doc, createConfig());
+      const { client } = generateOutput(analyzeFixture(doc), createConfig());
       expect(client).toMatchSnapshot();
     });
   });
@@ -203,13 +204,13 @@ describe('Parameter Object spec examples', () => {
         },
       });
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       // No query type generated for cookie-only params
       expect(contracts).not.toContain('Query =');
 
       // Client method has no cookie arguments
-      const { client } = generateClient(doc, createConfig());
+      const { client } = generateOutput(analyzeFixture(doc), createConfig());
       expect(contracts).toMatchSnapshot();
       expect(client).toMatchSnapshot();
       expect(client).not.toContain('session_id');
@@ -258,14 +259,14 @@ describe('Parameter Object spec examples', () => {
         },
       });
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       expect(contracts).toMatchSnapshot();
       // No path params in query type
       expect(contracts).not.toContain('orgId');
 
       // Client: path params as flat args + query object + headers object
-      const { client } = generateClient(doc, createConfig());
+      const { client } = generateOutput(analyzeFixture(doc), createConfig());
       expect(client).toMatchSnapshot();
     });
   });

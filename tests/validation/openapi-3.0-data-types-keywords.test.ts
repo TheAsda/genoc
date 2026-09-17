@@ -21,31 +21,28 @@
  * - `$ref` siblings stripped (not merged as in 3.1)
  * - `example` instead of `examples`
  *
- * Tier 1 (3.0-#1-#6, #8-#21): generateContracts + string matching on TypeScript output
+ * Tier 1 (3.0-#1-#6, #8-#21): renderContracts + string matching on TypeScript output
  * Tier 2 (3.0-#22-#28): verify no crash + constraint NOT emitted in output
  * Tier 3 (3.0-#7, #29-#30): 3.0-specific normalization, verified via generation
  */
 import { describe, expect, it } from 'vitest';
-import { parse as parseYaml } from 'yaml';
 
-import { generateClient as generateClientStrings } from '../../src/generator/client-generator.js';
-import { generateContracts } from '../../src/generator/contracts-generator.js';
+import { generateOutput as generateClientStrings } from '../../src/generator/client-generator.js';
+import { renderContracts } from '../../src/generator/contracts-generator.js';
 import { RefResolver } from '../../src/parser/ref-resolver.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { analyzeFixture, analyzeYaml } from '../analyze-fixture.js';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function generateFromYaml(yaml: string): string {
-  const doc = parseYaml(yaml) as OpenAPIDocument;
-  const resolver = new RefResolver(doc);
-  return generateContracts(doc, resolver);
+  return renderContracts(analyzeYaml(yaml));
 }
 
 function generateClientFromYaml(yaml: string): { contracts: string; client: string } {
-  const doc = parseYaml(yaml) as OpenAPIDocument;
   const config: GeneratorConfig = { input: 'test.yaml', outputDir: '/tmp/test' };
-  return generateClientStrings(doc, config);
+  return generateClientStrings(analyzeYaml(yaml), config);
 }
 
 const BASE_SPEC = (schemasYaml: string) => `
@@ -972,10 +969,7 @@ components:
         },
       },
     };
-    const resolver = new RefResolver(doc, {
-      preserveRefSiblings: true,
-    });
-    const result = generateContracts(doc, resolver);
+    const result = renderContracts(analyzeFixture(doc, { preserveRefSiblings: true }));
     expect(result).toMatchSnapshot();
   });
 });

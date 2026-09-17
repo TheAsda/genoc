@@ -1,8 +1,8 @@
 import type { CommandContext } from '@stricli/core';
 
-import { generateFullOutput } from '../generator/client-generator.js';
 import { load } from '../parser/spec-reader.js';
 import { resolveVersion, validateSpec } from '../parser/version/index.js';
+import { generateFullOutput } from '../pipeline.js';
 import { assertValidProxyUrl } from '../utils/proxy.js';
 import type { AppFlags as Flags } from './app.js';
 import { loadConfigFile } from './config-loader.js';

@@ -4,9 +4,10 @@ import { fileURLToPath } from 'url';
 
 import { describe, expect, it, test } from 'vitest';
 
-import { generateClient } from '../../src/generator/client-generator.js';
+import { generateOutput } from '../../src/generator/client-generator.js';
 import { loadFromFile } from '../../src/parser/spec-reader.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
+import { analyzeFixture } from '../analyze-fixture.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BASELINES_DIR = join(__dirname, 'baselines');
@@ -59,7 +60,7 @@ async function generateStripped(
     input: fixturePath,
     outputDir: '/tmp/jsdoc-equivalence',
   };
-  const { contracts, client } = generateClient(doc, config);
+  const { contracts, client } = generateOutput(analyzeFixture(doc), config);
   return { contracts: stripAndNormalize(contracts), client: stripAndNormalize(client) };
 }
 
@@ -87,8 +88,8 @@ describe('AC-1 stripped-token equivalence (jsdoc metadata baselines)', () => {
         input: spec.fixture,
         outputDir: '/tmp/jsdoc-equivalence',
       };
-      const first = generateClient(doc, config);
-      const second = generateClient(doc, config);
+      const first = generateOutput(analyzeFixture(doc), config);
+      const second = generateOutput(analyzeFixture(doc), config);
       expect(first.contracts).toBe(second.contracts);
       expect(first.client).toBe(second.client);
     }

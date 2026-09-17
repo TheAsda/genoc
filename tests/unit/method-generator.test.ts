@@ -31,14 +31,15 @@ function makeOp(overrides: Partial<AnalyzedOperation>): AnalyzedOperation {
   };
 }
 
-function successResponse(statusCode: string, tsType = 'unknown'): AnalyzedResponse {
+function successResponse(statusCode: string, finishedType = 'unknown'): AnalyzedResponse {
   return {
     statusCode,
     description: undefined,
     schema: undefined,
-    tsType,
+    finishedType,
     isSuccess: true,
     isBinary: false,
+    isVoid: finishedType === 'void',
   };
 }
 
@@ -47,9 +48,9 @@ function makeErrorResponse(statusCode: string): AnalyzedResponse {
     statusCode,
     description: undefined,
     schema: undefined,
-    tsType: 'unknown',
     isSuccess: false,
     isBinary: false,
+    isVoid: false,
   };
 }
 
@@ -59,18 +60,16 @@ function pathParam(name: string): AnalyzedParameter {
     in: 'path',
     required: true,
     schema: { type: 'string' },
-    tsType: 'string',
     description: undefined,
   };
 }
 
-function queryParam(name: string, required = false, tsType = 'string'): AnalyzedParameter {
+function queryParam(name: string, required = false): AnalyzedParameter {
   return {
     name,
     in: 'query',
     required,
     schema: { type: 'string' },
-    tsType,
     description: undefined,
   };
 }
@@ -138,8 +137,7 @@ describe('generateMethod', () => {
       const requestBody: AnalyzedRequestBody = {
         required: true,
         contentTypes: ['application/json'],
-        schema: { type: 'object' },
-        tsType: 'PostApiV1ProductsBody',
+        hasSchema: true,
         isMultipart: false,
         isBinary: false,
       };
@@ -185,8 +183,7 @@ describe('generateMethod', () => {
       const requestBody: AnalyzedRequestBody = {
         required: true,
         contentTypes: ['application/json'],
-        schema: { type: 'object' },
-        tsType: 'PutOrganizationsOrgIdMembersBody',
+        hasSchema: true,
         isMultipart: false,
         isBinary: false,
       };
@@ -289,8 +286,7 @@ describe('generateMethod', () => {
       const requestBody: AnalyzedRequestBody = {
         required: true,
         contentTypes: ['application/json'],
-        schema: { type: 'object' },
-        tsType: 'PostApiV1ProductsBody',
+        hasSchema: true,
         isMultipart: false,
         isBinary: false,
       };
@@ -311,8 +307,7 @@ describe('generateMethod', () => {
       const requestBody: AnalyzedRequestBody = {
         required: false,
         contentTypes: ['application/json'],
-        schema: { type: 'object' },
-        tsType: 'PostApiV1ProductsBody',
+        hasSchema: true,
         isMultipart: false,
         isBinary: false,
       };
@@ -634,8 +629,7 @@ describe('generateMethod', () => {
       const requestBody: AnalyzedRequestBody = {
         required: false,
         contentTypes: ['application/json'],
-        schema: { type: 'object' },
-        tsType: 'SomeBody',
+        hasSchema: true,
         isMultipart: false,
         isBinary: false,
       };
@@ -673,7 +667,6 @@ describe('generateMethod', () => {
         in: 'header',
         required: false,
         schema: { type: 'string' },
-        tsType: 'string',
         description: undefined,
       };
 
@@ -693,7 +686,6 @@ describe('generateMethod', () => {
         in: 'header',
         required: true,
         schema: { type: 'string' },
-        tsType: 'string',
         description: undefined,
       };
 
@@ -714,7 +706,6 @@ describe('generateMethod', () => {
         in: 'header',
         required: false,
         schema: { type: 'string' },
-        tsType: 'string',
         description: undefined,
       };
 
@@ -723,7 +714,7 @@ describe('generateMethod', () => {
         requestBody: {
           required: true,
           contentTypes: ['application/json'],
-          schema: { type: 'object', properties: { name: { type: 'string' } } },
+          hasSchema: true,
         },
         responses: [successResponse('200')],
       });
@@ -739,7 +730,6 @@ describe('generateMethod', () => {
         in: 'cookie',
         required: false,
         schema: { type: 'string' },
-        tsType: 'string',
         description: undefined,
       };
 

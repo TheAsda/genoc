@@ -1,4 +1,4 @@
-import type { AnalyzedOperation } from '../analyzer/path-analyzer.js';
+import type { AnalyzedOperation, AnalyzedResponse } from '../analyzer/path-analyzer.js';
 import { sanitizeTypeName, toPascalCase } from './generator-helpers.js';
 
 /**
@@ -79,6 +79,15 @@ function computeOperationTypePrefix(op: AnalyzedOperation): string {
 }
 
 /**
+ * Classify a response as void by its finished type text. The finished type
+ * is `'void'` exactly for schema-less, non-binary 2xx responses — the same
+ * condition the analyzer records as `isVoid`.
+ */
+function isVoidResponse(r: AnalyzedResponse): boolean {
+  return r.finishedType === 'void';
+}
+
+/**
  * Determine the success return type for an operation.
  */
 export function getSuccessType(op: AnalyzedOperation): string {
@@ -88,13 +97,13 @@ export function getSuccessType(op: AnalyzedOperation): string {
     return 'unknown';
   }
 
-  const noContent = successResponses.find((r) => r.tsType === 'void');
-  const hasOnlyNoContent = noContent && successResponses.every((r) => r.tsType === 'void');
+  const noContent = successResponses.find((r) => isVoidResponse(r));
+  const hasOnlyNoContent = noContent && successResponses.every((r) => isVoidResponse(r));
   if (hasOnlyNoContent) {
     return 'void';
   }
 
-  const withSchema = successResponses.filter((r) => r.tsType !== 'void');
+  const withSchema = successResponses.filter((r) => !isVoidResponse(r));
 
   if (withSchema.length === 0) {
     return 'void';
@@ -160,7 +169,7 @@ export function operationEmissions(op: AnalyzedOperation): OperationEmissions {
   return {
     query: op.queryParams.length > 0 ? `${prefix}Query` : undefined,
     headers: op.headerParams.length > 0 ? `${prefix}Headers` : undefined,
-    body: op.requestBody?.schema ? `${prefix}Body` : undefined,
+    body: op.requestBody?.hasSchema ? `${prefix}Body` : undefined,
     response: op.responses.some((r) => r.isSuccess) ? `${prefix}Response` : undefined,
     statusErrors,
     defaultError: op.responses.some((r) => !r.isSuccess && r.statusCode === 'default')

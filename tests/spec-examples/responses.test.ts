@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
 
-import { generateClient } from '../../src/generator/client-generator.js';
-import { generateContracts } from '../../src/generator/contracts-generator.js';
+import { generateOutput } from '../../src/generator/client-generator.js';
+import { renderContracts } from '../../src/generator/contracts-generator.js';
 import { RefResolver } from '../../src/parser/ref-resolver.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { analyzeFixture } from '../analyze-fixture.js';
 
 function createDoc(overrides?: Partial<OpenAPIDocument>): OpenAPIDocument {
   return {
@@ -61,11 +62,11 @@ describe('Responses spec examples', () => {
         },
       });
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       expect(contracts).toMatchSnapshot();
 
-      const { client } = generateClient(doc, createConfig());
+      const { client } = generateOutput(analyzeFixture(doc), createConfig());
       expect(client).toMatchSnapshot();
     });
 
@@ -104,7 +105,7 @@ describe('Responses spec examples', () => {
         },
       });
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       expect(contracts).toMatchSnapshot();
     });
@@ -182,11 +183,11 @@ describe('Responses spec examples', () => {
         },
       });
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       expect(contracts).toMatchSnapshot();
 
-      const { client } = generateClient(doc, createConfig());
+      const { client } = generateOutput(analyzeFixture(doc), createConfig());
       expect(client).toMatchSnapshot();
     });
   });
@@ -208,12 +209,12 @@ describe('Responses spec examples', () => {
         },
       });
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       expect(contracts).not.toContain('ErrorDefault');
       expect(contracts).not.toContain('Errors =');
 
-      const { client } = generateClient(doc, createConfig());
+      const { client } = generateOutput(analyzeFixture(doc), createConfig());
       expect(contracts).toMatchSnapshot();
       expect(client).toMatchSnapshot();
     });
@@ -233,7 +234,7 @@ describe('Responses spec examples', () => {
         },
       });
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       expect(contracts).toMatchSnapshot();
       expect(contracts).not.toContain('ErrorDefault');
@@ -276,7 +277,7 @@ describe('Responses spec examples', () => {
         },
       });
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       expect(contracts).toMatchSnapshot();
     });
@@ -295,7 +296,7 @@ describe('Responses spec examples', () => {
           },
         },
       });
-      const { client } = generateClient(doc, createConfig());
+      const { client } = generateOutput(analyzeFixture(doc), createConfig());
 
       expect(client).toMatchSnapshot();
     });
@@ -353,7 +354,7 @@ describe('Responses spec examples', () => {
         },
       });
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       expect(contracts).toMatchSnapshot();
     });

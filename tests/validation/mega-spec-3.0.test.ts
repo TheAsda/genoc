@@ -6,12 +6,12 @@ import { fileURLToPath } from 'url';
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 
-import { generateClient, generateFullOutput } from '../../src/generator/client-generator.js';
-import { generateContracts } from '../../src/generator/contracts-generator.js';
-import { RefResolver } from '../../src/parser/ref-resolver.js';
+import { generateOutput } from '../../src/generator/client-generator.js';
 import { loadFromFile } from '../../src/parser/spec-reader.js';
+import { generateFullOutput } from '../../src/pipeline.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { analyzeFixture } from '../analyze-fixture.js';
 import { expectFilesCompile } from '../helpers/compile-check.js';
 import { linkGenoc } from '../helpers/link-genoc.js';
 
@@ -30,7 +30,7 @@ describe('OpenAPI 3.0 Mega-Spec Integration Test', () => {
       input: FIXTURE_PATH,
       outputDir: '/tmp/mega-spec-3.0-test',
     };
-    const result = generateClient(doc, config);
+    const result = generateOutput(analyzeFixture(doc), config);
     contracts = result.contracts;
     client = result.client;
   });

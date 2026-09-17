@@ -80,7 +80,7 @@ describe('operationEmissions', () => {
       path: '/things',
       queryParams: [{ name: 'limit' }, { name: 'offset' }],
       headerParams: [{ name: 'X-Trace' }],
-      requestBody: { required: true, schema: { type: 'object' } },
+      requestBody: { required: true, hasSchema: true },
       responses: [],
     } as never);
 
@@ -99,7 +99,7 @@ describe('operationEmissions', () => {
       path: '/things/{id}',
       queryParams: [],
       headerParams: [],
-      responses: [{ statusCode: '204', isSuccess: true, tsType: 'void' }],
+      responses: [{ statusCode: '204', isSuccess: true, finishedType: 'void' }],
     } as never);
 
     expect(emissions.response).toBe('DeleteThingsIdResponse');
@@ -112,10 +112,10 @@ describe('operationEmissions', () => {
       queryParams: [],
       headerParams: [],
       responses: [
-        { statusCode: '200', isSuccess: true, tsType: 'string' },
-        { statusCode: '400', isSuccess: false, tsType: 'unknown' },
-        { statusCode: '404', isSuccess: false, tsType: 'unknown' },
-        { statusCode: 'default', isSuccess: false, tsType: 'unknown' },
+        { statusCode: '200', isSuccess: true, finishedType: 'string' },
+        { statusCode: '400', isSuccess: false, finishedType: 'unknown' },
+        { statusCode: '404', isSuccess: false, finishedType: 'unknown' },
+        { statusCode: 'default', isSuccess: false, finishedType: 'unknown' },
       ],
     } as never);
 
@@ -134,8 +134,8 @@ describe('operationEmissions', () => {
       queryParams: [],
       headerParams: [],
       responses: [
-        { statusCode: '200', isSuccess: true, tsType: 'string' },
-        { statusCode: 'default', isSuccess: false, tsType: 'unknown' },
+        { statusCode: '200', isSuccess: true, finishedType: 'string' },
+        { statusCode: 'default', isSuccess: false, finishedType: 'unknown' },
       ],
     } as never);
 
@@ -151,12 +151,12 @@ describe('clientImportedNames', () => {
       path: '/things',
       queryParams: [{ name: 'limit' }],
       headerParams: [{ name: 'X-Trace' }],
-      requestBody: { required: true, schema: { type: 'object' } },
+      requestBody: { required: true, hasSchema: true },
       responses: [
         { statusCode: '200', isSuccess: true, tsType: 'PostThingsResponse' },
-        { statusCode: '400', isSuccess: false, tsType: 'unknown' },
-        { statusCode: '404', isSuccess: false, tsType: 'unknown' },
-        { statusCode: 'default', isSuccess: false, tsType: 'unknown' },
+        { statusCode: '400', isSuccess: false, finishedType: 'unknown' },
+        { statusCode: '404', isSuccess: false, finishedType: 'unknown' },
+        { statusCode: 'default', isSuccess: false, finishedType: 'unknown' },
       ],
     } as never);
 
@@ -178,7 +178,7 @@ describe('clientImportedNames', () => {
       path: '/things/{id}',
       queryParams: [],
       headerParams: [],
-      responses: [{ statusCode: '204', isSuccess: true, tsType: 'void' }],
+      responses: [{ statusCode: '204', isSuccess: true, finishedType: 'void' }],
     } as never);
 
     expect(names).toEqual([]);
@@ -190,7 +190,7 @@ describe('clientImportedNames', () => {
       path: '/things',
       queryParams: [],
       headerParams: [],
-      responses: [{ statusCode: '400', isSuccess: false, tsType: 'unknown' }],
+      responses: [{ statusCode: '400', isSuccess: false, finishedType: 'unknown' }],
     } as never);
 
     expect(names).toEqual(['GetThingsError400', 'GetThingsErrors']);
@@ -205,7 +205,7 @@ describe('clientValueImports', () => {
         path: '/things',
         queryParams: [],
         headerParams: [],
-        responses: [{ statusCode: '200', isSuccess: true, tsType: 'string' }],
+        responses: [{ statusCode: '200', isSuccess: true, finishedType: 'string' }],
       },
     ] as never[];
 
@@ -219,7 +219,7 @@ describe('clientValueImports', () => {
         path: '/things',
         queryParams: [],
         headerParams: [],
-        responses: [{ statusCode: '200', isSuccess: true, tsType: 'string' }],
+        responses: [{ statusCode: '200', isSuccess: true, finishedType: 'string' }],
       },
       {
         method: 'put',
@@ -227,8 +227,8 @@ describe('clientValueImports', () => {
         queryParams: [],
         headerParams: [],
         responses: [
-          { statusCode: '200', isSuccess: true, tsType: 'string' },
-          { statusCode: 'default', isSuccess: false, tsType: 'unknown' },
+          { statusCode: '200', isSuccess: true, finishedType: 'string' },
+          { statusCode: 'default', isSuccess: false, finishedType: 'unknown' },
         ],
       },
     ] as never[];

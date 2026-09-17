@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
 
 import { analyzePaths } from '../../src/analyzer/path-analyzer.js';
-import { generateClient } from '../../src/generator/client-generator.js';
+import { generateOutput } from '../../src/generator/client-generator.js';
 import { RefResolver } from '../../src/parser/ref-resolver.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { analyzeFixture } from '../analyze-fixture.js';
 
 function createDoc(overrides?: Partial<OpenAPIDocument>): OpenAPIDocument {
   return {
@@ -61,7 +62,7 @@ describe('PathItem Object examples', () => {
       expect(methods).toContain('get');
       expect(methods).toContain('post');
 
-      const { client } = generateClient(doc, makeConfig());
+      const { client } = generateOutput(analyzeFixture(doc), makeConfig());
       expect(client).toMatchSnapshot();
     });
 
@@ -89,7 +90,7 @@ describe('PathItem Object examples', () => {
         },
       });
 
-      const { contracts } = generateClient(doc, makeConfig());
+      const { contracts } = generateOutput(analyzeFixture(doc), makeConfig());
 
       expect(contracts).toMatchSnapshot();
     });

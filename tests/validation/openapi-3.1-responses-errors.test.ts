@@ -14,7 +14,7 @@
  * Tests every feature from the "Responses" (3.1-#55-#62) and "Error Handling"
  * (3.1-#63-#69) sections of the feature enumeration.
  *
- * All features are Tier 1: generateClient + string matching on TypeScript output.
+ * All features are Tier 1: generateOutput + string matching on TypeScript output.
  *
  * Note: contracts-generator.ts generates ApiError/UnspecifiedApiError classes and
  * per-operation error type aliases inline. They are NOT part of a separate
@@ -23,24 +23,22 @@
 import { describe, expect, it } from 'vitest';
 import { parse as parseYaml } from 'yaml';
 
-import { generateClient as generateClientStrings } from '../../src/generator/client-generator.js';
-import { generateContracts } from '../../src/generator/contracts-generator.js';
+import { generateOutput as generateClientStrings } from '../../src/generator/client-generator.js';
+import { renderContracts } from '../../src/generator/contracts-generator.js';
 import { RefResolver } from '../../src/parser/ref-resolver.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { analyzeFixture, analyzeYaml } from '../analyze-fixture.js';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function generateFromYaml(yaml: string): string {
-  const doc = parseYaml(yaml) as OpenAPIDocument;
-  const resolver = new RefResolver(doc);
-  return generateContracts(doc, resolver);
+  return renderContracts(analyzeYaml(yaml));
 }
 
 function generateClientFromYaml(yaml: string): { contracts: string; client: string } {
-  const doc = parseYaml(yaml) as OpenAPIDocument;
   const config: GeneratorConfig = { input: 'test.yaml', outputDir: '/tmp/test' };
-  return generateClientStrings(doc, config);
+  return generateClientStrings(analyzeYaml(yaml), config);
 }
 
 // ── Responses (3.1-#55-#62) ───────────────────────────────────────────────
@@ -916,9 +914,8 @@ describe('OpenAPI 3.1 — Binary response 3.1 edges (3.1-#70-#72)', () => {
     `;
     const doc = parseYaml(yaml) as OpenAPIDocument;
     const { contracts, client } = generateClientStrings(
-      doc,
-      { input: 'test.yaml', outputDir: '/tmp/test' },
-      { preserveRefSiblings: true }
+      analyzeFixture(doc, { preserveRefSiblings: true }),
+      { input: 'test.yaml', outputDir: '/tmp/test' }
     );
 
     expect(contracts).toMatchSnapshot();

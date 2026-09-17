@@ -6,10 +6,11 @@ import { fileURLToPath } from 'url';
 
 import { describe, it, expect, beforeAll } from 'vitest';
 
-import { generateClient } from '../../src/generator/client-generator.js';
+import { generateOutput } from '../../src/generator/client-generator.js';
 import { loadFromFile } from '../../src/parser/spec-reader.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { analyzeFixture } from '../analyze-fixture.js';
 import { expectFilesCompile } from '../helpers/compile-check.js';
 import { linkGenoc } from '../helpers/link-genoc.js';
 
@@ -27,7 +28,7 @@ describe('Discriminator allOf integration', () => {
       input: FIXTURE_PATH,
       outputDir: '/tmp/discriminator-allof-test',
     };
-    const result = generateClient(doc, config);
+    const result = generateOutput(analyzeFixture(doc), config);
     contracts = result.contracts;
     client = result.client;
   });

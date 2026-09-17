@@ -13,9 +13,10 @@ import { fileURLToPath } from 'url';
 import { describe, it, expect, beforeAll } from 'vitest';
 import { parse as parseYaml } from 'yaml';
 
-import { generateClient as generateClientStrings } from '../../src/generator/client-generator.js';
+import { generateOutput as generateClientStrings } from '../../src/generator/client-generator.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { analyzeFixture } from '../analyze-fixture.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SPEC_PATH = join(__dirname, '../fixtures/cross-task-integration-spec.yaml');
@@ -27,7 +28,7 @@ function loadSpec(): { contracts: string; client: string } {
     input: SPEC_PATH,
     outputDir: join(__dirname, '../__output__/cross-task-test'),
   };
-  return generateClientStrings(doc, config);
+  return generateClientStrings(analyzeFixture(doc), config);
 }
 
 describe('Cross-task integration: OAuth2 + Headers + DefaultApiError', () => {
