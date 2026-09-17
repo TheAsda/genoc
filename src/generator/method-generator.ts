@@ -1,10 +1,7 @@
 import type { AnalyzedOperation } from '../analyzer/path-analyzer.js';
 import type { GeneratedMethod } from '../types/client.js';
-import {
-  getOperationTypePrefix,
-  getSuccessType,
-  sanitizeJsDocText,
-} from '../utils/generator-helpers.js';
+import { sanitizeJsDocText } from '../utils/generator-helpers.js';
+import { getOperationTypePrefix, getSuccessType } from '../utils/operation-naming.js';
 
 function buildParameters(op: AnalyzedOperation): string {
   const params: string[] = [];

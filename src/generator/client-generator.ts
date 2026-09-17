@@ -7,11 +7,13 @@ import type { GeneratorConfig } from '../types/client.js';
 import type { OpenAPIDocument, SchemaObject } from '../types/openapi.js';
 import {
   DEFAULT_RUNTIME_IMPORT_PATH,
-  getOperationTypePrefix,
-  getSuccessType,
-  getErrorType,
   makeHeader,
 } from '../utils/generator-helpers.js';
+import {
+  getErrorType,
+  getOperationTypePrefix,
+  getSuccessType,
+} from '../utils/operation-naming.js';
 import { generateContracts } from './contracts-generator.js';
 import { generateMethod } from './method-generator.js';
 

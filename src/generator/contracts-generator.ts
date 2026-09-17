@@ -17,9 +17,9 @@ import {
   sanitizeJsDocText,
   sanitizeTypeName,
   toPascalCase,
-  getOperationTypePrefix,
   makeHeader,
 } from '../utils/generator-helpers.js';
+import { getOperationTypePrefix } from '../utils/operation-naming.js';
 
 /**
  * If the schema is a $ref to a discriminated base type (or an array whose items

@@ -8,11 +8,8 @@ import type {
   ResponseObject,
   SchemaObject,
 } from '../types/openapi.js';
-import {
-  isBinaryContentType,
-  sanitizeTypeName,
-  getOperationTypePrefix,
-} from '../utils/generator-helpers.js';
+import { isBinaryContentType, sanitizeTypeName } from '../utils/generator-helpers.js';
+import { getOperationTypePrefix } from '../utils/operation-naming.js';
 import { getMethodName } from './naming.js';
 
 export interface AnalyzedParameter {
