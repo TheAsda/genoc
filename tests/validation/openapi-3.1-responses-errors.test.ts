@@ -926,7 +926,7 @@ describe('OpenAPI 3.1 — Binary response 3.1 edges (3.1-#70-#72)', () => {
 
     // Pin the 3.1 merge itself: the sibling description lands on the resolved
     // schema AND the binary signal survives the merge.
-    const resolver = new RefResolver(doc, undefined, { preserveRefSiblings: true });
+    const resolver = new RefResolver(doc, { preserveRefSiblings: true });
     const response200 = doc.paths!['/vendor-binary']!.get!.responses!['200'] as {
       content: Record<string, { schema: { $ref: string; description: string } }>;
     };

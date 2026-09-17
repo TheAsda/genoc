@@ -7,14 +7,9 @@ export class RefResolver {
   private doc: OpenAPIDocument;
   private preserveRefSiblings: boolean;
 
-  constructor(
-    doc: OpenAPIDocument,
-    documentUrl?: string,
-    options?: { preserveRefSiblings?: boolean }
-  ) {
+  constructor(doc: OpenAPIDocument, options?: { preserveRefSiblings?: boolean }) {
     this.doc = doc;
     this.preserveRefSiblings = options?.preserveRefSiblings ?? false;
-    void documentUrl;
   }
 
   /**

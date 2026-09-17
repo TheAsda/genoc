@@ -1,4 +1,4 @@
-import type { ValidationResult } from '../../validators.js';
+import type { ValidationResult } from '../validate.js';
 
 /**
  * Validate a raw OpenAPI 3.0.x specification.

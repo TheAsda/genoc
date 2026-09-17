@@ -2,8 +2,7 @@ import type { CommandContext } from '@stricli/core';
 
 import { generateFullOutput } from '../generator/client-generator.js';
 import { load } from '../parser/spec-reader.js';
-import { validateSpec } from '../parser/validators.js';
-import { defaultRegistry } from '../parser/version/index.js';
+import { resolveVersion, validateSpec } from '../parser/version/index.js';
 import { assertValidProxyUrl } from '../utils/proxy.js';
 import type { AppFlags as Flags } from './app.js';
 import { loadConfigFile } from './config-loader.js';
@@ -213,36 +212,39 @@ async function runOneTarget(target: GenerationTarget, context: CommandContext): 
   const doc = await load(target.input, { proxy: target.proxy });
   context.process.stdout.write(`Loaded OpenAPI ${doc.openapi} spec\n`);
 
-  const strategy = target.specVersion
-    ? defaultRegistry.get(target.specVersion)
-    : defaultRegistry.detectAndResolve(doc);
-
-  if (target.specVersion && target.strictVersion !== false) {
-    const detected = defaultRegistry.detectAndResolve(doc);
-    if (detected.version() !== target.specVersion) {
-      context.process.stderr.write(
-        `Warning: Specified version ${target.specVersion} does not match detected version ${detected.version()}\n`
-      );
-    }
+  const override = target.specVersion;
+  if (override !== undefined && override !== '3.0' && override !== '3.1') {
+    throw new Error(`No strategy registered for version: ${override}`);
   }
 
-  const validation = validateSpec(doc, strategy);
-  if (!validation.valid) {
-    throw new UserError(
-      `Invalid OpenAPI specification:\n${validation.errors.map((e) => `  - ${e}`).join('\n')}`
+  const profile = resolveVersion(doc, override);
+
+  if (
+    override !== undefined &&
+    target.strictVersion !== false &&
+    profile.detected !== profile.effective
+  ) {
+    context.process.stderr.write(
+      `Warning: Specified version ${override} does not match detected version ${profile.detected}\n`
     );
+  }
+
+  try {
+    validateSpec(doc, profile.effective);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new UserError(message);
   }
 
   const config = {
     input: target.input,
     outputDir: target.outputDir,
     methodNameStrategy: target.methodNameStrategy,
-    specVersion: target.specVersion,
     strictVersion: target.strictVersion,
     runtimeImportPath: target.runtimeImportPath,
   };
 
-  const preserveRefSiblings = strategy.version() === '3.1';
+  const { preserveRefSiblings } = profile;
   context.process.stdout.write('Generating client...\n');
   await generateFullOutput(doc, config, { preserveRefSiblings });
 

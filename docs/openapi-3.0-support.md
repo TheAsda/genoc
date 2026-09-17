@@ -1,6 +1,6 @@
 # OpenAPI 3.0 Support
 
-This document lists all OpenAPI 3.0.x features supported by genoc. The tool auto-detects OpenAPI 3.0 specs and applies version-specific normalization.
+This document lists all OpenAPI 3.0.x features supported by genoc. The tool auto-detects OpenAPI 3.0 specs.
 
 **OpenAPI Specification reference:** https://spec.openapis.org/oas/v3.0.4.html
 

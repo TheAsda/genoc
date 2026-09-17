@@ -284,7 +284,7 @@ export function generateClient(
   config: GeneratorConfig,
   options?: GenerationOptions
 ): { contracts: string; client: string; index: string } {
-  const resolver = new RefResolver(doc, undefined, {
+  const resolver = new RefResolver(doc, {
     preserveRefSiblings: options?.preserveRefSiblings,
   });
 

@@ -40,7 +40,7 @@ function makeSpec(version: string, schemas: Record<string, unknown>): OpenAPIDoc
  * `preserveRefSiblings` controls $ref sibling merging behavior.
  */
 function generateOutput(doc: OpenAPIDocument, preserveSiblings: boolean): string {
-  const resolver = new RefResolver(doc, undefined, {
+  const resolver = new RefResolver(doc, {
     preserveRefSiblings: preserveSiblings,
   });
   return generateContracts(doc, resolver);
