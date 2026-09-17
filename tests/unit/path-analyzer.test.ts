@@ -628,7 +628,9 @@ describe('double-analyze determinism', () => {
       const contractsPass = analyzePaths(doc, resolver);
       const clientPass = analyzePaths(doc, resolver, strategy);
 
-      expect(clientPass.map((op) => op.typePrefix)).toEqual(contractsPass.map((op) => op.typePrefix));
+      expect(clientPass.map((op) => op.typePrefix)).toEqual(
+        contractsPass.map((op) => op.typePrefix)
+      );
     }
   );
 });
