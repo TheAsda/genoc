@@ -28,7 +28,7 @@ import type { OpenAPIDocument } from '../../src/types/openapi.js';
 
 function generateFromYaml(yaml: string, preserveRefSiblings = false): string {
   const doc = parseYaml(yaml) as OpenAPIDocument;
-  const resolver = new RefResolver(doc, undefined, { preserveRefSiblings });
+  const resolver = new RefResolver(doc, { preserveRefSiblings });
   return generateContracts(doc, resolver);
 }
 

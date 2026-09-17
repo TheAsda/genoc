@@ -11,11 +11,6 @@ export interface VersionStrategy {
   version(): string;
 
   /**
-   * Check if this strategy matches the given OpenAPI specification
-   */
-  matches(spec: unknown): boolean;
-
-  /**
    * Normalize a raw OpenAPI specification to a consistent format
    */
   normalizeSpec(rawSpec: unknown): NormalizedSpec;
@@ -24,14 +19,4 @@ export interface VersionStrategy {
    * Validate the normalized specification
    */
   validateSpec(spec: NormalizedSpec): ValidationResult;
-
-  /**
-   * Resolve a reference within the document context
-   */
-  resolveRef(ref: string, doc: unknown, context?: unknown): unknown;
-
-  /**
-   * Get supported features for this version
-   */
-  getSupportedFeatures(): string[];
 }

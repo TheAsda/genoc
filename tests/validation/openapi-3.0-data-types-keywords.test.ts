@@ -972,7 +972,7 @@ components:
         },
       },
     };
-    const resolver = new RefResolver(doc, undefined, {
+    const resolver = new RefResolver(doc, {
       preserveRefSiblings: true,
     });
     const result = generateContracts(doc, resolver);
