@@ -1,4 +1,4 @@
-import type { AnalyzedOperation } from '../analyzer/path-analyzer.js';
+import type { AnalyzedOperation, AnalyzedResponse } from '../analyzer/path-analyzer.js';
 import { sanitizeTypeName, toPascalCase } from './generator-helpers.js';
 
 /**
@@ -79,6 +79,18 @@ function computeOperationTypePrefix(op: AnalyzedOperation): string {
 }
 
 /**
+ * Classify a response as void by its finished type text when `analyze()`
+ * provided one; hand-built operations fall back to the mini-mapper `tsType`.
+ * The two provably agree for the void case: the finished type is `'void'`
+ * exactly for schema-less, non-binary 2xx responses — the same condition
+ * under which the mini mapper yields `'void'`.
+ * transitional — the fallback dies in T4 together with the mini mapper.
+ */
+function isVoidResponse(r: AnalyzedResponse): boolean {
+  return r.finishedType !== undefined ? r.finishedType === 'void' : r.tsType === 'void';
+}
+
+/**
  * Determine the success return type for an operation.
  */
 export function getSuccessType(op: AnalyzedOperation): string {
@@ -88,13 +100,13 @@ export function getSuccessType(op: AnalyzedOperation): string {
     return 'unknown';
   }
 
-  const noContent = successResponses.find((r) => r.tsType === 'void');
-  const hasOnlyNoContent = noContent && successResponses.every((r) => r.tsType === 'void');
+  const noContent = successResponses.find((r) => isVoidResponse(r));
+  const hasOnlyNoContent = noContent && successResponses.every((r) => isVoidResponse(r));
   if (hasOnlyNoContent) {
     return 'void';
   }
 
-  const withSchema = successResponses.filter((r) => r.tsType !== 'void');
+  const withSchema = successResponses.filter((r) => !isVoidResponse(r));
 
   if (withSchema.length === 0) {
     return 'void';

@@ -1,7 +1,9 @@
 import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 
-import { analyzePaths, type AnalyzedOperation } from '../analyzer/path-analyzer.js';
+import { analyze } from '../analyzer/analyze.js';
+import type { AnalyzedOperation } from '../analyzer/path-analyzer.js';
+import type { AnalyzedSpec } from '../analyzer/types.js';
 import { RefResolver } from '../parser/ref-resolver.js';
 import type { GeneratorConfig } from '../types/client.js';
 import type { OpenAPIDocument, SchemaObject } from '../types/openapi.js';
@@ -13,7 +15,7 @@ import {
   getSuccessType,
   operationEmissions,
 } from '../utils/operation-naming.js';
-import { generateContracts } from './contracts-generator.js';
+import { renderContracts } from './contracts-generator.js';
 import { generateMethod } from './method-generator.js';
 
 function collectImportTypes(operations: AnalyzedOperation[]): string[] {
@@ -277,7 +279,28 @@ function buildIndexFile(version: string): string {
 }
 
 /**
+ * Render the client and index barrel files from the analyzed model.
+ * Pure string assembly — reads ONLY the AnalyzedSpec plus config, never the
+ * raw spec or a resolver.
+ */
+export function renderClient(
+  analyzed: AnalyzedSpec,
+  config: GeneratorConfig
+): { client: string; index: string } {
+  const runtimeImportPath = config.runtimeImportPath ?? DEFAULT_RUNTIME_IMPORT_PATH;
+
+  const client = buildClientFile(analyzed.operations, analyzed.specVersion, runtimeImportPath);
+
+  const index = buildIndexFile(analyzed.specVersion);
+
+  return { client, index };
+}
+
+/**
  * Generate the contracts, client, and index barrel file content from an OpenAPI document.
+ * transitional T1 bridge — runs the single `analyze()` pass and feeds both
+ * renderers; the doc/resolver signatures are kept for existing callers and
+ * slimmed in T4.
  */
 export function generateClient(
   doc: OpenAPIDocument,
@@ -288,14 +311,14 @@ export function generateClient(
     preserveRefSiblings: options?.preserveRefSiblings,
   });
 
+  const analyzed = analyze(doc, {
+    resolver,
+    strategy: config.methodNameStrategy ?? 'path-based',
+  });
+
   const runtimeImportPath = config.runtimeImportPath ?? DEFAULT_RUNTIME_IMPORT_PATH;
-  const contracts = generateContracts(doc, resolver, runtimeImportPath);
-
-  const operations = analyzePaths(doc, resolver, config.methodNameStrategy ?? 'path-based');
-
-  const client = buildClientFile(operations, doc.openapi, runtimeImportPath);
-
-  const index = buildIndexFile(doc.openapi);
+  const contracts = renderContracts(analyzed, runtimeImportPath);
+  const { client, index } = renderClient(analyzed, config);
 
   return { contracts, client, index };
 }

@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 
 import { analyzePaths } from '../../src/analyzer/path-analyzer.js';
 import { RefResolver } from '../../src/parser/ref-resolver.js';
-import type { MethodNameStrategy } from '../../src/types/client.js';
 import type {
   ComponentsObject,
   OpenAPIDocument,
@@ -10,7 +9,6 @@ import type {
   ResponsesObject,
 } from '../../src/types/openapi.js';
 import operationsSpec from '../fixtures/operations-spec.json' with { type: 'json' };
-import weirdSymbolNames from '../fixtures/weird-symbol-names.json' with { type: 'json' };
 
 function makeResolver(doc: OpenAPIDocument) {
   return new RefResolver(doc);
@@ -609,28 +607,4 @@ describe('analyzePaths', () => {
       expect(body.isBinary).toBe(false);
     });
   });
-});
-
-describe('double-analyze determinism', () => {
-  // generateClient runs analyzePaths twice on one resolver — once without a
-  // strategy (contracts) and once with (client). The prefix-dedup loop must
-  // assign identical type prefixes on both passes or the two files disagree
-  // on operation type names. operations-spec.json lacks operationIds, so its
-  // second pass uses the fallback strategy (strict 'operationId' throws).
-  it.for([
-    ['operations-spec.json', operationsSpec, 'operationId-with-fallback'],
-    ['weird-symbol-names.json', weirdSymbolNames, 'operationId'],
-  ] as [string, OpenAPIDocument, MethodNameStrategy][])(
-    'assigns identical typePrefix arrays across both passes for %s',
-    ([, fixture, strategy]) => {
-      const doc = fixture;
-      const resolver = makeResolver(doc);
-      const contractsPass = analyzePaths(doc, resolver);
-      const clientPass = analyzePaths(doc, resolver, strategy);
-
-      expect(clientPass.map((op) => op.typePrefix)).toEqual(
-        contractsPass.map((op) => op.typePrefix)
-      );
-    }
-  );
 });
