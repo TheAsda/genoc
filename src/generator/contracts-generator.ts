@@ -501,7 +501,9 @@ export function generateContracts(
 
     // Section 2: Query parameter types
     if (emissions.query) {
-      opLines.push(`export type ${emissions.query} = ${buildParamTypeBody(op.queryParams, mapper)};`);
+      opLines.push(
+        `export type ${emissions.query} = ${buildParamTypeBody(op.queryParams, mapper)};`
+      );
     }
 
     // Section 2b: Header parameter types
@@ -537,7 +539,10 @@ export function generateContracts(
       }
       if (propLines.length > 0) {
         opLines.push(
-          attachTypeJsDoc(bodyJsDoc, `export type ${emissions.body} = {\n${propLines.join('\n')}\n};`)
+          attachTypeJsDoc(
+            bodyJsDoc,
+            `export type ${emissions.body} = {\n${propLines.join('\n')}\n};`
+          )
         );
       } else {
         opLines.push(
@@ -549,7 +554,9 @@ export function generateContracts(
         opLines.push(attachTypeJsDoc(bodyJsDoc, `export type ${emissions.body} = Blob;`));
       } else {
         const result = mapper.mapSchema(op.requestBody.schema, undefined, 'request');
-        opLines.push(attachTypeJsDoc(bodyJsDoc, `export type ${emissions.body} = ${result.tsType};`));
+        opLines.push(
+          attachTypeJsDoc(bodyJsDoc, `export type ${emissions.body} = ${result.tsType};`)
+        );
       }
     }
 

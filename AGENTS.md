@@ -40,18 +40,18 @@ spec-reader → version detection → validation → ref-resolver → path-analy
 
 ### Key modules
 
-| Directory / File                       | Purpose                                                                                                           |
-| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `src/parser/`                          | Spec loading (`spec-reader`), `$ref` resolution (`ref-resolver`), validation                                      |
-| `src/parser/version/`                  | `VersionStrategy` interface with `v3.0/`, `v3.1/`, `v3.2/` (stub) implementations. Registry auto-detects version. |
-| `src/analyzer/`                        | Path → `AnalyzedOperation[]`, schema → TS type strings (`SchemaMapper`), method naming (`naming.ts`)              |
-| `src/generator/contracts-generator.ts` | Generates the `*.contracts.ts` file                                                                               |
-| `src/generator/client-generator.ts`    | Generates the `*.client.ts` file (method bodies via `buildClientMethodBody`) + file I/O (`generateFullOutput`)    |
-| `src/generator/method-generator.ts`    | Generates individual API method signatures (params, JSDoc)                                                        |
-| `src/utils/generator-helpers.ts`       | Shared codegen helpers: `toPascalCase`, `makeHeader`, `sanitizeTypeName`, `buildSchemaRenameMap`, JSDoc builders                                |
+| Directory / File                       | Purpose                                                                                                                                                            |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/parser/`                          | Spec loading (`spec-reader`), `$ref` resolution (`ref-resolver`), validation                                                                                       |
+| `src/parser/version/`                  | `VersionStrategy` interface with `v3.0/`, `v3.1/`, `v3.2/` (stub) implementations. Registry auto-detects version.                                                  |
+| `src/analyzer/`                        | Path → `AnalyzedOperation[]`, schema → TS type strings (`SchemaMapper`), method naming (`naming.ts`)                                                               |
+| `src/generator/contracts-generator.ts` | Generates the `*.contracts.ts` file                                                                                                                                |
+| `src/generator/client-generator.ts`    | Generates the `*.client.ts` file (method bodies via `buildClientMethodBody`) + file I/O (`generateFullOutput`)                                                     |
+| `src/generator/method-generator.ts`    | Generates individual API method signatures (params, JSDoc)                                                                                                         |
+| `src/utils/generator-helpers.ts`       | Shared codegen helpers: `toPascalCase`, `makeHeader`, `sanitizeTypeName`, `buildSchemaRenameMap`, JSDoc builders                                                   |
 | `src/utils/operation-naming.ts`        | Single source of operation-derived names: `getOperationTypePrefix`, `getSuccessType`, `getErrorType`, runtime/client name constants, derived `RESERVED_TYPE_NAMES` |
-| `src/types/`                           | Shared types: `OpenAPIDocument`, `GeneratorConfig`, `MethodNameStrategy`, `SchemaObject`                          |
-| `src/utils/`                           | Case conversion (`case.ts`), string utils, URL helpers                                                            |
+| `src/types/`                           | Shared types: `OpenAPIDocument`, `GeneratorConfig`, `MethodNameStrategy`, `SchemaObject`                                                                           |
+| `src/utils/`                           | Case conversion (`case.ts`), string utils, URL helpers                                                                                                             |
 
 ### Entry points
 

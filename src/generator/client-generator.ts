@@ -5,10 +5,7 @@ import { analyzePaths, type AnalyzedOperation } from '../analyzer/path-analyzer.
 import { RefResolver } from '../parser/ref-resolver.js';
 import type { GeneratorConfig } from '../types/client.js';
 import type { OpenAPIDocument, SchemaObject } from '../types/openapi.js';
-import {
-  DEFAULT_RUNTIME_IMPORT_PATH,
-  makeHeader,
-} from '../utils/generator-helpers.js';
+import { DEFAULT_RUNTIME_IMPORT_PATH, makeHeader } from '../utils/generator-helpers.js';
 import {
   clientImportedNames,
   clientValueImports,

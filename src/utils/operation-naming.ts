@@ -207,7 +207,9 @@ export function clientImportedNames(op: AnalyzedOperation): string[] {
  * `DefaultApiError` when any operation has a default error response.
  */
 export function clientValueImports(operations: AnalyzedOperation[]): string[] {
-  const needsDefaultApiError = operations.some((op) => operationEmissions(op).defaultError !== undefined);
+  const needsDefaultApiError = operations.some(
+    (op) => operationEmissions(op).defaultError !== undefined
+  );
   return needsDefaultApiError
     ? [...CLIENT_BASE_VALUE_IMPORTS, 'DefaultApiError']
     : [...CLIENT_BASE_VALUE_IMPORTS];

@@ -1,9 +1,10 @@
-import { describe, it, expect } from 'vitest';
 import { join } from 'path';
 
+import { describe, it, expect } from 'vitest';
+
 import { analyzePaths } from '../../src/analyzer/path-analyzer.js';
-import { loadFromFile } from '../../src/parser/spec-reader.js';
 import { RefResolver } from '../../src/parser/ref-resolver.js';
+import { loadFromFile } from '../../src/parser/spec-reader.js';
 import {
   clientImportedNames,
   clientValueImports,
@@ -232,7 +233,10 @@ describe('clientValueImports', () => {
       },
     ] as never[];
 
-    expect(clientValueImports(operations)).toEqual([...CLIENT_BASE_VALUE_IMPORTS, 'DefaultApiError']);
+    expect(clientValueImports(operations)).toEqual([
+      ...CLIENT_BASE_VALUE_IMPORTS,
+      'DefaultApiError',
+    ]);
   });
 });
 
@@ -248,14 +252,22 @@ describe('imported ⊆ emitted inventory (property)', () => {
 
     for (const op of operations) {
       const emissions = operationEmissions(op);
-      const emitted = new Set<string>([
-        ...[emissions.query, emissions.headers, emissions.body, emissions.response],
-        ...emissions.statusErrors.map((e) => e.name),
-        ...[emissions.defaultError, emissions.errorsUnion],
-      ].filter((name): name is string => name !== undefined));
+      const emittedNames = [
+        emissions.query,
+        emissions.headers,
+        emissions.body,
+        emissions.response,
+        ...emissions.statusErrors.map((statusError) => statusError.name),
+        emissions.defaultError,
+        emissions.errorsUnion,
+      ].filter((name): name is string => name !== undefined);
+      const emitted = new Set<string>(emittedNames);
 
       for (const imported of clientImportedNames(op)) {
-        expect(emitted.has(imported), `${imported} imported but not emitted for ${op.method} ${op.path}`).toBe(true);
+        expect(
+          emitted.has(imported),
+          `${imported} imported but not emitted for ${op.method} ${op.path}`
+        ).toBe(true);
       }
     }
   });
