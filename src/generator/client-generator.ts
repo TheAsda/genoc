@@ -3,10 +3,10 @@ import { join } from 'path';
 
 import { analyze } from '../analyzer/analyze.js';
 import type { AnalyzedOperation } from '../analyzer/path-analyzer.js';
-import type { AnalyzedSpec } from '../analyzer/types.js';
+import type { AnalyzedSpec, FinishedOperation } from '../analyzer/types.js';
 import { RefResolver } from '../parser/ref-resolver.js';
 import type { GeneratorConfig } from '../types/client.js';
-import type { OpenAPIDocument, SchemaObject } from '../types/openapi.js';
+import type { OpenAPIDocument } from '../types/openapi.js';
 import { DEFAULT_RUNTIME_IMPORT_PATH, makeHeader } from '../utils/generator-helpers.js';
 import {
   clientImportedNames,
@@ -31,7 +31,7 @@ function collectImportTypes(operations: AnalyzedOperation[]): string[] {
   return [...types].sort();
 }
 
-function buildClientMethodBody(op: AnalyzedOperation): string {
+function buildClientMethodBody(op: FinishedOperation): string {
   const successType = getSuccessType(op);
   const emissions = operationEmissions(op);
 
@@ -100,20 +100,15 @@ function buildClientMethodBody(op: AnalyzedOperation): string {
 
   const lines: string[] = [];
 
-  if (op.requestBody?.isMultipart && op.requestBody.schema) {
-    const schema = op.requestBody.schema as SchemaObject;
-    const requiredSet = new Set((schema?.required ?? []) as string[]);
-    const properties = schema.properties ?? {};
-    const propNames = Object.keys(properties);
+  if (op.requestBody?.isMultipart && op.fileUploadProperties !== undefined) {
     const bodyRequired = op.requestBody.required;
 
     const formDataLines: string[] = [];
     formDataLines.push('const formData = new FormData();');
-    for (const propName of propNames) {
-      const propSchema = properties[propName];
-      const isArrayBinary = propSchema?.type === 'array' && propSchema?.items?.format === 'binary';
-      if (propSchema?.format === 'binary') {
-        if (requiredSet.has(propName)) {
+    for (const prop of op.fileUploadProperties) {
+      const propName = prop.name;
+      if (prop.kind === 'file') {
+        if (prop.required) {
           formDataLines.push(
             `formData.append("${propName}", body.${propName}.data, body.${propName}.filename);`
           );
@@ -122,7 +117,7 @@ function buildClientMethodBody(op: AnalyzedOperation): string {
             `if (body.${propName} !== undefined) formData.append("${propName}", body.${propName}.data, body.${propName}.filename);`
           );
         }
-      } else if (isArrayBinary) {
+      } else if (prop.kind === 'file-array') {
         formDataLines.push(
           `if (body.${propName} !== undefined) { for (const file of body.${propName}) { formData.append("${propName}", file.data, file.filename); } }`
         );
@@ -173,7 +168,7 @@ function buildClientMethodBody(op: AnalyzedOperation): string {
 }
 
 function buildClientFile(
-  operations: AnalyzedOperation[],
+  operations: FinishedOperation[],
   version: string,
   runtimeImportPath: string = DEFAULT_RUNTIME_IMPORT_PATH
 ): string {

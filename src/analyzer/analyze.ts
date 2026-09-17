@@ -305,7 +305,6 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
     operations.push({
       ...op,
       contractsLines: [] as string[],
-      fileUploadProperties: [] as FileUploadPropertyFact[],
     });
   }
 
@@ -340,6 +339,7 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
       const schema = resolver.resolveSchema(op.requestBody.schema);
       const requiredSet = new Set(schema.required ?? []);
       const propLines: string[] = [];
+      const fileUploadProperties: FileUploadPropertyFact[] = [];
       for (const [name, propSchema] of Object.entries(schema.properties ?? {})) {
         const resolved = resolver.resolveSchema(propSchema as SchemaObject | ReferenceObject);
         const optional = requiredSet.has(name) ? '' : '?';
@@ -355,13 +355,14 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
           tsType = 'string';
           kind = 'field';
         }
-        op.fileUploadProperties.push({ name, required: requiredSet.has(name), kind });
+        fileUploadProperties.push({ name, required: requiredSet.has(name), kind });
         const jsDoc = buildTypeJsDoc(resolved);
         if (jsDoc !== '') {
           propLines.push(...indentJsDocBlock(jsDoc));
         }
         propLines.push(`${INDENT_UNIT}${name}${optional}: ${tsType};`);
       }
+      op.fileUploadProperties = fileUploadProperties;
       if (propLines.length > 0) {
         opLines.push(
           attachTypeJsDoc(

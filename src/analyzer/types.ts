@@ -54,11 +54,14 @@ export interface FinishedOperation extends AnalyzedOperation {
    */
   contractsLines: string[];
   /**
-   * Multipart `FileInput` property facts from the ref-resolving (contracts)
-   * walk. Empty when the operation has no multipart request body.
-   * transitional — consumed in T2.
+   * Multipart `FileInput` property facts from the ref-resolving walk of the
+   * request body schema (`$ref`s followed; a resolved `format: binary`
+   * property is a `file`/`file-array`, not a `field`). Present exactly when
+   * the operation has a multipart body WITH a schema — an empty array means a
+   * zero-property body; `undefined` means no multipart schema (no FormData
+   * emission). Sole fact source for the client generator's FormData appends.
    */
-  fileUploadProperties: FileUploadPropertyFact[];
+  fileUploadProperties?: FileUploadPropertyFact[];
 }
 
 /**
