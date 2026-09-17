@@ -30,12 +30,12 @@ Update snapshots: `npx vitest run --update` (or `-u`).
 ## Architecture (codegen pipeline)
 
 ```
-spec-reader → version detection → validation → ref-resolver → path-analyzer → schema-mapper
+spec-reader → version detection → validation → ref-resolver → analyzer (analyze() → AnalyzedSpec)
                                                                                      ↓
-                                              contracts-generator ←────────────────┘
-                                              client-generator ←── method-generator
-                                                     ↓
-                                              write to disk
+                                               contracts-generator ←────────────────┘   (renderers read AnalyzedSpec
+                                               client-generator ←── method-generator     only — never the raw spec)
+                                                      ↓
+                                               pipeline → write to disk
 ```
 
 ### Key modules
@@ -44,10 +44,11 @@ spec-reader → version detection → validation → ref-resolver → path-analy
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `src/parser/`                          | Spec loading (`spec-reader`), `$ref` resolution (`ref-resolver`), validation                                                                                                                           |
 | `src/parser/version/`                  | Version seam: `resolveVersion(doc, override?)` → `VersionProfile` (detected/effective dialect + derived `preserveRefSiblings`) and `validateSpec(doc, version)` dispatching to per-version validators. |
-| `src/analyzer/`                        | Path → `AnalyzedOperation[]`, schema → TS type strings (`SchemaMapper`), method naming (`naming.ts`)                                                                                                   |
-| `src/generator/contracts-generator.ts` | Generates the `*.contracts.ts` file                                                                                                                                                                    |
-| `src/generator/client-generator.ts`    | Generates the `*.client.ts` file (method bodies via `buildClientMethodBody`) + file I/O (`generateFullOutput`)                                                                                         |
+| `src/analyzer/`                        | Translation layer: `analyze(doc)` → `AnalyzedSpec` (operations, finished TS type text, security/server types, multipart/binary facts) in `analyze.ts`; path → `AnalyzedOperation[]` (`path-analyzer.ts`), schema → TS types (`SchemaMapper`), method naming (`naming.ts`) |
+| `src/generator/contracts-generator.ts` | Renders the `*.contracts.ts` file from `AnalyzedSpec` (`renderContracts`) — pure string assembly, no raw spec reads |
+| `src/generator/client-generator.ts`    | Renders the `*.client.ts` file from `AnalyzedSpec` (`renderClient`, method bodies via `buildClientMethodBody`) + `generateOutput` orchestration over both renderers |
 | `src/generator/method-generator.ts`    | Generates individual API method signatures (params, JSDoc)                                                                                                                                             |
+| `src/pipeline.ts`                      | Pipeline entry `generateFullOutput(doc, config)`: builds `RefResolver` → runs `analyze()` once → `generateOutput` → writes files to disk. Enforced boundary: generators must not import `src/types/openapi` (oxlint `no-restricted-imports`, scoped to `src/generator/**`) |
 | `src/utils/generator-helpers.ts`       | Shared codegen helpers: `toPascalCase`, `makeHeader`, `sanitizeTypeName`, `buildSchemaRenameMap`, JSDoc builders                                                                                       |
 | `src/utils/operation-naming.ts`        | Single source of operation-derived names: `getOperationTypePrefix`, `getSuccessType`, `getErrorType`, runtime/client name constants, derived `RESERVED_TYPE_NAMES`                                     |
 | `src/types/`                           | Shared types: `OpenAPIDocument`, `GeneratorConfig`, `MethodNameStrategy`, `SchemaObject`                                                                                                               |
@@ -57,7 +58,7 @@ spec-reader → version detection → validation → ref-resolver → path-analy
 
 - **CLI**: `src/cli/` — 4-file structure using `@stricli/core`:
   - `app.ts` — Command definition (`buildCommand` + `buildApplication`), typed flags, lazy loader
-  - `impl.ts` — Lazy-loaded implementation using `this.process.stdout.write()` (not `console.log`)
+  - `impl.ts` — Lazy-loaded implementation using `this.process.stdout.write()` (not `console.log`); drives `src/pipeline.ts`'s `generateFullOutput`
   - `index.ts` — Thin entry point: shebang + `run(app, args, { process })` + `process.exit()`
   - `errors.ts` — `UserError` class for CLI-facing errors
   - Binary: `genoc [<spec>] [flags]` (optional positional spec arg, not `--input`)
