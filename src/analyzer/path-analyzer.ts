@@ -16,7 +16,9 @@ export interface AnalyzedParameter {
   name: string;
   in: 'path' | 'query' | 'header' | 'cookie';
   required: boolean;
+  /** transitional — raw schema retained for translation in `analyze()`; renderers must not read it. */
   schema: SchemaObject | undefined;
+  /** Mini-mapper type. transitional — deleted in T4 with test-surface rebasing. */
   tsType: string;
   description?: string;
   deprecated?: boolean;
@@ -26,7 +28,9 @@ export interface AnalyzedParameter {
 export interface AnalyzedRequestBody {
   required: boolean;
   contentTypes: string[];
+  /** transitional — raw schema retained for the client generator's multipart walk; dies in T2. */
   schema: SchemaObject | ReferenceObject | undefined;
+  /** Mini-mapper type. transitional — deleted in T4 with test-surface rebasing. */
   tsType: string;
   isMultipart: boolean;
   isBinary: boolean;
@@ -36,10 +40,19 @@ export interface AnalyzedRequestBody {
 export interface AnalyzedResponse {
   statusCode: string;
   description?: string;
+  /** transitional — raw schema retained for translation in `analyze()`; renderers must not read it. */
   schema: SchemaObject | ReferenceObject | undefined;
+  /** Mini-mapper type. transitional — deleted in T4 with test-surface rebasing. */
   tsType: string;
   isSuccess: boolean;
   isBinary: boolean;
+  /**
+   * Finished (real-mapper) TS type text — StreamResponse substitution and
+   * discriminator variant rewrites applied. Set by `analyze()`; undefined on
+   * hand-built operations, where callers fall back to `tsType`.
+   * transitional T1 field.
+   */
+  finishedType?: string;
 }
 
 export interface AnalyzedOperation {
@@ -365,9 +378,7 @@ export function analyzePaths(
   // Dedupe type prefixes and method names so that distinct routes folding to
   // the same identifier (e.g. "/weird" and "/weird-", or "/Weird" and
   // "/weird") cannot produce duplicate exported types or client methods.
-  // NOTE: analyzePaths runs twice per generation (contracts pass + client
-  // pass); this assignment must stay deterministic - it relies on insertion
-  // order and the fixed HTTP_METHODS loop - so both passes agree.
+  // Assignment relies on insertion order and the fixed HTTP_METHODS loop.
   for (const op of operations) {
     const baseTypePrefix = getOperationTypePrefix(op);
     let typePrefix = baseTypePrefix;
