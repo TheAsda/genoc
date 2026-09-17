@@ -1,41 +1,39 @@
 import type { AnalyzedOperation } from '../analyzer/path-analyzer.js';
 import type { GeneratedMethod } from '../types/client.js';
 import { sanitizeJsDocText } from '../utils/generator-helpers.js';
-import { getOperationTypePrefix, getSuccessType } from '../utils/operation-naming.js';
+import { getSuccessType, operationEmissions } from '../utils/operation-naming.js';
 
 function buildParameters(op: AnalyzedOperation): string {
   const params: string[] = [];
+  const emissions = operationEmissions(op);
 
   for (const param of op.pathParams) {
     params.push(`${param.name}: string`);
   }
 
-  if (op.queryParams.length > 0) {
-    const prefix = getOperationTypePrefix(op);
+  if (emissions.query !== undefined) {
     const allOptional = op.queryParams.every((p) => !p.required);
     const hasRequiredAfter = !!op.requestBody?.required || op.headerParams.some((p) => p.required);
 
     if (allOptional && hasRequiredAfter) {
       // All optional query params + required param after: use explicit undefined to avoid "required param cannot follow optional" error
-      params.push(`query: ${prefix}Query | undefined`);
+      params.push(`query: ${emissions.query} | undefined`);
     } else {
       // Normal case: use optional notation
       const optional = allOptional ? '?' : '';
-      params.push(`query${optional}: ${prefix}Query`);
+      params.push(`query${optional}: ${emissions.query}`);
     }
   }
 
   if (op.requestBody) {
-    const prefix = getOperationTypePrefix(op);
     const optional = op.requestBody.required ? '' : '?';
-    params.push(`body${optional}: ${prefix}Body`);
+    params.push(`body${optional}: ${emissions.body}`);
   }
 
-  if (op.headerParams.length > 0) {
-    const prefix = getOperationTypePrefix(op);
+  if (emissions.headers !== undefined) {
     const allOptional = op.headerParams.every((p) => !p.required);
     const optional = allOptional ? '?' : '';
-    params.push(`headers${optional}: ${prefix}Headers`);
+    params.push(`headers${optional}: ${emissions.headers}`);
   }
 
   return params.join(', ');

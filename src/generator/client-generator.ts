@@ -13,8 +13,8 @@ import {
   clientImportedNames,
   clientValueImports,
   getErrorType,
-  getOperationTypePrefix,
   getSuccessType,
+  operationEmissions,
 } from '../utils/operation-naming.js';
 import { generateContracts } from './contracts-generator.js';
 import { generateMethod } from './method-generator.js';
@@ -34,6 +34,7 @@ function collectImportTypes(operations: AnalyzedOperation[]): string[] {
 
 function buildClientMethodBody(op: AnalyzedOperation): string {
   const successType = getSuccessType(op);
+  const emissions = operationEmissions(op);
 
   let urlTemplate = op.path;
   for (const param of op.pathParams) {
@@ -42,19 +43,15 @@ function buildClientMethodBody(op: AnalyzedOperation): string {
 
   const urlExpr = `\`${urlTemplate}\``;
 
-  const prefix = getOperationTypePrefix(op);
-  const hasDefaultResponse = op.responses.some((r) => !r.isSuccess && r.statusCode === 'default');
-  const errorResponses = op.responses.filter((r) => !r.isSuccess && r.statusCode !== 'default');
   const errorCheckLines: string[] = [];
-  for (const errResp of errorResponses) {
-    const status = errResp.statusCode;
+  for (const statusError of emissions.statusErrors) {
     errorCheckLines.push(
-      `if (result.status === ${status}) throw new ApiError(${status}, result.data as ${prefix}Error${status}, result.message ?? \`Request failed with status ${status}\`);`
+      `if (result.status === ${statusError.status}) throw new ApiError(${statusError.status}, result.data as ${statusError.name}, result.message ?? \`Request failed with status ${statusError.status}\`);`
     );
   }
-  if (hasDefaultResponse) {
+  if (emissions.defaultError !== undefined) {
     errorCheckLines.push(
-      `throw new DefaultApiError(result.status, result.data as ${prefix}DefaultError, result.message ?? \`Request failed with status \${result.status}\`);`
+      `throw new DefaultApiError(result.status, result.data as ${emissions.defaultError}, result.message ?? \`Request failed with status \${result.status}\`);`
     );
   } else {
     errorCheckLines.push(
@@ -233,8 +230,8 @@ function buildClientFile(
     const methodName = method.name;
     const errorType = getErrorType(op);
 
-    const errorResponses = op.responses.filter((r) => !r.isSuccess && r.statusCode !== 'default');
-    const errorCodes = errorResponses.map((r) => r.statusCode);
+    const emissions = operationEmissions(op);
+    const errorCodes = emissions.statusErrors.map((statusError) => statusError.status);
     const errorCodeArray =
       errorCodes.length > 0 ? `[${errorCodes.join(', ')}] as const` : '[] as const';
 
