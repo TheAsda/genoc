@@ -19,7 +19,7 @@ import {
   makeHeader,
 } from '../utils/generator-helpers.js';
 import {
-  getOperationTypePrefix,
+  operationEmissions,
   RESERVED_TYPE_NAMES,
   RUNTIME_CLASS_NAMES,
 } from '../utils/operation-naming.js';
@@ -491,21 +491,23 @@ export function generateContracts(
     lines.push('}');
   }
 
-  // Sections 2-4: Operation-derived types
+  // Sections 2-4: Operation-derived types. Presence decisions and type
+  // names come from the emission inventory (operationEmissions); rendering
+  // details (multipart shapes, schemas) still read the operation directly.
 
   for (const op of operations) {
-    const prefix = getOperationTypePrefix(op);
+    const emissions = operationEmissions(op);
     const opLines: string[] = [];
 
     // Section 2: Query parameter types
-    if (op.queryParams.length > 0) {
-      opLines.push(`export type ${prefix}Query = ${buildParamTypeBody(op.queryParams, mapper)};`);
+    if (emissions.query) {
+      opLines.push(`export type ${emissions.query} = ${buildParamTypeBody(op.queryParams, mapper)};`);
     }
 
     // Section 2b: Header parameter types
-    if (op.headerParams.length > 0) {
+    if (emissions.headers) {
       opLines.push(
-        `export type ${prefix}Headers = ${buildParamTypeBody(op.headerParams, mapper)};`
+        `export type ${emissions.headers} = ${buildParamTypeBody(op.headerParams, mapper)};`
       );
     }
 
@@ -535,19 +537,19 @@ export function generateContracts(
       }
       if (propLines.length > 0) {
         opLines.push(
-          attachTypeJsDoc(bodyJsDoc, `export type ${prefix}Body = {\n${propLines.join('\n')}\n};`)
+          attachTypeJsDoc(bodyJsDoc, `export type ${emissions.body} = {\n${propLines.join('\n')}\n};`)
         );
       } else {
         opLines.push(
-          attachTypeJsDoc(bodyJsDoc, `export type ${prefix}Body = Record<string, never>;`)
+          attachTypeJsDoc(bodyJsDoc, `export type ${emissions.body} = Record<string, never>;`)
         );
       }
     } else if (op.requestBody?.schema) {
       if (op.requestBody.isBinary) {
-        opLines.push(attachTypeJsDoc(bodyJsDoc, `export type ${prefix}Body = Blob;`));
+        opLines.push(attachTypeJsDoc(bodyJsDoc, `export type ${emissions.body} = Blob;`));
       } else {
         const result = mapper.mapSchema(op.requestBody.schema, undefined, 'request');
-        opLines.push(attachTypeJsDoc(bodyJsDoc, `export type ${prefix}Body = ${result.tsType};`));
+        opLines.push(attachTypeJsDoc(bodyJsDoc, `export type ${emissions.body} = ${result.tsType};`));
       }
     }
 
@@ -557,7 +559,7 @@ export function generateContracts(
     const defaultResponse = op.responses.find((r) => !r.isSuccess && r.statusCode === 'default');
 
     // Success type
-    if (successResponses.length > 0) {
+    if (emissions.response) {
       const types = successResponses.map((r) => {
         if (r.isBinary) return 'StreamResponse';
         if (r.schema) {
@@ -571,14 +573,15 @@ export function generateContracts(
       // returns success responses in ascending status order).
       const responseJsDoc = buildDescriptionJsDoc(successResponses[0].description);
       opLines.push(
-        attachTypeJsDoc(responseJsDoc, `export type ${prefix}Response = ${successType};`)
+        attachTypeJsDoc(responseJsDoc, `export type ${emissions.response} = ${successType};`)
       );
     }
 
-    // Error types per status
-    const errorTypes: { status: string; typeName: string }[] = [];
-    for (const err of errorResponses) {
-      const errorTypeName = `${prefix}Error${err.statusCode}`;
+    // Error types per status (inventory pairs 1:1 with errorResponses by
+    // construction: same filter, same order)
+    for (let i = 0; i < errorResponses.length; i++) {
+      const err = errorResponses[i];
+      const errorTypeName = emissions.statusErrors[i].name;
       let errorTsType: string;
       if (err.isBinary) {
         errorTsType = 'StreamResponse';
@@ -588,27 +591,25 @@ export function generateContracts(
         errorTsType = err.tsType;
       }
       opLines.push(`export type ${errorTypeName} = ${errorTsType};`);
-      errorTypes.push({ status: err.statusCode, typeName: errorTypeName });
     }
 
     // Default response error type
-    if (defaultResponse) {
-      const defaultTypeName = `${prefix}DefaultError`;
+    if (emissions.defaultError) {
       let defaultTsType: string;
-      if (defaultResponse.isBinary) {
+      if (defaultResponse?.isBinary) {
         defaultTsType = 'StreamResponse';
-      } else if (defaultResponse.schema) {
+      } else if (defaultResponse?.schema) {
         defaultTsType = mapper.mapSchema(defaultResponse.schema, undefined, 'response').tsType;
       } else {
         defaultTsType = 'unknown';
       }
-      opLines.push(`export type ${defaultTypeName} = ${defaultTsType};`);
+      opLines.push(`export type ${emissions.defaultError} = ${defaultTsType};`);
     }
 
     // Error union
-    if (errorTypes.length > 0) {
-      const unionParts = errorTypes.map((e) => `ApiError<${e.status}, ${e.typeName}>`);
-      opLines.push(`export type ${prefix}Errors = ${unionParts.join(' | ')};`);
+    if (emissions.errorsUnion) {
+      const unionParts = emissions.statusErrors.map((e) => `ApiError<${e.status}, ${e.name}>`);
+      opLines.push(`export type ${emissions.errorsUnion} = ${unionParts.join(' | ')};`);
     }
 
     if (opLines.length > 0) {

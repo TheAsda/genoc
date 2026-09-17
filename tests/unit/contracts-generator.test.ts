@@ -1,12 +1,17 @@
+import { join } from 'path';
+
 import { describe, expect, it } from 'vitest';
 
+import { analyzePaths } from '../../src/analyzer/path-analyzer.js';
 import { generateContracts } from '../../src/generator/contracts-generator.js';
 import { RefResolver } from '../../src/parser/ref-resolver.js';
+import { loadFromFile } from '../../src/parser/spec-reader.js';
 import type {
   OpenAPIDocument,
   SecuritySchemeObject,
   ServerVariableObject,
 } from '../../src/types/openapi.js';
+import { operationEmissions } from '../../src/utils/operation-naming.js';
 
 function createDoc(overrides?: Partial<OpenAPIDocument>): OpenAPIDocument {
   return {
@@ -1992,4 +1997,49 @@ export type GetItemsResponse = string | string;`);
       expect(withJsDoc).toContain('/** See Product docs for the referenced shape. */');
     });
   });
+});
+
+describe('generateContracts — emitted operation types match operationEmissions inventory', () => {
+  const FIXTURES = [
+    'operations-spec.json',
+    'petstore.yaml',
+    'weird-symbol-names.json',
+    'openapi-3.0-full.yaml',
+    'openapi-3.1-full.yaml',
+  ];
+
+  for (const fixture of FIXTURES) {
+    it(`emits exactly the inventory-predicted set for ${fixture}`, async () => {
+      const doc = await loadFromFile(join(__dirname, '../fixtures/', fixture));
+      const resolver = new RefResolver(doc);
+      const output = generateContracts(doc, resolver);
+
+      const emitted = new Set<string>();
+      for (const match of output.matchAll(
+        /export type (\w+)(Query|Headers|Body|Response|DefaultError|Error\d+|Errors)\b/g
+      )) {
+        emitted.add(match[1] + match[2]);
+      }
+
+      const predicted = new Set<string>();
+      for (const op of analyzePaths(doc, resolver)) {
+        const emissions = operationEmissions(op);
+        for (const name of [
+          emissions.query,
+          emissions.headers,
+          emissions.body,
+          emissions.response,
+          emissions.defaultError,
+          emissions.errorsUnion,
+        ]) {
+          if (name !== undefined) predicted.add(name);
+        }
+        for (const statusError of emissions.statusErrors) {
+          predicted.add(statusError.name);
+        }
+      }
+
+      expect([...emitted].sort()).toEqual([...predicted].sort());
+    });
+  }
 });

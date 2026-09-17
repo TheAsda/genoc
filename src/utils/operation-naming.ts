@@ -118,3 +118,54 @@ export function getErrorType(op: AnalyzedOperation): string {
   }
   return `${prefix}Errors`;
 }
+
+/** Name of one per-status error type (`{prefix}Error{status}`). */
+export interface StatusErrorName {
+  status: string;
+  name: string;
+}
+
+/**
+ * Inventory of every operation-derived type name the contracts file emits
+ * for one operation. A field is present exactly when the contracts loop
+ * emits that type — presence and naming are decided here and nowhere else.
+ *
+ * The client file imports a subset of this inventory (`clientImportedNames`);
+ * the asymmetry is deliberate: e.g. 204-only operations emit
+ * `{prefix}Response = void` which the client does not import.
+ */
+export interface OperationEmissions {
+  query?: string;
+  headers?: string;
+  body?: string;
+  response?: string;
+  statusErrors: StatusErrorName[];
+  defaultError?: string;
+  errorsUnion?: string;
+}
+
+/**
+ * Derive the emission inventory for an operation. Pure function of the
+ * AnalyzedOperation — no mapper or resolver state participates in naming
+ * or presence decisions.
+ */
+export function operationEmissions(op: AnalyzedOperation): OperationEmissions {
+  const prefix = getOperationTypePrefix(op);
+  const errorResponses = op.responses.filter((r) => !r.isSuccess && r.statusCode !== 'default');
+  const statusErrors = errorResponses.map((r) => ({
+    status: r.statusCode,
+    name: `${prefix}Error${r.statusCode}`,
+  }));
+
+  return {
+    query: op.queryParams.length > 0 ? `${prefix}Query` : undefined,
+    headers: op.headerParams.length > 0 ? `${prefix}Headers` : undefined,
+    body: op.requestBody?.schema ? `${prefix}Body` : undefined,
+    response: op.responses.some((r) => r.isSuccess) ? `${prefix}Response` : undefined,
+    statusErrors,
+    defaultError: op.responses.some((r) => !r.isSuccess && r.statusCode === 'default')
+      ? `${prefix}DefaultError`
+      : undefined,
+    errorsUnion: statusErrors.length > 0 ? `${prefix}Errors` : undefined,
+  };
+}
