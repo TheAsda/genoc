@@ -2,8 +2,7 @@ import type { CommandContext } from '@stricli/core';
 
 import { generateFullOutput } from '../generator/client-generator.js';
 import { load } from '../parser/spec-reader.js';
-import { validateSpec } from '../parser/version/validate.js';
-import { detectSpecVersion } from '../parser/version/version-detector.js';
+import { resolveVersion, validateSpec } from '../parser/version/index.js';
 import { assertValidProxyUrl } from '../utils/proxy.js';
 import type { AppFlags as Flags } from './app.js';
 import { loadConfigFile } from './config-loader.js';
@@ -218,21 +217,20 @@ async function runOneTarget(target: GenerationTarget, context: CommandContext): 
     throw new Error(`No strategy registered for version: ${override}`);
   }
 
-  const detected = detectSpecVersion(doc);
-  if (detected !== '3.0' && detected !== '3.1') {
-    throw new Error('OpenAPI 3.2 is not yet supported. Supported versions: 3.0, 3.1');
-  }
+  const profile = resolveVersion(doc, override);
 
-  const effective = override ?? detected;
-
-  if (override !== undefined && target.strictVersion !== false && detected !== effective) {
+  if (
+    override !== undefined &&
+    target.strictVersion !== false &&
+    profile.detected !== profile.effective
+  ) {
     context.process.stderr.write(
-      `Warning: Specified version ${override} does not match detected version ${detected}\n`
+      `Warning: Specified version ${override} does not match detected version ${profile.detected}\n`
     );
   }
 
   try {
-    validateSpec(doc, effective);
+    validateSpec(doc, profile.effective);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new UserError(message);
@@ -242,12 +240,11 @@ async function runOneTarget(target: GenerationTarget, context: CommandContext): 
     input: target.input,
     outputDir: target.outputDir,
     methodNameStrategy: target.methodNameStrategy,
-    specVersion: target.specVersion,
     strictVersion: target.strictVersion,
     runtimeImportPath: target.runtimeImportPath,
   };
 
-  const preserveRefSiblings = effective === '3.1';
+  const { preserveRefSiblings } = profile;
   context.process.stdout.write('Generating client...\n');
   await generateFullOutput(doc, config, { preserveRefSiblings });
 

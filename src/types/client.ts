@@ -5,7 +5,6 @@ export type GeneratorConfig = {
   outputDir: string;
   methodNameStrategy?: MethodNameStrategy;
   requesterModuleName?: string;
-  specVersion?: string;
   strictVersion?: boolean;
   runtimeImportPath?: string;
   proxy?: string;
