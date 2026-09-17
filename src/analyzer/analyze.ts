@@ -16,7 +16,7 @@ import {
   toPascalCase,
 } from '../utils/generator-helpers.js';
 import { operationEmissions, RESERVED_TYPE_NAMES } from '../utils/operation-naming.js';
-import { analyzePaths, type AnalyzedParameter } from './path-analyzer.js';
+import { analyzePathsDetailed, type AnalyzedParameter } from './path-analyzer.js';
 import { SchemaMapper } from './schema-mapper.js';
 import type {
   AnalyzedSpec,
@@ -468,7 +468,11 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
     allSchemaNames.add(`${renamedBase}Variant`);
   }
 
-  const analyzedOperations = analyzePaths(doc, resolver, strategy);
+  const { operations: analyzedOperations, requestBodySchemas } = analyzePathsDetailed(
+    doc,
+    resolver,
+    strategy
+  );
   const operations: FinishedOperation[] = [];
   for (const op of analyzedOperations) {
     operations.push({
@@ -483,7 +487,11 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
   // names come from the emission inventory (operationEmissions); the
   // finished lines are assembled here so renderers never re-translate.
 
-  for (const op of operations) {
+  for (let opIdx = 0; opIdx < operations.length; opIdx++) {
+    const op = operations[opIdx];
+    // Raw request body schema, parallel to `operations` (analyzer-internal
+    // translation input; presence mirrors requestBody.hasSchema).
+    const rawBodySchema = requestBodySchemas[opIdx];
     const emissions = operationEmissions(op);
     const opLines: string[] = [];
 
@@ -504,8 +512,8 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
     // Section 3: Request body types
     const bodyJsDoc = op.requestBody ? buildDescriptionJsDoc(op.requestBody.description) : '';
 
-    if (op.requestBody?.isMultipart && op.requestBody.schema) {
-      const schema = resolver.resolveSchema(op.requestBody.schema);
+    if (op.requestBody?.isMultipart && rawBodySchema !== undefined) {
+      const schema = resolver.resolveSchema(rawBodySchema);
       const requiredSet = new Set(schema.required ?? []);
       const propLines: string[] = [];
       const fileUploadProperties: FileUploadPropertyFact[] = [];
@@ -544,11 +552,11 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
           attachTypeJsDoc(bodyJsDoc, `export type ${emissions.body} = Record<string, never>;`)
         );
       }
-    } else if (op.requestBody?.schema) {
+    } else if (op.requestBody?.hasSchema && rawBodySchema !== undefined) {
       if (op.requestBody.isBinary) {
         opLines.push(attachTypeJsDoc(bodyJsDoc, `export type ${emissions.body} = Blob;`));
       } else {
-        const result = mapper.mapSchema(op.requestBody.schema, undefined, 'request');
+        const result = mapper.mapSchema(rawBodySchema, undefined, 'request');
         opLines.push(
           attachTypeJsDoc(bodyJsDoc, `export type ${emissions.body} = ${result.tsType};`)
         );
@@ -578,8 +586,8 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
           r.finishedType = substituted;
           return substituted;
         }
-        r.finishedType = r.tsType;
-        return r.tsType;
+        r.finishedType = r.isVoid ? 'void' : 'unknown';
+        return r.finishedType;
       });
       const successType = types.length === 1 ? types[0] : types.join(' | ');
       // Type-level JSDoc from the lowest-numbered 2xx response (the analyzer
@@ -601,7 +609,7 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
       } else if (err.schema) {
         errorTsType = mapper.mapSchema(err.schema, undefined, 'response').tsType;
       } else {
-        errorTsType = err.tsType;
+        errorTsType = 'unknown';
       }
       err.finishedType = errorTsType;
       opLines.push(`export type ${errorTypeName} = ${errorTsType};`);

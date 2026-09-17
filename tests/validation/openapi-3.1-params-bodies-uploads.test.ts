@@ -17,31 +17,26 @@
  * Tests every feature from the "Parameters" (3.1-#33-#42), "Request Bodies"
  * (3.1-#43-#49), and "File Uploads" (3.1-#50-#54) sections of the feature enumeration.
  *
- * Tier 1 (most features): generateClient + string matching on TypeScript output
+ * Tier 1 (most features): generateOutput + string matching on TypeScript output
  * Tier 2 (#38-#40, #54): verify no crash + feature NOT emitted in output
  * Tier 1 doc / Tier 2 actual (#41, #42, #49): parsed but not emitted — tested accordingly
  */
 import { describe, expect, it } from 'vitest';
-import { parse as parseYaml } from 'yaml';
 
-import { generateClient as generateClientStrings } from '../../src/generator/client-generator.js';
-import { generateContracts } from '../../src/generator/contracts-generator.js';
-import { RefResolver } from '../../src/parser/ref-resolver.js';
+import { generateOutput as generateClientStrings } from '../../src/generator/client-generator.js';
+import { renderContracts } from '../../src/generator/contracts-generator.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
-import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { analyzeYaml } from '../analyze-fixture.js';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function generateFromYaml(yaml: string): string {
-  const doc = parseYaml(yaml) as OpenAPIDocument;
-  const resolver = new RefResolver(doc);
-  return generateContracts(doc, resolver);
+  return renderContracts(analyzeYaml(yaml));
 }
 
 function generateClientFromYaml(yaml: string): { contracts: string; client: string } {
-  const doc = parseYaml(yaml) as OpenAPIDocument;
   const config: GeneratorConfig = { input: 'test.yaml', outputDir: '/tmp/test' };
-  return generateClientStrings(doc, config);
+  return generateClientStrings(analyzeYaml(yaml), config);
 }
 
 // ── Parameters (3.1-#33-#42) ───────────────────────────────────────────────

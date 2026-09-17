@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
 
 import { analyzePaths } from '../../src/analyzer/path-analyzer.js';
-import { generateClient } from '../../src/generator/client-generator.js';
-import { generateContracts } from '../../src/generator/contracts-generator.js';
+import { generateOutput } from '../../src/generator/client-generator.js';
+import { renderContracts } from '../../src/generator/contracts-generator.js';
 import { RefResolver } from '../../src/parser/ref-resolver.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { analyzeFixture } from '../analyze-fixture.js';
 
 function createDoc(overrides?: Partial<OpenAPIDocument>): OpenAPIDocument {
   return {
@@ -51,7 +52,7 @@ describe('Components Object examples', () => {
       });
 
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       expect(contracts).toMatchSnapshot();
     });
@@ -80,7 +81,7 @@ describe('Components Object examples', () => {
       });
 
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       expect(contracts).toMatchSnapshot();
 
@@ -121,7 +122,7 @@ describe('Components Object examples', () => {
       expect(operations[0].pathParams).toHaveLength(1);
       expect(operations[0].pathParams[0].name).toBe('userId');
       expect(operations[0].pathParams[0].required).toBe(true);
-      expect(operations[0].pathParams[0].tsType).toBe('string');
+      expect(operations[0].pathParams[0].schema?.type).toBe('string');
     });
 
     it('resolves reusable query parameters via $ref', () => {
@@ -240,7 +241,7 @@ describe('Components Object examples', () => {
       });
 
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       expect(contracts).toMatchSnapshot();
     });
@@ -289,7 +290,7 @@ describe('Components Object examples', () => {
       expect(operations).toHaveLength(1);
       expect(operations[0].requestBody).toBeDefined();
       expect(operations[0].requestBody!.required).toBe(true);
-      expect(operations[0].requestBody!.tsType).toBe('CreateUserInput');
+      expect(operations[0].requestBody!.hasSchema).toBe(true);
     });
 
     it('generates body type from resolved $ref request body in contracts', () => {
@@ -323,7 +324,7 @@ describe('Components Object examples', () => {
       });
 
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       expect(contracts).toMatchSnapshot();
     });
@@ -343,8 +344,8 @@ describe('Components Object examples', () => {
       });
 
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
-      const { client } = generateClient(doc, makeConfig());
+      const contracts = renderContracts(analyzeFixture(doc));
+      const { client } = generateOutput(analyzeFixture(doc), makeConfig());
 
       expect(contracts).toMatchSnapshot();
       expect(client).toMatchSnapshot();
@@ -363,7 +364,7 @@ describe('Components Object examples', () => {
       });
 
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       expect(contracts).toMatchSnapshot();
       expect(contracts).not.toContain('export interface');

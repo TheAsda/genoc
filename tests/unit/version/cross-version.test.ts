@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 
-import { generateContracts } from '../../../src/generator/contracts-generator.js';
-import { RefResolver } from '../../../src/parser/ref-resolver.js';
+import { renderContracts } from '../../../src/generator/contracts-generator.js';
 import type { OpenAPIDocument } from '../../../src/types/openapi.js';
+import { analyzeFixture } from '../../analyze-fixture.js';
 
 /**
  * Build a minimal OpenAPI spec with the given version and component schemas.
@@ -40,10 +40,7 @@ function makeSpec(version: string, schemas: Record<string, unknown>): OpenAPIDoc
  * `preserveRefSiblings` controls $ref sibling merging behavior.
  */
 function generateOutput(doc: OpenAPIDocument, preserveSiblings: boolean): string {
-  const resolver = new RefResolver(doc, {
-    preserveRefSiblings: preserveSiblings,
-  });
-  return generateContracts(doc, resolver);
+  return renderContracts(analyzeFixture(doc, { preserveRefSiblings: preserveSiblings }));
 }
 
 /**

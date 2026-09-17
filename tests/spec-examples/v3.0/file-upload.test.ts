@@ -13,9 +13,10 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { generateContracts } from '../../../src/generator/contracts-generator.js';
+import { renderContracts } from '../../../src/generator/contracts-generator.js';
 import { RefResolver } from '../../../src/parser/ref-resolver.js';
 import type { OpenAPIDocument } from '../../../src/types/openapi.js';
+import { analyzeFixture } from '../../analyze-fixture.js';
 
 function createDoc(overrides?: Partial<OpenAPIDocument>): OpenAPIDocument {
   return {
@@ -24,10 +25,6 @@ function createDoc(overrides?: Partial<OpenAPIDocument>): OpenAPIDocument {
     paths: {},
     ...overrides,
   };
-}
-
-function makeResolver(doc: OpenAPIDocument): RefResolver {
-  return new RefResolver(doc);
 }
 
 describe('OpenAPI 3.0 — file upload (format: binary / byte)', () => {
@@ -43,7 +40,7 @@ describe('OpenAPI 3.0 — file upload (format: binary / byte)', () => {
           },
         },
       });
-      const result = generateContracts(doc, makeResolver(doc));
+      const result = renderContracts(analyzeFixture(doc));
       expect(result).toMatchSnapshot();
     });
 
@@ -55,7 +52,7 @@ describe('OpenAPI 3.0 — file upload (format: binary / byte)', () => {
           },
         },
       });
-      const result = generateContracts(doc, makeResolver(doc));
+      const result = renderContracts(analyzeFixture(doc));
       expect(result).toMatchSnapshot();
     });
 
@@ -67,7 +64,7 @@ describe('OpenAPI 3.0 — file upload (format: binary / byte)', () => {
           },
         },
       });
-      const result = generateContracts(doc, makeResolver(doc));
+      const result = renderContracts(analyzeFixture(doc));
       expect(result).toMatchSnapshot();
     });
   });
@@ -101,7 +98,7 @@ describe('OpenAPI 3.0 — file upload (format: binary / byte)', () => {
           },
         },
       });
-      const result = generateContracts(doc, makeResolver(doc));
+      const result = renderContracts(analyzeFixture(doc));
       expect(result).toMatchSnapshot();
     });
 
@@ -132,7 +129,7 @@ describe('OpenAPI 3.0 — file upload (format: binary / byte)', () => {
           },
         },
       });
-      const result = generateContracts(doc, makeResolver(doc));
+      const result = renderContracts(analyzeFixture(doc));
       expect(result).toMatchSnapshot();
     });
   });
@@ -168,7 +165,7 @@ describe('OpenAPI 3.0 — file upload (format: binary / byte)', () => {
           },
         },
       });
-      const result = generateContracts(doc, makeResolver(doc));
+      const result = renderContracts(analyzeFixture(doc));
       expect(result).toMatchSnapshot();
     });
   });
@@ -201,7 +198,7 @@ describe('OpenAPI 3.0 — file upload (format: binary / byte)', () => {
           },
         },
       });
-      const result = generateContracts(doc, makeResolver(doc));
+      const result = renderContracts(analyzeFixture(doc));
       expect(result).toMatchSnapshot();
     });
   });

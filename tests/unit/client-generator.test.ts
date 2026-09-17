@@ -4,10 +4,13 @@ import { join } from 'path';
 
 import { describe, expect, it } from 'vitest';
 
-import { generateClient, generateFullOutput } from '../../src/generator/client-generator.js';
+import type { AnalyzedSpec } from '../../src/analyzer/types.js';
+import { generateOutput, renderClient } from '../../src/generator/client-generator.js';
+import { generateFullOutput } from '../../src/pipeline.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
 import { makeHeader } from '../../src/utils/generator-helpers.js';
+import { analyzeFixture } from '../analyze-fixture.js';
 
 function createDoc(overrides?: Partial<OpenAPIDocument>): OpenAPIDocument {
   return {
@@ -30,7 +33,10 @@ describe('generateClient', () => {
     it('returns object with contracts and client strings', async () => {
       const doc = createDoc();
       const config = createConfig();
-      const result = generateClient(doc, config);
+      const result = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(result).toHaveProperty('contracts');
       expect(result).toHaveProperty('client');
       expect(typeof result.contracts).toBe('string');
@@ -44,7 +50,10 @@ describe('generateClient', () => {
     it('returns exact barrel content: header, blank line, two export * lines', () => {
       const doc = createDoc();
       const config = createConfig();
-      const { index } = generateClient(doc, config);
+      const { index } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       const expected = `${makeHeader(doc.openapi)}\n\nexport * from './contracts.js';\nexport * from './client.js';\n`;
       expect(index).toBe(expected);
     });
@@ -52,7 +61,10 @@ describe('generateClient', () => {
     it('still returns contracts and client strings', () => {
       const doc = createDoc();
       const config = createConfig();
-      const result = generateClient(doc, config);
+      const result = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(typeof result.contracts).toBe('string');
       expect(typeof result.client).toBe('string');
       expect(result.contracts).toContain(makeHeader(doc.openapi));
@@ -64,14 +76,20 @@ describe('generateClient', () => {
     it('includes auto-generated header comment', async () => {
       const doc = createDoc();
       const config = createConfig();
-      const { contracts } = generateClient(doc, config);
+      const { contracts } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(contracts).toMatchSnapshot();
     });
 
     it('includes ApiError class', async () => {
       const doc = createDoc();
       const config = createConfig();
-      const { contracts } = generateClient(doc, config);
+      const { contracts } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(contracts).toMatchSnapshot();
     });
 
@@ -87,7 +105,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { contracts } = generateClient(doc, config);
+      const { contracts } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(contracts).toMatchSnapshot();
     });
 
@@ -123,7 +144,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { contracts } = generateClient(doc, config);
+      const { contracts } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(contracts).toMatchSnapshot();
     });
   });
@@ -132,42 +156,60 @@ describe('generateClient', () => {
     it('includes auto-generated header comment', async () => {
       const doc = createDoc();
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
     it('includes Requester type definition', async () => {
       const doc = createDoc();
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
     it('includes createClient function', async () => {
       const doc = createDoc();
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
     it('includes ApiClient type export', async () => {
       const doc = createDoc();
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
     it('returns empty object when no operations exist', async () => {
       const doc = createDoc();
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
     it('does not include type-only import statement when no types are needed', async () => {
       const doc = createDoc();
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).not.toMatch(/import type \{[^}]+\} from '\.\/contracts\.js';/);
       expect(client).toMatchSnapshot();
     });
@@ -189,7 +231,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -213,7 +258,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).not.toContain('Query');
       expect(client).not.toContain('Body');
       expect(client).toMatchSnapshot();
@@ -233,7 +281,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -250,7 +301,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).not.toContain('GetItemsError');
       expect(client).toMatchSnapshot();
     });
@@ -278,7 +332,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -313,7 +370,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -336,7 +396,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -369,7 +432,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -392,7 +458,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -416,7 +485,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -432,7 +504,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -449,7 +524,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -474,7 +552,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -489,7 +570,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -511,7 +595,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -534,7 +621,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -552,7 +642,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
   });
@@ -570,7 +663,10 @@ describe('generateClient', () => {
       });
       doc.info.title = 'My Cool API';
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -586,7 +682,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -602,7 +701,10 @@ describe('generateClient', () => {
       });
       doc.info.title = 'Store API v2.0!';
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
   });
@@ -620,7 +722,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -636,7 +741,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig({ methodNameStrategy: 'operationId' });
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
   });
@@ -743,7 +851,10 @@ describe('generateClient', () => {
       };
 
       const config = createConfig();
-      const { contracts, client } = generateClient(doc, config);
+      const { contracts, client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
 
       expect(contracts).toMatchSnapshot();
       expect(client).toMatchSnapshot();
@@ -765,7 +876,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -783,7 +897,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -801,7 +918,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -819,7 +939,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -837,7 +960,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).not.toContain('async getItems(');
       expect(client).toMatchSnapshot();
     });
@@ -857,7 +983,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -874,7 +1003,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -893,7 +1025,10 @@ describe('generateClient', () => {
         },
       });
       const config = createConfig();
-      const { client } = generateClient(doc, config);
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(client).toMatchSnapshot();
     });
   });
@@ -958,7 +1093,10 @@ describe('generateFullOutput', () => {
       await expect(access(indexPath)).resolves.toBeUndefined();
 
       const onDiskContent = await readFile(indexPath, 'utf-8');
-      const { index } = generateClient(doc, config);
+      const { index } = generateOutput(
+        analyzeFixture(doc, { strategy: config.methodNameStrategy }),
+        config
+      );
       expect(onDiskContent).toBe(index);
     } finally {
       await rm(tmpDir, { recursive: true, force: true });
@@ -1011,5 +1149,82 @@ describe('generateFullOutput', () => {
     } finally {
       await rm(tmpDir, { recursive: true, force: true });
     }
+  });
+});
+
+describe('renderClient — renderer units (hand-built model)', () => {
+  // Pure renderer tests: a hand-built AnalyzedSpec, no analyzer involved.
+  function createAnalyzedSpec(overrides?: Partial<AnalyzedSpec>): AnalyzedSpec {
+    return {
+      specVersion: '3.1.0',
+      operations: [],
+      schemaTypes: [],
+      brandedTypes: [],
+      hasFileUpload: false,
+      securitySchemeTypes: [],
+      serverTypes: [],
+      ...overrides,
+    };
+  }
+
+  it('renders both file headers from the model specVersion', () => {
+    const { client, index } = renderClient(createAnalyzedSpec({ specVersion: '3.0.1' }), {
+      input: 'test.yaml',
+      outputDir: '/tmp/test',
+    });
+    expect(
+      client.startsWith('// Auto-generated by genoc from OpenAPI 3.0.1 spec. DO NOT EDIT.')
+    ).toBe(true);
+    expect(
+      index.startsWith('// Auto-generated by genoc from OpenAPI 3.0.1 spec. DO NOT EDIT.')
+    ).toBe(true);
+  });
+
+  it('renders the barrel re-exports in the index file', () => {
+    const { index } = renderClient(createAnalyzedSpec(), { input: 't', outputDir: '/tmp/t' });
+    expect(index).toContain("export * from './contracts.js';");
+    expect(index).toContain("export * from './client.js';");
+  });
+
+  it('emits one client method per operation from structural facts', () => {
+    const { client } = renderClient(
+      createAnalyzedSpec({
+        operations: [
+          {
+            method: 'get',
+            path: '/things',
+            operationId: undefined,
+            methodName: 'getThings',
+            typePrefix: 'GetThings',
+            summary: undefined,
+            description: undefined,
+            deprecated: false,
+            tags: [],
+            pathParams: [],
+            queryParams: [],
+            headerParams: [],
+            cookieParams: [],
+            requestBody: undefined,
+            responses: [
+              {
+                statusCode: '200',
+                description: undefined,
+                schema: undefined,
+                isSuccess: true,
+                isBinary: false,
+                isVoid: false,
+                finishedType: 'GetThingsResponse',
+              },
+            ],
+            contractsLines: ['export type GetThingsResponse = string;'],
+            fileUploadProperties: undefined,
+          },
+        ],
+      }),
+      { input: 't', outputDir: '/tmp/t' }
+    );
+    expect(client).toContain('export function createClient(requester: Requester) {');
+    expect(client).toContain('getThings: decorateWithErrors');
+    expect(client).toContain('requester<GetThingsResponse>("GET", `/things`, {})');
   });
 });

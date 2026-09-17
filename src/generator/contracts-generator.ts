@@ -1,7 +1,4 @@
-import { analyze } from '../analyzer/analyze.js';
 import type { AnalyzedSpec } from '../analyzer/types.js';
-import { RefResolver } from '../parser/ref-resolver.js';
-import type { OpenAPIDocument } from '../types/openapi.js';
 import { DEFAULT_RUNTIME_IMPORT_PATH, makeHeader } from '../utils/generator-helpers.js';
 import { RUNTIME_CLASS_NAMES } from '../utils/operation-naming.js';
 
@@ -116,17 +113,4 @@ export function renderContracts(
   }
 
   return lines.join('\n');
-}
-
-/**
- * Generate the complete `*.contracts.ts` file content as a string.
- * transitional T1 bridge — translation moved into `analyze()`; this wrapper
- * keeps the historical signature for existing callers and is deleted in T4.
- */
-export function generateContracts(
-  doc: OpenAPIDocument,
-  resolver: RefResolver,
-  runtimeImportPath: string = DEFAULT_RUNTIME_IMPORT_PATH
-): string {
-  return renderContracts(analyze(doc, { resolver }), runtimeImportPath);
 }

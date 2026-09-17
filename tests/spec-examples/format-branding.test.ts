@@ -15,20 +15,20 @@ import { readFileSync } from 'node:fs';
  */
 import { describe, expect, it } from 'vitest';
 
-import { generateContracts } from '../../src/generator/contracts-generator.js';
+import { renderContracts } from '../../src/generator/contracts-generator.js';
 import { RefResolver } from '../../src/parser/ref-resolver.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { analyzeFixture } from '../analyze-fixture.js';
 
-function loadFormatBrandsSpec(): { doc: OpenAPIDocument; resolver: RefResolver } {
+function loadFormatBrandsSpec(): OpenAPIDocument {
   const raw = readFileSync(new URL('../fixtures/format-brands.json', import.meta.url), 'utf-8');
   const doc = JSON.parse(raw) as OpenAPIDocument;
-  const resolver = new RefResolver(doc);
-  return { doc, resolver };
+  return doc;
 }
 
 describe('Format branding in generated contracts', () => {
-  const { doc, resolver } = loadFormatBrandsSpec();
-  const result = generateContracts(doc, resolver);
+  const doc = loadFormatBrandsSpec();
+  const result = renderContracts(analyzeFixture(doc));
 
   it('emits branded type definitions for formatted schemas', () => {
     expect(result).toMatchSnapshot();

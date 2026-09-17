@@ -1,12 +1,6 @@
-import { mkdir, writeFile } from 'fs/promises';
-import { join } from 'path';
-
-import { analyze } from '../analyzer/analyze.js';
 import type { AnalyzedOperation } from '../analyzer/path-analyzer.js';
 import type { AnalyzedSpec, FinishedOperation } from '../analyzer/types.js';
-import { RefResolver } from '../parser/ref-resolver.js';
 import type { GeneratorConfig } from '../types/client.js';
-import type { OpenAPIDocument } from '../types/openapi.js';
 import { DEFAULT_RUNTIME_IMPORT_PATH, makeHeader } from '../utils/generator-helpers.js';
 import {
   clientImportedNames,
@@ -252,12 +246,6 @@ function buildClientFile(
   return lines.join('\n');
 }
 
-/** Options for controlling generation behavior. */
-export interface GenerationOptions {
-  /** When true, sibling properties alongside $ref are preserved (OpenAPI 3.1 behavior). */
-  preserveRefSiblings?: boolean;
-}
-
 /**
  * Generate the `index.ts` barrel file content: re-exports everything from the
  * generated contracts and client files.
@@ -292,45 +280,15 @@ export function renderClient(
 }
 
 /**
- * Generate the contracts, client, and index barrel file content from an OpenAPI document.
- * transitional T1 bridge — runs the single `analyze()` pass and feeds both
- * renderers; the doc/resolver signatures are kept for existing callers and
- * slimmed in T4.
+ * Generate the contracts, client, and index barrel file content from the
+ * analyzed model. Thin orchestration over the two renderers.
  */
-export function generateClient(
-  doc: OpenAPIDocument,
-  config: GeneratorConfig,
-  options?: GenerationOptions
+export function generateOutput(
+  analyzed: AnalyzedSpec,
+  config: GeneratorConfig
 ): { contracts: string; client: string; index: string } {
-  const resolver = new RefResolver(doc, {
-    preserveRefSiblings: options?.preserveRefSiblings,
-  });
-
-  const analyzed = analyze(doc, {
-    resolver,
-    strategy: config.methodNameStrategy ?? 'path-based',
-  });
-
   const runtimeImportPath = config.runtimeImportPath ?? DEFAULT_RUNTIME_IMPORT_PATH;
   const contracts = renderContracts(analyzed, runtimeImportPath);
   const { client, index } = renderClient(analyzed, config);
-
   return { contracts, client, index };
-}
-
-/**
- * Generate and write all output files to disk.
- */
-export async function generateFullOutput(
-  doc: OpenAPIDocument,
-  config: GeneratorConfig,
-  options?: GenerationOptions
-): Promise<void> {
-  const { contracts, client, index } = generateClient(doc, config, options);
-
-  await mkdir(config.outputDir, { recursive: true });
-
-  await writeFile(join(config.outputDir, 'contracts.ts'), contracts, 'utf-8');
-  await writeFile(join(config.outputDir, 'client.ts'), client, 'utf-8');
-  await writeFile(join(config.outputDir, 'index.ts'), index, 'utf-8');
 }

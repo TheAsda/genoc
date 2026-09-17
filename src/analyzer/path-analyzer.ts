@@ -8,7 +8,7 @@ import type {
   ResponseObject,
   SchemaObject,
 } from '../types/openapi.js';
-import { isBinaryContentType, sanitizeTypeName } from '../utils/generator-helpers.js';
+import { isBinaryContentType } from '../utils/generator-helpers.js';
 import { getOperationTypePrefix } from '../utils/operation-naming.js';
 import { getMethodName } from './naming.js';
 
@@ -16,10 +16,8 @@ export interface AnalyzedParameter {
   name: string;
   in: 'path' | 'query' | 'header' | 'cookie';
   required: boolean;
-  /** transitional — raw schema retained for translation in `analyze()`; renderers must not read it. */
+  /** Resolved param schema — analyzer-internal translation input for `analyze()`; renderers must not read it. */
   schema: SchemaObject | undefined;
-  /** Mini-mapper type. transitional — deleted in T4 with test-surface rebasing. */
-  tsType: string;
   description?: string;
   deprecated?: boolean;
   example?: unknown;
@@ -28,10 +26,14 @@ export interface AnalyzedParameter {
 export interface AnalyzedRequestBody {
   required: boolean;
   contentTypes: string[];
-  /** transitional — raw schema retained for translation in `analyze()` and the emissions presence gate; dies in T4. */
-  schema: SchemaObject | ReferenceObject | undefined;
-  /** Mini-mapper type. transitional — deleted in T4 with test-surface rebasing. */
-  tsType: string;
+  /**
+   * Whether the first content entry carries a schema — drives the
+   * `{Prefix}Body` emission-presence decision (both the emission inventory in
+   * operation-naming and the Section-3 emission in analyze() read this fact,
+   * so they can never desync). The raw schema itself travels beside the
+   * operations array in `AnalyzedPathsResult`.
+   */
+  hasSchema: boolean;
   isMultipart: boolean;
   isBinary: boolean;
   description?: string;
@@ -40,17 +42,18 @@ export interface AnalyzedRequestBody {
 export interface AnalyzedResponse {
   statusCode: string;
   description?: string;
-  /** transitional — raw schema retained for translation in `analyze()`; renderers must not read it. */
+  /** Raw (possibly `$ref`) first-content schema — analyzer-internal translation input for `analyze()`; renderers must not read it. */
   schema: SchemaObject | ReferenceObject | undefined;
-  /** Mini-mapper type. transitional — deleted in T4 with test-surface rebasing. */
-  tsType: string;
   isSuccess: boolean;
   isBinary: boolean;
   /**
+   * True exactly for schema-less, non-binary 2xx responses with no content
+   * (or empty content) — the "empty body → void" classification.
+   */
+  isVoid: boolean;
+  /**
    * Finished (real-mapper) TS type text — StreamResponse substitution and
-   * discriminator variant rewrites applied. Set by `analyze()`; undefined on
-   * hand-built operations, where callers fall back to `tsType`.
-   * transitional T1 field.
+   * discriminator variant rewrites applied. Set by `analyze()`.
    */
   finishedType?: string;
 }
@@ -76,10 +79,6 @@ export interface AnalyzedOperation {
 
 const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head', 'trace'] as const;
 
-function isRef(obj: unknown): obj is ReferenceObject {
-  return obj !== null && typeof obj === 'object' && '$ref' in (obj as Record<string, unknown>);
-}
-
 /**
  * Resolve a possibly-$ref-ed schema and check for an exact top-level `format: binary`
  * match. Top-level only — intentionally no deep-walk into items/allOf/oneOf/anyOf.
@@ -90,55 +89,6 @@ function isBinarySchema(
 ): boolean {
   if (!schema) return false;
   return resolver.resolveSchema(schema).format === 'binary';
-}
-
-function schemaToTsType(
-  schema: SchemaObject | ReferenceObject | undefined,
-  resolver: RefResolver
-): string {
-  if (!schema) return 'unknown';
-
-  if (isRef(schema)) {
-    const resolved = resolver.resolve<SchemaObject>(schema);
-    const refStr = schema.$ref;
-    const lastSegment = sanitizeTypeName(refStr.split('/').pop()!);
-    if (lastSegment && resolved.type) {
-      return lastSegment;
-    }
-    return lastSegment ?? 'unknown';
-  }
-
-  const s = schema as SchemaObject;
-
-  if (s.type === undefined) return 'unknown';
-
-  if (Array.isArray(s.type)) {
-    const nonNull = s.type.filter((t) => t !== 'null');
-    if (nonNull.length === 0) return 'null';
-    return schemaToTsType({ ...s, type: nonNull[0] }, resolver);
-  }
-
-  switch (s.type) {
-    case 'string':
-      return 'string';
-    case 'integer':
-    case 'number':
-      return 'number';
-    case 'boolean':
-      return 'boolean';
-    case 'array':
-      if (s.items) {
-        const itemType = schemaToTsType(s.items, resolver);
-        return `${itemType}[]`;
-      }
-      return 'unknown[]';
-    case 'object':
-      return 'object';
-    case 'null':
-      return 'null';
-    default:
-      return 'unknown';
-  }
 }
 
 function resolveParameter(
@@ -170,7 +120,6 @@ function analyzeParameter(param: ParameterObject, resolver: RefResolver): Analyz
     in: param.in,
     required: param.required ?? param.in === 'path',
     schema,
-    tsType: schemaToTsType(param.schema, resolver),
     description: param.description,
     deprecated: param.deprecated,
     example: param.example,
@@ -205,23 +154,29 @@ function mergeParameters(
   return merged;
 }
 
+/**
+ * Analyze one request body. Returns the structural facts plus the RAW
+ * (possibly `$ref`) first-content schema as a separate value — the schema is
+ * analyzer-internal translation input for `analyze()` and does not travel on
+ * the `AnalyzedRequestBody` seam.
+ */
 function analyzeRequestBody(
   body: RequestBodyObject | ReferenceObject | undefined,
   resolver: RefResolver
-): AnalyzedRequestBody | undefined {
+):
+  | { requestBody: AnalyzedRequestBody; rawSchema: SchemaObject | ReferenceObject | undefined }
+  | undefined {
   if (!body) return undefined;
 
   const resolved = resolveRequestBody(body, resolver);
   const contentTypes = Object.keys(resolved.content);
 
   let schema: SchemaObject | ReferenceObject | undefined;
-  let tsType = 'unknown';
 
   if (contentTypes.length > 0) {
     const firstContent = resolved.content[contentTypes[0]];
     if (firstContent?.schema) {
       schema = firstContent.schema;
-      tsType = schemaToTsType(schema, resolver);
     }
   }
 
@@ -234,13 +189,15 @@ function analyzeRequestBody(
     : contentTypes.some(isBinaryContentType) || isBinarySchema(schema, resolver);
 
   return {
-    required: resolved.required ?? false,
-    contentTypes,
-    schema,
-    tsType,
-    isMultipart,
-    isBinary,
-    description: resolved.description,
+    requestBody: {
+      required: resolved.required ?? false,
+      contentTypes,
+      hasSchema: schema !== undefined,
+      isMultipart,
+      isBinary,
+      description: resolved.description,
+    },
+    rawSchema: schema,
   };
 }
 
@@ -254,7 +211,6 @@ function analyzeResponses(
     const resolved = resolveResponse(response, resolver);
 
     let schema: SchemaObject | ReferenceObject | undefined;
-    let tsType = 'unknown';
     let contentTypes: string[] = [];
 
     if (resolved.content) {
@@ -263,19 +219,15 @@ function analyzeResponses(
         const firstContent = resolved.content[contentTypes[0]];
         if (firstContent?.schema) {
           schema = firstContent.schema;
-          tsType = schemaToTsType(schema, resolver);
         }
       }
     }
 
     // Empty-body success responses → void
-    if (
-      tsType === 'unknown' &&
+    const isVoid =
+      schema === undefined &&
       statusCode.startsWith('2') &&
-      (!resolved.content || contentTypes.length === 0)
-    ) {
-      tsType = 'void';
-    }
+      (!resolved.content || contentTypes.length === 0);
 
     const isBinary =
       contentTypes.length > 0 &&
@@ -285,9 +237,9 @@ function analyzeResponses(
       statusCode,
       description: resolved.description,
       schema,
-      tsType,
       isSuccess: statusCode.startsWith('2'),
       isBinary,
+      isVoid,
     });
   }
 
@@ -323,22 +275,34 @@ function categorizeParameters(
 }
 
 /**
- * Analyze all paths and operations from an OpenAPI document into structured data
- * for code generation.
+ * Analyzer-internal analysis result: the analyzed operations plus the raw
+ * request body schemas in a PARALLEL ARRAY (same length and order as
+ * `operations`). The raw schemas are translation input for `analyze()` and
+ * deliberately do not travel on the `AnalyzedRequestBody` seam.
+ */
+export interface AnalyzedPathsResult {
+  operations: AnalyzedOperation[];
+  requestBodySchemas: (SchemaObject | ReferenceObject | undefined)[];
+}
+
+/**
+ * Analyze all paths and operations from an OpenAPI document into structured
+ * data for code generation, carrying the raw request body schemas alongside.
  *
  * @param doc - The parsed and validated OpenAPI document
  * @param resolver - A RefResolver for resolving $ref pointers
  * @param strategy - Method naming strategy (defaults to 'path-based')
- * @returns Array of AnalyzedOperation objects
+ * @returns Operations with parallel raw request body schemas
  */
-export function analyzePaths(
+export function analyzePathsDetailed(
   doc: OpenAPIDocument,
   resolver: RefResolver,
   strategy: MethodNameStrategy = 'path-based'
-): AnalyzedOperation[] {
+): AnalyzedPathsResult {
   const operations: AnalyzedOperation[] = [];
+  const requestBodySchemas: (SchemaObject | ReferenceObject | undefined)[] = [];
 
-  if (!doc.paths) return operations;
+  if (!doc.paths) return { operations, requestBodySchemas };
 
   const usedTypePrefixes = new Set<string>();
   const usedMethodNames = new Set<string>();
@@ -353,7 +317,7 @@ export function analyzePaths(
 
       const categorized = categorizeParameters(analyzedParams);
 
-      const requestBody = analyzeRequestBody(operation.requestBody, resolver);
+      const requestBodyResult = analyzeRequestBody(operation.requestBody, resolver);
 
       const responses = analyzeResponses(operation.responses, resolver);
 
@@ -369,9 +333,10 @@ export function analyzePaths(
         deprecated: operation.deprecated ?? false,
         tags: operation.tags ?? [],
         ...categorized,
-        requestBody,
+        requestBody: requestBodyResult?.requestBody,
         responses,
       });
+      requestBodySchemas.push(requestBodyResult?.rawSchema);
     }
   }
 
@@ -401,5 +366,22 @@ export function analyzePaths(
     op.methodName = methodName;
   }
 
-  return operations;
+  return { operations, requestBodySchemas };
+}
+
+/**
+ * Analyze all paths and operations from an OpenAPI document into structured
+ * data for code generation.
+ *
+ * @param doc - The parsed and validated OpenAPI document
+ * @param resolver - A RefResolver for resolving $ref pointers
+ * @param strategy - Method naming strategy (defaults to 'path-based')
+ * @returns Array of AnalyzedOperation objects
+ */
+export function analyzePaths(
+  doc: OpenAPIDocument,
+  resolver: RefResolver,
+  strategy: MethodNameStrategy = 'path-based'
+): AnalyzedOperation[] {
+  return analyzePathsDetailed(doc, resolver, strategy).operations;
 }

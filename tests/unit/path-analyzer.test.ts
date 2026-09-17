@@ -39,7 +39,7 @@ describe('analyzePaths', () => {
     expect(getProductId!.pathParams[0].name).toBe('productId');
     expect(getProductId!.pathParams[0].in).toBe('path');
     expect(getProductId!.pathParams[0].required).toBe(true);
-    expect(getProductId!.pathParams[0].tsType).toBe('string');
+    expect(getProductId!.pathParams[0].schema?.type).toBe('string');
   });
 
   it('should extract query parameters as queryParams', () => {
@@ -51,7 +51,7 @@ describe('analyzePaths', () => {
     const names = listProducts!.queryParams.map((p) => p.name);
     expect(names).toContain('page');
     expect(names).toContain('limit');
-    expect(listProducts!.queryParams[0].tsType).toBe('number');
+    expect(listProducts!.queryParams[0].schema?.type).toBe('integer');
     expect(listProducts!.queryParams[0].required).toBe(false);
   });
 
@@ -63,7 +63,7 @@ describe('analyzePaths', () => {
     expect(listProducts!.headerParams).toHaveLength(1);
     expect(listProducts!.headerParams[0].name).toBe('x-trace-id');
     expect(listProducts!.headerParams[0].in).toBe('header');
-    expect(listProducts!.headerParams[0].tsType).toBe('string');
+    expect(listProducts!.headerParams[0].schema?.type).toBe('string');
 
     const createProduct = operations.find(
       (op) => op.method === 'post' && op.path === '/api/v1/products'
@@ -73,7 +73,7 @@ describe('analyzePaths', () => {
     expect(createProduct!.headerParams[0].name).toBe('x-trace-id');
   });
 
-  it('should extract request body with contentTypes and tsType', () => {
+  it('should extract request body with contentTypes and hasSchema', () => {
     const createProduct = operations.find(
       (op) => op.method === 'post' && op.path === '/api/v1/products'
     );
@@ -81,7 +81,7 @@ describe('analyzePaths', () => {
     expect(createProduct!.requestBody).toBeDefined();
     expect(createProduct!.requestBody!.required).toBe(true);
     expect(createProduct!.requestBody!.contentTypes).toEqual(['application/json']);
-    expect(createProduct!.requestBody!.tsType).toBe('NewProduct');
+    expect(createProduct!.requestBody!.hasSchema).toBe(true);
   });
 
   it('should extract multiple response codes with schemas', () => {
@@ -95,12 +95,14 @@ describe('analyzePaths', () => {
     expect(ok).toBeDefined();
     expect(ok!.isSuccess).toBe(true);
     expect(ok!.description).toBe('Success');
-    expect(ok!.tsType).toBe('Product[]');
+    expect(ok!.schema).toBeDefined();
+    expect(ok!.isVoid).toBe(false);
 
     const bad = listProducts!.responses.find((r) => r.statusCode === '400');
     expect(bad).toBeDefined();
     expect(bad!.isSuccess).toBe(false);
-    expect(bad!.tsType).toBe('unknown');
+    expect(bad!.schema).toBeUndefined();
+    expect(bad!.isVoid).toBe(false);
   });
 
   it('should preserve deprecated flag', () => {
@@ -176,11 +178,11 @@ describe('analyzePaths', () => {
     expect(ops[0].headerParams).toHaveLength(1);
     expect(ops[0].headerParams[0].name).toBe('x-trace-id');
     expect(ops[0].headerParams[0].required).toBe(true);
-    expect(ops[0].headerParams[0].tsType).toBe('number');
+    expect(ops[0].headerParams[0].schema?.type).toBe('integer');
   });
 
   describe('void response handling', () => {
-    it('200 with no content maps to void tsType', () => {
+    it('200 with no content maps to void classification', () => {
       const voidSpec: OpenAPIDocument = {
         openapi: '3.1.0',
         info: { title: 'Void Test', version: '1.0.0' },
@@ -197,10 +199,10 @@ describe('analyzePaths', () => {
       const ops = analyzePaths(voidSpec, resolver);
       const resp = ops[0].responses.find((r) => r.statusCode === '200');
       expect(resp).toBeDefined();
-      expect(resp!.tsType).toBe('void');
+      expect(resp!.isVoid).toBe(true);
     });
 
-    it('200 with empty content {} maps to void tsType', () => {
+    it('200 with empty content {} maps to void classification', () => {
       const emptyContentSpec: OpenAPIDocument = {
         openapi: '3.1.0',
         info: { title: 'Empty Content Test', version: '1.0.0' },
@@ -217,7 +219,7 @@ describe('analyzePaths', () => {
       const ops = analyzePaths(emptyContentSpec, resolver);
       const resp = ops[0].responses.find((r) => r.statusCode === '200');
       expect(resp).toBeDefined();
-      expect(resp!.tsType).toBe('void');
+      expect(resp!.isVoid).toBe(true);
     });
 
     it('200 with media type but no schema stays unknown', () => {
@@ -244,7 +246,8 @@ describe('analyzePaths', () => {
       const ops = analyzePaths(noSchemaSpec, resolver);
       const resp = ops[0].responses.find((r) => r.statusCode === '200');
       expect(resp).toBeDefined();
-      expect(resp!.tsType).toBe('unknown');
+      expect(resp!.isVoid).toBe(false);
+      expect(resp!.schema).toBeUndefined();
     });
   });
 

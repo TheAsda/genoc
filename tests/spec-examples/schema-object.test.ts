@@ -11,9 +11,10 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { generateContracts } from '../../src/generator/contracts-generator.js';
+import { renderContracts } from '../../src/generator/contracts-generator.js';
 import { RefResolver } from '../../src/parser/ref-resolver.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { analyzeFixture } from '../analyze-fixture.js';
 
 function createDoc(overrides?: Partial<OpenAPIDocument>): OpenAPIDocument {
   return {
@@ -24,15 +25,11 @@ function createDoc(overrides?: Partial<OpenAPIDocument>): OpenAPIDocument {
   };
 }
 
-function makeResolver(doc: OpenAPIDocument): RefResolver {
-  return new RefResolver(doc);
-}
-
 function generate(schemas: Record<string, unknown>): string {
   const doc = createDoc({
     components: { schemas },
   });
-  return generateContracts(doc, makeResolver(doc));
+  return renderContracts(analyzeFixture(doc));
 }
 
 describe('Schema Object — OpenAPI 3.1.0 §4.8.24.3 Examples', () => {

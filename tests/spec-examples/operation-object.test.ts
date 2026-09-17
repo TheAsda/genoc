@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
 
 import { analyzePaths } from '../../src/analyzer/path-analyzer.js';
-import { generateClient } from '../../src/generator/client-generator.js';
+import { generateOutput } from '../../src/generator/client-generator.js';
 import { RefResolver } from '../../src/parser/ref-resolver.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { analyzeFixture } from '../analyze-fixture.js';
 
 function createDoc(overrides?: Partial<OpenAPIDocument>): OpenAPIDocument {
   return {
@@ -36,7 +37,7 @@ describe('Operation Object examples', () => {
         },
       });
 
-      const { client } = generateClient(doc, makeConfig());
+      const { client } = generateOutput(analyzeFixture(doc), makeConfig());
       expect(client).toMatchSnapshot();
       expect(client).not.toContain('listUsers');
     });
@@ -53,7 +54,10 @@ describe('Operation Object examples', () => {
         },
       });
 
-      const { client } = generateClient(doc, makeConfig({ methodNameStrategy: 'operationId' }));
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: 'operationId' }),
+        makeConfig()
+      );
       expect(client).toMatchSnapshot();
     });
 
@@ -68,9 +72,9 @@ describe('Operation Object examples', () => {
         },
       });
 
-      const { client } = generateClient(
-        doc,
-        makeConfig({ methodNameStrategy: 'operationId-with-fallback' })
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: 'operationId-with-fallback' }),
+        makeConfig()
       );
       expect(client).toMatchSnapshot();
     });
@@ -87,9 +91,9 @@ describe('Operation Object examples', () => {
         },
       });
 
-      const { client } = generateClient(
-        doc,
-        makeConfig({ methodNameStrategy: 'operationId-with-fallback' })
+      const { client } = generateOutput(
+        analyzeFixture(doc, { strategy: 'operationId-with-fallback' }),
+        makeConfig()
       );
       expect(client).toMatchSnapshot();
     });
@@ -105,9 +109,9 @@ describe('Operation Object examples', () => {
         },
       });
 
-      expect(() => generateClient(doc, makeConfig({ methodNameStrategy: 'operationId' }))).toThrow(
-        /Operation ID is required/
-      );
+      expect(() =>
+        generateOutput(analyzeFixture(doc, { strategy: 'operationId' }), makeConfig())
+      ).toThrow(/Operation ID is required/);
     });
   });
 
@@ -125,7 +129,7 @@ describe('Operation Object examples', () => {
         },
       });
 
-      const { client } = generateClient(doc, makeConfig());
+      const { client } = generateOutput(analyzeFixture(doc), makeConfig());
       expect(client).toMatchSnapshot();
     });
 
@@ -141,7 +145,7 @@ describe('Operation Object examples', () => {
         },
       });
 
-      const { client } = generateClient(doc, makeConfig());
+      const { client } = generateOutput(analyzeFixture(doc), makeConfig());
       expect(client).toMatchSnapshot();
       expect(client).not.toContain('@deprecated');
     });
@@ -219,7 +223,7 @@ describe('Operation Object examples', () => {
         },
       });
 
-      const { client } = generateClient(doc, makeConfig());
+      const { client } = generateOutput(analyzeFixture(doc), makeConfig());
       expect(client).toMatchSnapshot();
     });
 
@@ -235,7 +239,7 @@ describe('Operation Object examples', () => {
         },
       });
 
-      const { client } = generateClient(doc, makeConfig());
+      const { client } = generateOutput(analyzeFixture(doc), makeConfig());
       expect(client).toMatchSnapshot();
     });
 
@@ -251,7 +255,7 @@ describe('Operation Object examples', () => {
         },
       });
 
-      const { client } = generateClient(doc, makeConfig());
+      const { client } = generateOutput(analyzeFixture(doc), makeConfig());
       expect(client).toMatchSnapshot();
     });
 
@@ -288,7 +292,7 @@ describe('Operation Object examples', () => {
         },
       });
 
-      const { client } = generateClient(doc, makeConfig());
+      const { client } = generateOutput(analyzeFixture(doc), makeConfig());
 
       expect(client).toMatchSnapshot();
 

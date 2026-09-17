@@ -23,26 +23,21 @@
  * enums, defaults, and multiple servers.
  */
 import { describe, expect, it } from 'vitest';
-import { parse as parseYaml } from 'yaml';
 
-import { generateClient as generateClientStrings } from '../../src/generator/client-generator.js';
-import { generateContracts } from '../../src/generator/contracts-generator.js';
-import { RefResolver } from '../../src/parser/ref-resolver.js';
+import { generateOutput as generateClientStrings } from '../../src/generator/client-generator.js';
+import { renderContracts } from '../../src/generator/contracts-generator.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
-import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { analyzeYaml } from '../analyze-fixture.js';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function generateFromYaml(yaml: string): string {
-  const doc = parseYaml(yaml) as OpenAPIDocument;
-  const resolver = new RefResolver(doc);
-  return generateContracts(doc, resolver);
+  return renderContracts(analyzeYaml(yaml));
 }
 
 function generateClientFromYaml(yaml: string): { contracts: string; client: string } {
-  const doc = parseYaml(yaml) as OpenAPIDocument;
   const config: GeneratorConfig = { input: 'test.yaml', outputDir: '/tmp/test' };
-  return generateClientStrings(doc, config);
+  return generateClientStrings(analyzeYaml(yaml), config);
 }
 
 // ── Security Schemes (3.1-#85-#96) ─────────────────────────────────────────

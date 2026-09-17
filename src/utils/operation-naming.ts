@@ -79,15 +79,12 @@ function computeOperationTypePrefix(op: AnalyzedOperation): string {
 }
 
 /**
- * Classify a response as void by its finished type text when `analyze()`
- * provided one; hand-built operations fall back to the mini-mapper `tsType`.
- * The two provably agree for the void case: the finished type is `'void'`
- * exactly for schema-less, non-binary 2xx responses — the same condition
- * under which the mini mapper yields `'void'`.
- * transitional — the fallback dies in T4 together with the mini mapper.
+ * Classify a response as void by its finished type text. The finished type
+ * is `'void'` exactly for schema-less, non-binary 2xx responses — the same
+ * condition the analyzer records as `isVoid`.
  */
 function isVoidResponse(r: AnalyzedResponse): boolean {
-  return r.finishedType !== undefined ? r.finishedType === 'void' : r.tsType === 'void';
+  return r.finishedType === 'void';
 }
 
 /**
@@ -172,7 +169,7 @@ export function operationEmissions(op: AnalyzedOperation): OperationEmissions {
   return {
     query: op.queryParams.length > 0 ? `${prefix}Query` : undefined,
     headers: op.headerParams.length > 0 ? `${prefix}Headers` : undefined,
-    body: op.requestBody?.schema ? `${prefix}Body` : undefined,
+    body: op.requestBody?.hasSchema ? `${prefix}Body` : undefined,
     response: op.responses.some((r) => r.isSuccess) ? `${prefix}Response` : undefined,
     statusErrors,
     defaultError: op.responses.some((r) => !r.isSuccess && r.statusCode === 'default')

@@ -6,11 +6,11 @@ import { fileURLToPath } from 'url';
 
 import { describe, it, expect, beforeAll } from 'vitest';
 
-import { generateClient } from '../../src/generator/client-generator.js';
-import { generateContracts } from '../../src/generator/contracts-generator.js';
-import { RefResolver } from '../../src/parser/ref-resolver.js';
+import { generateOutput } from '../../src/generator/client-generator.js';
+import { renderContracts } from '../../src/generator/contracts-generator.js';
 import { loadFromFile } from '../../src/parser/spec-reader.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
+import { analyzeFixture } from '../analyze-fixture.js';
 import { expectFilesCompile } from '../helpers/compile-check.js';
 import { linkGenoc } from '../helpers/link-genoc.js';
 
@@ -27,7 +27,7 @@ describe('Dotted schema names integration', () => {
       input: FIXTURE_PATH,
       outputDir: '/tmp/dotted-test',
     };
-    const result = generateClient(doc, config);
+    const result = generateOutput(analyzeFixture(doc), config);
     contracts = result.contracts;
     client = result.client;
   });

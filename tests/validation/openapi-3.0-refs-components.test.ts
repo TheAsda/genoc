@@ -17,34 +17,31 @@
  * - `$ref` siblings are stripped (3.0-#71) — not merged as in 3.1
  * - `example` (singular) keyword, not `examples`
  *
- * Tier 1 (#68, #69, #72, #74-#78, #82): generateClient + string matching on TypeScript output
+ * Tier 1 (#68, #69, #72, #74-#78, #82): generateOutput + string matching on TypeScript output
  * Tier 2 (#73, #80, #81): no crash + feature NOT in output (or error for external refs)
  * Tier 3 (#70, #71): version-specific behavior (circular detection, $ref sibling stripping)
  */
 import { describe, expect, it } from 'vitest';
-import { parse as parseYaml } from 'yaml';
 
-import { generateClient as generateClientStrings } from '../../src/generator/client-generator.js';
-import { generateContracts } from '../../src/generator/contracts-generator.js';
+import { generateOutput as generateClientStrings } from '../../src/generator/client-generator.js';
+import { renderContracts } from '../../src/generator/contracts-generator.js';
 import { RefResolver } from '../../src/parser/ref-resolver.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { analyzeYaml } from '../analyze-fixture.js';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function generateFromYaml(yaml: string, preserveRefSiblings = false): string {
-  const doc = parseYaml(yaml) as OpenAPIDocument;
-  const resolver = new RefResolver(doc, { preserveRefSiblings });
-  return generateContracts(doc, resolver);
+  return renderContracts(analyzeYaml(yaml, { preserveRefSiblings }));
 }
 
 function generateClientFromYaml(
   yaml: string,
   preserveRefSiblings = false
 ): { contracts: string; client: string } {
-  const doc = parseYaml(yaml) as OpenAPIDocument;
   const config: GeneratorConfig = { input: 'test.yaml', outputDir: '/tmp/test' };
-  return generateClientStrings(doc, config, { preserveRefSiblings });
+  return generateClientStrings(analyzeYaml(yaml, { preserveRefSiblings }), config);
 }
 
 // ── $ref Resolution (3.0-#68-#73) ────────────────────────────────────────

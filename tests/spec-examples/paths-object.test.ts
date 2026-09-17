@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
 
 import { analyzePaths } from '../../src/analyzer/path-analyzer.js';
-import { generateClient } from '../../src/generator/client-generator.js';
-import { generateContracts } from '../../src/generator/contracts-generator.js';
+import { generateOutput } from '../../src/generator/client-generator.js';
+import { renderContracts } from '../../src/generator/contracts-generator.js';
 import { RefResolver } from '../../src/parser/ref-resolver.js';
 import type { GeneratorConfig } from '../../src/types/client.js';
 import type { OpenAPIDocument } from '../../src/types/openapi.js';
+import { analyzeFixture } from '../analyze-fixture.js';
 
 function createDoc(overrides?: Partial<OpenAPIDocument>): OpenAPIDocument {
   return {
@@ -86,7 +87,7 @@ describe('Paths Object examples', () => {
       expect(operations.map((op) => op.path)).toContain('/users');
       expect(operations.map((op) => op.path)).toContain('/products');
 
-      const { client } = generateClient(doc, makeConfig());
+      const { client } = generateOutput(analyzeFixture(doc), makeConfig());
       expect(client).toMatchSnapshot();
     });
 
@@ -131,7 +132,7 @@ describe('Paths Object examples', () => {
       });
 
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       expect(contracts).toMatchSnapshot();
     });
@@ -142,7 +143,7 @@ describe('Paths Object examples', () => {
       const doc = createDoc({ paths: {} });
 
       const resolver = new RefResolver(doc);
-      const contracts = generateContracts(doc, resolver);
+      const contracts = renderContracts(analyzeFixture(doc));
 
       // Should still have header and ApiError, but no operation types
       expect(contracts).toMatchSnapshot();
@@ -154,7 +155,7 @@ describe('Paths Object examples', () => {
     it('produces a valid empty client when paths is empty', () => {
       const doc = createDoc({ paths: {} });
 
-      const { client } = generateClient(doc, makeConfig());
+      const { client } = generateOutput(analyzeFixture(doc), makeConfig());
 
       expect(client).toMatchSnapshot();
       expect(client).not.toMatch(/import type \{[^}]+\} from '\.\/contracts\.js';/);
