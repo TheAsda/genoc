@@ -24,6 +24,22 @@
   "ignorePatterns": ["dist/**", "coverage/**", "*.d.ts", ".github/**", ".changeset/**"],
   "overrides": [
     {
+      "files": ["src/generator/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/types/openapi", "**/types/openapi.js"],
+                "message": "src/generator must not import raw OpenAPI types (src/types/openapi); consume the analyzed output from src/analyzer instead."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "files": ["src/**/*.ts"],
       "rules": {
         "no-template-curly-in-string": "off",
