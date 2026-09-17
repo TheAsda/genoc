@@ -4,13 +4,13 @@ import type { SchemaObject } from '../../src/types/openapi.js';
 import {
   sanitizeTypeName,
   buildSchemaRenameMap,
-  RESERVED_TYPE_NAMES,
   sanitizeJsDocText,
   formatJsDocValue,
   buildFieldJsDocLines,
   buildTypeJsDoc,
   isBinaryContentType,
 } from '../../src/utils/generator-helpers.js';
+import { RESERVED_TYPE_NAMES } from '../../src/utils/operation-naming.js';
 
 describe('sanitizeTypeName', () => {
   it('returns name unchanged when it has no dots', () => {

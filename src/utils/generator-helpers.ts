@@ -85,29 +85,6 @@ function isReservedTypeName(name: string): boolean {
   return RESERVED_WORDS.has(name);
 }
 
-/**
- * Reserved type names used by the generated output's built-in classes,
- * functions, and types. User-defined schema names that collide with these
- * are automatically renamed with a suffix to prevent duplicate identifiers.
- */
-export const RESERVED_TYPE_NAMES: ReadonlySet<string> = new Set([
-  // Classes in contracts.ts
-  'StreamResponse',
-  'ErrorResponse',
-  'ApiError',
-  'UnspecifiedApiError',
-  'DefaultApiError',
-  'RequesterFailError',
-  // Types / functions in client.ts
-  'Requester',
-  'isDefinedError',
-  'decorateWithErrors',
-  'ApiClient',
-  'createClient',
-  // Interface in contracts.ts (when file uploads present)
-  'FileInput',
-]);
-
 /** Default module specifier generated code imports shared runtime classes from. */
 export const DEFAULT_RUNTIME_IMPORT_PATH = 'genoc/runtime';
 

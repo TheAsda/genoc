@@ -10,7 +10,6 @@ import type {
   ServerVariableObject,
 } from '../types/openapi.js';
 import {
-  RESERVED_TYPE_NAMES,
   buildSchemaRenameMap,
   DEFAULT_RUNTIME_IMPORT_PATH,
   buildTypeJsDoc,
@@ -19,7 +18,11 @@ import {
   toPascalCase,
   makeHeader,
 } from '../utils/generator-helpers.js';
-import { getOperationTypePrefix } from '../utils/operation-naming.js';
+import {
+  getOperationTypePrefix,
+  RESERVED_TYPE_NAMES,
+  RUNTIME_CLASS_NAMES,
+} from '../utils/operation-naming.js';
 
 /**
  * If the schema is a $ref to a discriminated base type (or an array whose items
@@ -256,12 +259,7 @@ function buildRuntimeReexport(runtimeImportPath: string): string[] {
     '',
     `import { ApiError, StreamResponse } from '${runtimeImportPath}';`,
     'export {',
-    '  ApiError,',
-    '  UnspecifiedApiError,',
-    '  DefaultApiError,',
-    '  RequesterFailError,',
-    '  StreamResponse,',
-    '  ErrorResponse,',
+    ...RUNTIME_CLASS_NAMES.map((name) => `  ${name},`),
     `} from '${runtimeImportPath}';`,
   ];
 }

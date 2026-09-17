@@ -13,6 +13,7 @@ import {
   getErrorType,
   getOperationTypePrefix,
   getSuccessType,
+  CLIENT_BASE_VALUE_IMPORTS,
 } from '../utils/operation-naming.js';
 import { generateContracts } from './contracts-generator.js';
 import { generateMethod } from './method-generator.js';
@@ -216,13 +217,7 @@ function buildClientFile(
   const needsDefaultApiError = operations.some((op) =>
     op.responses.some((r) => !r.isSuccess && r.statusCode === 'default')
   );
-  const valueImports = [
-    'ApiError',
-    'UnspecifiedApiError',
-    'ErrorResponse',
-    'StreamResponse',
-    'RequesterFailError',
-  ];
+  const valueImports: string[] = [...CLIENT_BASE_VALUE_IMPORTS];
   if (needsDefaultApiError) {
     valueImports.push('DefaultApiError');
   }

@@ -2,6 +2,56 @@ import type { AnalyzedOperation } from '../analyzer/path-analyzer.js';
 import { sanitizeTypeName, toPascalCase } from './generator-helpers.js';
 
 /**
+ * Canonical runtime class list in the contracts re-export order. Membership
+ * source of truth for every runtime class name the generators emit.
+ */
+export const RUNTIME_CLASS_NAMES = [
+  'ApiError',
+  'UnspecifiedApiError',
+  'DefaultApiError',
+  'RequesterFailError',
+  'StreamResponse',
+  'ErrorResponse',
+] as const;
+
+/**
+ * client.ts value imports from contracts.js in site emission order.
+ * `DefaultApiError` is conditional (only when an operation has a default
+ * error response), so it is appended by the client generator, not listed here.
+ */
+export const CLIENT_BASE_VALUE_IMPORTS = [
+  'ApiError',
+  'UnspecifiedApiError',
+  'ErrorResponse',
+  'StreamResponse',
+  'RequesterFailError',
+] as const;
+
+/** Fixed client-file surface names (values and types client.ts declares). */
+export const CLIENT_SURFACE_NAMES = [
+  'Requester',
+  'isDefinedError',
+  'decorateWithErrors',
+  'ApiClient',
+  'createClient',
+] as const;
+
+/**
+ * Reserved type names used by the generated output's built-in classes,
+ * functions, and types. User-defined schema names that collide with these
+ * are automatically renamed with a suffix to prevent duplicate identifiers.
+ *
+ * Derived — never hand-edited: add new fixed names to the owning constant
+ * (`RUNTIME_CLASS_NAMES` / `CLIENT_SURFACE_NAMES`) or, for contracts-only
+ * interfaces like `FileInput`, extend the derivation below.
+ */
+export const RESERVED_TYPE_NAMES: ReadonlySet<string> = new Set<string>([
+  ...RUNTIME_CLASS_NAMES,
+  ...CLIENT_SURFACE_NAMES,
+  'FileInput',
+]);
+
+/**
  * Build a PascalCase type-name prefix from an operation's method + path.
  * get + /api/v1/products → "GetApiV1Products"
  *
