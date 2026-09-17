@@ -28,7 +28,7 @@ export interface AnalyzedParameter {
 export interface AnalyzedRequestBody {
   required: boolean;
   contentTypes: string[];
-  /** transitional — raw schema retained for the client generator's multipart walk; dies in T2. */
+  /** transitional — raw schema retained for translation in `analyze()` and the emissions presence gate; dies in T4. */
   schema: SchemaObject | ReferenceObject | undefined;
   /** Mini-mapper type. transitional — deleted in T4 with test-surface rebasing. */
   tsType: string;
