@@ -169,3 +169,46 @@ export function operationEmissions(op: AnalyzedOperation): OperationEmissions {
     errorsUnion: statusErrors.length > 0 ? `${prefix}Errors` : undefined,
   };
 }
+
+/**
+ * Type names the client file imports from contracts for one operation.
+ *
+ * Deliberately a subset of the emission inventory: the client names the
+ * response type only when the success type is a named type — 204-only
+ * operations emit `{prefix}Response = void` in contracts, but the client
+ * method returns `void` without ever naming the type.
+ */
+export function clientImportedNames(op: AnalyzedOperation): string[] {
+  const emissions = operationEmissions(op);
+  const names: string[] = [];
+
+  if (emissions.query !== undefined) names.push(emissions.query);
+  if (emissions.headers !== undefined) names.push(emissions.headers);
+  if (emissions.body !== undefined) names.push(emissions.body);
+
+  if (emissions.response !== undefined) {
+    const successType = getSuccessType(op);
+    if (successType !== 'void' && successType !== 'unknown' && /^[A-Z]/.test(successType)) {
+      names.push(successType);
+    }
+  }
+
+  for (const statusError of emissions.statusErrors) {
+    names.push(statusError.name);
+  }
+  if (emissions.errorsUnion !== undefined) names.push(emissions.errorsUnion);
+  if (emissions.defaultError !== undefined) names.push(emissions.defaultError);
+
+  return names;
+}
+
+/**
+ * Value imports for the client file: the fixed base list plus
+ * `DefaultApiError` when any operation has a default error response.
+ */
+export function clientValueImports(operations: AnalyzedOperation[]): string[] {
+  const needsDefaultApiError = operations.some((op) => operationEmissions(op).defaultError !== undefined);
+  return needsDefaultApiError
+    ? [...CLIENT_BASE_VALUE_IMPORTS, 'DefaultApiError']
+    : [...CLIENT_BASE_VALUE_IMPORTS];
+}

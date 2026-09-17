@@ -10,10 +10,11 @@ import {
   makeHeader,
 } from '../utils/generator-helpers.js';
 import {
+  clientImportedNames,
+  clientValueImports,
   getErrorType,
   getOperationTypePrefix,
   getSuccessType,
-  CLIENT_BASE_VALUE_IMPORTS,
 } from '../utils/operation-naming.js';
 import { generateContracts } from './contracts-generator.js';
 import { generateMethod } from './method-generator.js';
@@ -22,37 +23,8 @@ function collectImportTypes(operations: AnalyzedOperation[]): string[] {
   const types = new Set<string>();
 
   for (const op of operations) {
-    const prefix = getOperationTypePrefix(op);
-
-    if (op.queryParams.length > 0) {
-      types.add(`${prefix}Query`);
-    }
-
-    if (op.headerParams.length > 0) {
-      types.add(`${prefix}Headers`);
-    }
-
-    if (op.requestBody?.schema) {
-      types.add(`${prefix}Body`);
-    }
-
-    const successType = getSuccessType(op);
-    if (successType !== 'void' && successType !== 'unknown' && /^[A-Z]/.test(successType)) {
-      types.add(successType);
-    }
-
-    const errorResponses = op.responses.filter((r) => !r.isSuccess && r.statusCode !== 'default');
-    for (const errResp of errorResponses) {
-      types.add(`${prefix}Error${errResp.statusCode}`);
-    }
-
-    const errorType = getErrorType(op);
-    if (errorType !== 'never') {
-      types.add(errorType);
-    }
-
-    if (op.responses.some((r) => !r.isSuccess && r.statusCode === 'default')) {
-      types.add(`${prefix}DefaultError`);
+    for (const name of clientImportedNames(op)) {
+      types.add(name);
     }
   }
 
@@ -214,13 +186,7 @@ function buildClientFile(
   lines.push(makeHeader(version));
 
   const importTypes = collectImportTypes(operations);
-  const needsDefaultApiError = operations.some((op) =>
-    op.responses.some((r) => !r.isSuccess && r.statusCode === 'default')
-  );
-  const valueImports: string[] = [...CLIENT_BASE_VALUE_IMPORTS];
-  if (needsDefaultApiError) {
-    valueImports.push('DefaultApiError');
-  }
+  const valueImports = clientValueImports(operations);
   const typeImports = importTypes.filter((t) => !valueImports.includes(t));
 
   lines.push(`import { ${valueImports.join(', ')} } from './contracts.js';`);
