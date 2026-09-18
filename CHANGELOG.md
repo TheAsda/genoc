@@ -1,5 +1,22 @@
 # genoc
 
+## 0.4.0
+
+### Minor Changes
+
+- 5531827: Config file support: `genoc` now reads its settings from `.genocrc.yml` or `.genocrc.json`, discovered from the current directory up to the git repository boundary, or loaded explicitly with the new `--config` flag. A flat config generates a single client; a `clients` map generates multiple clients sequentially in one run — a failing target does not stop the loop, failures are aggregated (`× client "<name>": …`, exit 1 if any target failed) — and the new `--project <name>` flag runs a single named client. Relative `input`/`outputDir` paths resolve against the config file's directory. The `spec` positional and `--output-dir` are now optional when a config file supplies them. (#32)
+- 7e51e0c: Always generate an `index.ts` barrel alongside `contracts.ts` and `client.ts` in the output directory — `export * from './contracts.js';` plus `export * from './client.js';` under the standard genoc header — so the client factory can be imported straight from the output directory. Barrel generation is always on: no flag, no config option. Regenerating overwrites all three files, including any hand-authored `index.ts`. A spec schema named `createClient` would collide with the barrel's re-exported factory, so such schemas now rename to `createClientModel`.
+- fb20f92: Add `-o` as a short alias for the `--output-dir` CLI flag: `genoc ./spec.yaml -o ./src/api` now works alongside the long form, including when overriding a config file's `outputDir`.
+- e3c4083: Remove the programmatic API: `generateClient`, `loadSpec`, and the root package export are gone. genoc is now CLI-only — generate clients with the `genoc` binary (optionally configured via `.genocrc.yml` / `.genocrc.json`). Generated code is unaffected: it imports from `genoc/runtime`, which remains published.
+
+  BREAKING CHANGE: the `genoc` package root no longer exports anything. `import { generateClient, loadSpec } from 'genoc'` (and root type imports) now fail at build time — use the CLI instead, and import runtime values (`ApiError`, `isDefinedError`, `Requester`, …) from `genoc/runtime`.
+
+### Patch Changes
+
+- 37202b7: Resolve `$ref`s in multipart request bodies before classifying file inputs: a `$ref`'d `format: binary` property now generates a `FileInput` field appended as `formData.append(name, file.data, file.filename)` (and a `File[]` loop for arrays of binaries) instead of a plain append of the unresolved object. Whole-body `$ref`s to multipart schemas no longer silently drop all fields. Generation was also rearchitected around a single `analyze()` translation pass consumed by pure renderers — output for all other specs is byte-identical.
+- b234625: v3.1 spec validation now reaches parity with v3.0: schemas under `components.schemas` are validated recursively (including `properties`, `items`, `additionalProperties`, `allOf`/`oneOf`/`anyOf`, and `prefixItems`), and 3.0-only constructs are rejected with dot-joined schema paths — `nullable`, boolean-form `exclusiveMinimum`/`exclusiveMaximum`, and array-form `items` (tuples must use `prefixItems`). Schema-level `example` stays accepted: deprecated but still legal per the frozen OpenAPI 3.1.0 spec. Legal 3.1 features (type arrays, `"type": "null"`, `$schema`, `$ref` siblings, `const`, `examples`) are explicitly not flagged.
+- 1f5c750: Classify responses and request bodies as binary when the resolved schema has `format: binary` — vendor content types like `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` now generate `StreamResponse` returns with `expectStream: true` and `Blob` bodies instead of a broken `string` contract.
+
 ## 0.3.0
 
 ### Minor Changes
