@@ -1,25 +1,27 @@
-# OpenAPI 3.1 Support
+# OpenAPI 3.1 support
 
-This document lists all OpenAPI 3.1.x features supported by genoc. OpenAPI 3.1 is aligned with JSON Schema 2020-12, introducing type arrays, $ref siblings, webhooks, and other changes.
+OpenAPI 3.1 aligns with JSON Schema 2020-12, introducing type arrays, `$ref`
+siblings, webhooks, and other changes. The following tables list each spec area
+and its support status.
 
 **OpenAPI Specification reference:** https://spec.openapis.org/oas/v3.1.2.html
 
-## Data Types
+## Data types
 
-| Feature     | Status       | OpenAPI Spec Section | Notes                                                                           |
-| ----------- | ------------ | -------------------- | ------------------------------------------------------------------------------- |
-| string      | ✅ Supported | 4.8.24.1             | Maps to TypeScript `string`, with format-specific types (date, date-time, etc.) |
-| number      | ✅ Supported | 4.8.24.1             | Maps to TypeScript `number` for both float and integer values                   |
-| integer     | ✅ Supported | 4.8.24.1             | Maps to TypeScript `number` (no runtime distinction from number)                |
-| boolean     | ✅ Supported | 4.8.24.1             | Maps to TypeScript `boolean`                                                    |
-| array       | ✅ Supported | 4.8.24.1             | Maps to TypeScript `Array<T>` using `items` schema                              |
-| object      | ✅ Supported | 4.8.24.1             | Maps to TypeScript `Record<string, T>` or interface with properties             |
-| null        | ✅ Supported | 4.8.24.1             | Via `type: ["string", "null"]` syntax for explicit nullability                  |
-| type arrays | ✅ Supported | 4.8.24.1             | Supports `type: ["string", "number"]` for union types                           |
+| Feature     | Status       | OpenAPI spec section | Notes                                                                                |
+| ----------- | ------------ | -------------------- | ------------------------------------------------------------------------------------ |
+| string      | ✅ Supported | 4.8.24.1             | Maps to TypeScript `string`, with format-specific types (such as date and date-time) |
+| number      | ✅ Supported | 4.8.24.1             | Maps to TypeScript `number` for both float and integer values                        |
+| integer     | ✅ Supported | 4.8.24.1             | Maps to TypeScript `number` (no runtime distinction from number)                     |
+| boolean     | ✅ Supported | 4.8.24.1             | Maps to TypeScript `boolean`                                                         |
+| array       | ✅ Supported | 4.8.24.1             | Maps to TypeScript `Array<T>` using `items` schema                                   |
+| object      | ✅ Supported | 4.8.24.1             | Maps to TypeScript `Record<string, T>` or interface with properties                  |
+| null        | ✅ Supported | 4.8.24.1             | Via `type: ["string", "null"]` syntax for explicit nullability                       |
+| type arrays | ✅ Supported | 4.8.24.1             | Supports `type: ["string", "number"]` for union types                                |
 
-## Schema Keywords
+## Schema keywords
 
-| Feature              | Status           | OpenAPI Spec Section | Notes                                                                                     |
+| Feature              | Status           | OpenAPI spec section | Notes                                                                                     |
 | -------------------- | ---------------- | -------------------- | ----------------------------------------------------------------------------------------- |
 | allOf                | ✅ Supported     | 4.8.24.4             | Maps to TypeScript intersection types (`&`)                                               |
 | oneOf                | ✅ Supported     | 4.8.24.4             | Maps to TypeScript union types with explicit validation                                   |
@@ -32,7 +34,7 @@ This document lists all OpenAPI 3.1.x features supported by genoc. OpenAPI 3.1 i
 | readOnly             | ✅ Supported     | 4.8.24.2             | Excluded from request body types (write-only context)                                     |
 | writeOnly            | ✅ Supported     | 4.8.24.2             | Excluded from response body types (read-only context)                                     |
 | deprecated           | ⚠️ Partial       | 4.8.24.2             | Operation-level deprecated generates @deprecated tag; schema-level deprecated not emitted |
-| format               | ✅ Supported     | 4.8.24.2             | Applies format-specific validation (date-time, email, etc.)                               |
+| format               | ✅ Supported     | 4.8.24.2             | Applies format-specific validation (such as date-time and email)                          |
 | additionalProperties | ✅ Supported     | 4.8.24.4             | Maps to TypeScript `Record<string, T>` or wildcard types                                  |
 | required             | ✅ Supported     | 4.8.24.4             | Maps to TypeScript required vs optional properties                                        |
 | minItems             | ⚠️ Partial       | 4.8.24.3             | Stored in normalized spec, not enforced in generated types                                |
@@ -48,7 +50,7 @@ This document lists all OpenAPI 3.1.x features supported by genoc. OpenAPI 3.1 i
 
 ## Parameters
 
-| Feature           | Status           | OpenAPI Spec Section | Notes                                                                                         |
+| Feature           | Status           | OpenAPI spec section | Notes                                                                                         |
 | ----------------- | ---------------- | -------------------- | --------------------------------------------------------------------------------------------- |
 | path parameters   | ✅ Supported     | 4.8.12.1             | Required by default, maps to template variables in URL paths                                  |
 | query parameters  | ✅ Supported     | 4.8.12.1             | Maps to query string parameters with URL encoding                                             |
@@ -61,9 +63,9 @@ This document lists all OpenAPI 3.1.x features supported by genoc. OpenAPI 3.1 i
 | deprecated        | ❌ Not supported | 4.8.12               | Parameter-level deprecated stored but not emitted in generated code                           |
 | description       | ❌ Not supported | 4.8.12.2             | Parameter descriptions stored but not emitted in generated JSDoc                              |
 
-## Request Bodies
+## Request bodies
 
-| Feature                           | Status           | OpenAPI Spec Section | Notes                                                          |
+| Feature                           | Status           | OpenAPI spec section | Notes                                                          |
 | --------------------------------- | ---------------- | -------------------- | -------------------------------------------------------------- |
 | application/json                  | ✅ Supported     | 4.8.13               | Maps to TypeScript object types with proper serialization      |
 | multipart/form-data               | ✅ Supported     | 4.8.13               | Maps to FormData with proper file handling                     |
@@ -73,9 +75,9 @@ This document lists all OpenAPI 3.1.x features supported by genoc. OpenAPI 3.1 i
 | required/optional                 | ✅ Supported     | 4.8.13               | Maps to required vs optional request body types                |
 | examples in request body          | ❌ Not supported | 4.8.13               | Request body examples stored but not emitted in generated code |
 
-## File Uploads
+## File uploads
 
-| Feature              | Status           | OpenAPI Spec Section | Notes                                                    |
+| Feature              | Status           | OpenAPI spec section | Notes                                                    |
 | -------------------- | ---------------- | -------------------- | -------------------------------------------------------- |
 | format: binary       | ✅ Supported     | 4.8.14.3             | Maps to `FileInput { data: Blob, filename: string }`     |
 | format: byte         | ✅ Supported     | 4.8.14.3             | Maps to `FileInput { data: Blob, filename: string }`     |
@@ -85,7 +87,7 @@ This document lists all OpenAPI 3.1.x features supported by genoc. OpenAPI 3.1 i
 
 ## Responses
 
-| Feature             | Status       | OpenAPI Spec Section | Notes                                                  |
+| Feature             | Status       | OpenAPI spec section | Notes                                                  |
 | ------------------- | ------------ | -------------------- | ------------------------------------------------------ |
 | 2xx success codes   | ✅ Supported | 4.8.16               | Maps to typed response data with proper types          |
 | 4xx/5xx error codes | ✅ Supported | 4.8.16               | Maps to error types with proper status codes           |
@@ -96,9 +98,9 @@ This document lists all OpenAPI 3.1.x features supported by genoc. OpenAPI 3.1 i
 | response headers    | ✅ Supported | 4.8.21               | Maps to typed response headers with proper names       |
 | response examples   | ✅ Supported | 4.8.17               | Generates example types and documentation              |
 
-## Error Handling
+## Error handling
 
-| Feature                    | Status           | OpenAPI Spec Section | Notes                                                      |
+| Feature                    | Status           | OpenAPI spec section | Notes                                                      |
 | -------------------------- | ---------------- | -------------------- | ---------------------------------------------------------- |
 | ApiError<TStatus, TData>   | ✅ Supported     | Generated code       | Generic error type with status and data generics           |
 | UnspecifiedApiError        | ✅ Supported     | Generated code       | Fallback error type for unexpected error formats           |
@@ -108,9 +110,9 @@ This document lists all OpenAPI 3.1.x features supported by genoc. OpenAPI 3.1 i
 | status-based errors        | ✅ Supported     | 4.8.16               | Separate error types for different HTTP status codes       |
 | error response mapping     | ✅ Supported     | 4.8.17               | Maps API error responses to TypeScript error types         |
 
-## $ref Resolution
+## `$ref` resolution
 
-| Feature                 | Status           | OpenAPI Spec Section | Notes                                                                             |
+| Feature                 | Status           | OpenAPI spec section | Notes                                                                             |
 | ----------------------- | ---------------- | -------------------- | --------------------------------------------------------------------------------- |
 | JSON pointer resolution | ✅ Supported     | 4.8.23               | Resolves `$ref` using JSON pointer syntax                                         |
 | chained refs            | ✅ Supported     | 4.8.23               | Supports multiple levels of `$ref` resolution                                     |
@@ -121,7 +123,7 @@ This document lists all OpenAPI 3.1.x features supported by genoc. OpenAPI 3.1 i
 
 ## Components
 
-| Feature         | Status           | OpenAPI Spec Section | Notes                                                                |
+| Feature         | Status           | OpenAPI spec section | Notes                                                                |
 | --------------- | ---------------- | -------------------- | -------------------------------------------------------------------- |
 | schemas         | ✅ Supported     | 4.8.7                | Central schema definitions with proper naming                        |
 | responses       | ✅ Supported     | 4.8.7                | Reusable response definitions                                        |
@@ -133,9 +135,9 @@ This document lists all OpenAPI 3.1.x features supported by genoc. OpenAPI 3.1 i
 | callbacks       | ❌ Not supported | 4.8.7                | Callback specifications are not processed                            |
 | examples        | ✅ Supported     | 4.8.7                | Reusable example definitions                                         |
 
-## Security Schemes
+## Security schemes
 
-| Feature                   | Status       | OpenAPI Spec Section | Notes                                              |
+| Feature                   | Status       | OpenAPI spec section | Notes                                              |
 | ------------------------- | ------------ | -------------------- | -------------------------------------------------- |
 | apiKey (query)            | ✅ Supported | 4.8.27.1             | Maps to query parameter authentication             |
 | apiKey (header)           | ✅ Supported | 4.8.27.1             | Maps to header authentication                      |
@@ -152,7 +154,7 @@ This document lists all OpenAPI 3.1.x features supported by genoc. OpenAPI 3.1 i
 
 ## Servers
 
-| Feature                 | Status       | OpenAPI Spec Section | Notes                                           |
+| Feature                 | Status       | OpenAPI spec section | Notes                                           |
 | ----------------------- | ------------ | -------------------- | ----------------------------------------------- |
 | server URLs             | ✅ Supported | 4.8.5                | Maps to base URL configuration                  |
 | server variables        | ✅ Supported | 4.8.5                | Maps to configurable URL variables              |
@@ -160,9 +162,9 @@ This document lists all OpenAPI 3.1.x features supported by genoc. OpenAPI 3.1 i
 | default variable values | ✅ Supported | 4.8.5                | Uses default values when not specified          |
 | multiple servers        | ✅ Supported | 4.8.5                | Supports multiple server configurations         |
 
-## Path Operations
+## Path operations
 
-| Feature         | Status       | OpenAPI Spec Section | Notes                                             |
+| Feature         | Status       | OpenAPI spec section | Notes                                             |
 | --------------- | ------------ | -------------------- | ------------------------------------------------- |
 | GET             | ✅ Supported | 4.8.10               | Maps to GET method with proper URL handling       |
 | POST            | ✅ Supported | 4.8.10               | Maps to POST method with request body support     |
@@ -181,7 +183,7 @@ This document lists all OpenAPI 3.1.x features supported by genoc. OpenAPI 3.1 i
 
 ## Webhooks
 
-| Feature                | Status           | OpenAPI Spec Section | Notes                                              |
+| Feature                | Status           | OpenAPI spec section | Notes                                              |
 | ---------------------- | ---------------- | -------------------- | -------------------------------------------------- |
 | webhook definition     | ✅ Supported     | 4.8.18               | Top-level `webhooks` object parsed and normalized  |
 | webhook operations     | ❌ Not supported | 4.8.18               | Webhooks not processed into generated client code  |
@@ -201,9 +203,9 @@ This document lists all OpenAPI 3.1.x features supported by genoc. OpenAPI 3.1 i
 | Webhooks         | Not available                       | 4.8.18 (Supported at top level)       |
 | JSON Schema      | Draft 04/05 subset                  | JSON Schema 2020-12 aligned           |
 
-## JSON Schema 2020-12 Alignment
+## JSON Schema 2020-12 alignment
 
-| Feature                | Status           | OpenAPI Spec Section | Notes                                 |
+| Feature                | Status           | OpenAPI spec section | Notes                                 |
 | ---------------------- | ---------------- | -------------------- | ------------------------------------- |
 | $dynamicRef            | ❌ Not supported | 4.8.24               | Dynamic references not implemented    |
 | $dynamicAnchor         | ❌ Not supported | 4.8.24               | Dynamic anchors not implemented       |

@@ -1,52 +1,53 @@
-# OpenAPI 3.0 Support
+# OpenAPI 3.0 support
 
-This document lists all OpenAPI 3.0.x features supported by genoc. The tool auto-detects OpenAPI 3.0 specs.
+genoc auto-detects OpenAPI 3.0 specs. The following tables list each spec area
+and its support status.
 
 **OpenAPI Specification reference:** https://spec.openapis.org/oas/v3.0.4.html
 
-## Data Types
+## Data types
 
-| Feature | Status       | OpenAPI Spec Section | Notes                                                                           |
-| ------- | ------------ | -------------------- | ------------------------------------------------------------------------------- |
-| string  | ✅ Supported | 4.4                  | Maps to TypeScript `string`, with format-specific types (date, date-time, etc.) |
-| number  | ✅ Supported | 4.4                  | Maps to TypeScript `number` for both float and integer values                   |
-| integer | ✅ Supported | 4.4                  | Maps to TypeScript `number` (no runtime distinction from number)                |
-| boolean | ✅ Supported | 4.4                  | Maps to TypeScript `boolean`                                                    |
-| array   | ✅ Supported | 4.4                  | Maps to TypeScript `Array<T>` using `items` schema                              |
-| object  | ✅ Supported | 4.4                  | Maps to TypeScript `Record<string, T>` or interface with properties             |
-| null    | ✅ Supported | 4.7.24.2             | Only via `nullable: true` keyword                                               |
+| Feature | Status       | OpenAPI spec section | Notes                                                                                |
+| ------- | ------------ | -------------------- | ------------------------------------------------------------------------------------ |
+| string  | ✅ Supported | 4.4                  | Maps to TypeScript `string`, with format-specific types (such as date and date-time) |
+| number  | ✅ Supported | 4.4                  | Maps to TypeScript `number` for both float and integer values                        |
+| integer | ✅ Supported | 4.4                  | Maps to TypeScript `number` (no runtime distinction from number)                     |
+| boolean | ✅ Supported | 4.4                  | Maps to TypeScript `boolean`                                                         |
+| array   | ✅ Supported | 4.4                  | Maps to TypeScript `Array<T>` using `items` schema                                   |
+| object  | ✅ Supported | 4.4                  | Maps to TypeScript `Record<string, T>` or interface with properties                  |
+| null    | ✅ Supported | 4.7.24.2             | Only via `nullable: true` keyword                                                    |
 
-## Schema Keywords
+## Schema keywords
 
-| Feature              | Status       | OpenAPI Spec Section | Notes                                                                 |
-| -------------------- | ------------ | -------------------- | --------------------------------------------------------------------- |
-| allOf                | ✅ Supported | 4.7.24               | Maps to TypeScript intersection types (`&`)                           |
-| oneOf                | ✅ Supported | 4.7.24               | Maps to TypeScript union types with explicit validation               |
-| anyOf                | ✅ Supported | 4.7.24               | Maps to TypeScript union types with explicit validation               |
-| discriminator        | ✅ Supported | 4.7.24               | Full discriminated union support with `propertyName` and `mapping`    |
-| enum                 | ✅ Supported | 4.7.24               | Maps to TypeScript `enum` or string union with `as const`             |
-| const                | ✅ Supported | 4.7.24               | Maps to TypeScript `as const` literal type                            |
-| default              | ✅ Supported | 4.7.24               | Included in generated types as optional properties with defaults      |
-| description          | ✅ Supported | 4.7.24.2             | Added as JSDoc comments in generated TypeScript                       |
-| readOnly             | ✅ Supported | 4.7.24.2             | Excluded from request body types (write-only context)                 |
-| writeOnly            | ✅ Supported | 4.7.24.2             | Excluded from response body types (read-only context)                 |
-| deprecated           | ✅ Supported | 4.7.24.2             | Adds JSDoc @deprecated tag to generated methods and types             |
-| format               | ✅ Supported | 4.7.24.2             | Applies format-specific validation (date-time, email, etc.)           |
-| additionalProperties | ✅ Supported | 4.7.24               | Maps to TypeScript `Record<string, T>` or wildcard types              |
-| required             | ✅ Supported | 4.7.24               | Maps to TypeScript required vs optional properties                    |
-| minItems             | ⚠️ Partial   | 4.7.24.4             | Stored in normalized spec, not enforced in generated types            |
-| maxItems             | ⚠️ Partial   | 4.7.24.4             | Stored in normalized spec, not enforced in generated types            |
-| minLength            | ⚠️ Partial   | 4.7.24.4             | Stored in normalized spec, not enforced in generated types            |
-| maxLength            | ⚠️ Partial   | 4.7.24.4             | Stored in normalized spec, not enforced in generated types            |
-| pattern              | ⚠️ Partial   | 4.7.24.4             | Stored in normalized spec, not enforced in generated types            |
-| minimum              | ⚠️ Partial   | 4.7.24.4             | Stored in normalized spec, not enforced in generated types            |
-| maximum              | ⚠️ Partial   | 4.7.24.4             | Stored in normalized spec, not enforced in generated types            |
-| exclusiveMinimum     | ✅ Supported | 4.7.24.4             | Uses `exclusiveMinimum: true` boolean, maps to `> minimum` validation |
-| exclusiveMaximum     | ✅ Supported | 4.7.24.4             | Uses `exclusiveMaximum: true` boolean, maps to `< maximum` validation |
+| Feature              | Status       | OpenAPI spec section                                                | Notes                                                                 |
+| -------------------- | ------------ | ------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| allOf                | ✅ Supported | 4.7.24                                                              | Maps to TypeScript intersection types (`&`)                           |
+| oneOf                | ✅ Supported | 4.7.24                                                              | Maps to TypeScript union types with explicit validation               |
+| anyOf                | ✅ Supported | 4.7.24                                                              | Maps to TypeScript union types with explicit validation               |
+| discriminator        | ✅ Supported | 4.7.24                                                              | Full discriminated union support with `propertyName` and `mapping`    |
+| enum                 | ✅ Supported | 4.7.24                                                              | Maps to TypeScript `enum` or string union with `as const`             |
+| const                | ✅ Supported | 4.7.24                                                              | Maps to TypeScript `as const` literal type                            |
+| default              | ✅ Supported | 4.7.24                                                              | Included in generated types as optional properties with defaults      |
+| description          | ✅ Supported | 4.7.24.2                                                            | Added as JSDoc comments in generated TypeScript                       |
+| readOnly             | ✅ Supported | 4.7.24.2                                                            | Excluded from request body types (write-only context)                 |
+| writeOnly            | ✅ Supported | 4.7.24.2                                                            | Excluded from response body types (read-only context)                 |
+| deprecated           | ✅ Supported | 4.7.24.2                                                            | Adds JSDoc @deprecated tag to generated methods and types             |
+| format               | ✅ Supported | 4.7.24.2                                                            | Applies format-specific validation (such as date-time and email)      |
+| additionalProperties | ✅ Supported | 4.7.24                                                              | Maps to TypeScript `Record<string, T>` or wildcard types              |
+| required             | ✅ Supported | 4.7.24                                                              | Maps to TypeScript required vs optional properties                    |
+| minItems             | ⚠️ Partial   | 4.7.24.4                                                            | Stored in normalized spec, not enforced in generated types            |
+| maxItems             | ⚠️ Partial   | 4.7.24.4                                                            | Stored in normalized spec, not enforced in generated types            |
+| minLength            | ⚠️ Partial   | 4.7.24.4                                                            | Stored in normalized spec, not enforced in generated types            |
+| maxLength            | ⚠️ Partial   | 4.7.24.4 Stored in normalized spec, not enforced in generated types |
+| pattern              | ⚠️ Partial   | 4.7.24.4                                                            | Stored in normalized spec, not enforced in generated types            |
+| minimum              | ⚠️ Partial   | 4.7.24.4                                                            | Stored in normalized spec, not enforced in generated types            |
+| maximum              | ⚠️ Partial   | 4.7.24.4                                                            | Stored in normalized spec, not enforced in generated types            |
+| exclusiveMinimum     | ✅ Supported | 4.7.24.4                                                            | Uses `exclusiveMinimum: true` boolean, maps to `> minimum` validation |
+| exclusiveMaximum     | ✅ Supported | 4.7.24.4                                                            | Uses `exclusiveMaximum: true` boolean, maps to `< maximum` validation |
 
 ## Parameters
 
-| Feature           | Status       | OpenAPI Spec Section | Notes                                                                                         |
+| Feature           | Status       | OpenAPI spec section | Notes                                                                                         |
 | ----------------- | ------------ | -------------------- | --------------------------------------------------------------------------------------------- |
 | path parameters   | ✅ Supported | 4.7.12.1             | Required by default, maps to template variables in URL paths                                  |
 | query parameters  | ✅ Supported | 4.7.12.1             | Maps to query string parameters with URL encoding                                             |
@@ -59,9 +60,9 @@ This document lists all OpenAPI 3.0.x features supported by genoc. The tool auto
 | deprecated        | ✅ Supported | 4.7.12               | Marks parameters as deprecated in generated code                                              |
 | description       | ✅ Supported | 4.7.12.2             | Adds JSDoc documentation for parameters                                                       |
 
-## Request Bodies
+## Request bodies
 
-| Feature                           | Status       | OpenAPI Spec Section | Notes                                                     |
+| Feature                           | Status       | OpenAPI spec section | Notes                                                     |
 | --------------------------------- | ------------ | -------------------- | --------------------------------------------------------- |
 | application/json                  | ✅ Supported | 4.7.13               | Maps to TypeScript object types with proper serialization |
 | multipart/form-data               | ✅ Supported | 4.7.13               | Maps to FormData with proper file handling                |
@@ -71,9 +72,9 @@ This document lists all OpenAPI 3.0.x features supported by genoc. The tool auto
 | required/optional                 | ✅ Supported | 4.7.13               | Maps to required vs optional request body types           |
 | examples in request body          | ✅ Supported | 4.7.13               | Generates example types and documentation                 |
 
-## File Uploads
+## File uploads
 
-| Feature              | Status           | OpenAPI Spec Section | Notes                                                    |
+| Feature              | Status           | OpenAPI spec section | Notes                                                    |
 | -------------------- | ---------------- | -------------------- | -------------------------------------------------------- |
 | format: binary       | ✅ Supported     | 4.7.14.3             | Maps to `FileInput { data: Blob, filename: string }`     |
 | format: byte         | ✅ Supported     | 4.7.14.3             | Maps to `FileInput { data: Blob, filename: string }`     |
@@ -83,7 +84,7 @@ This document lists all OpenAPI 3.0.x features supported by genoc. The tool auto
 
 ## Responses
 
-| Feature             | Status       | OpenAPI Spec Section | Notes                                                  |
+| Feature             | Status       | OpenAPI spec section | Notes                                                  |
 | ------------------- | ------------ | -------------------- | ------------------------------------------------------ |
 | 2xx success codes   | ✅ Supported | 4.7.16               | Maps to typed response data with proper types          |
 | 4xx/5xx error codes | ✅ Supported | 4.7.16               | Maps to error types with proper status codes           |
@@ -94,9 +95,9 @@ This document lists all OpenAPI 3.0.x features supported by genoc. The tool auto
 | response headers    | ✅ Supported | 4.7.21               | Maps to typed response headers with proper names       |
 | response examples   | ✅ Supported | 4.7.17               | Generates example types and documentation              |
 
-## Error Handling
+## Error handling
 
-| Feature                    | Status       | OpenAPI Spec Section | Notes                                                      |
+| Feature                    | Status       | OpenAPI spec section | Notes                                                      |
 | -------------------------- | ------------ | -------------------- | ---------------------------------------------------------- |
 | ApiError<TStatus, TData>   | ✅ Supported | Generated code       | Generic error type with status and data generics           |
 | UnspecifiedApiError        | ✅ Supported | Generated code       | Fallback error type for unexpected error formats           |
@@ -106,9 +107,9 @@ This document lists all OpenAPI 3.0.x features supported by genoc. The tool auto
 | status-based errors        | ✅ Supported | 4.7.16               | Separate error types for different HTTP status codes       |
 | error response mapping     | ✅ Supported | 4.7.17               | Maps API error responses to TypeScript error types         |
 
-## $ref Resolution
+## `$ref` resolution
 
-| Feature                 | Status           | OpenAPI Spec Section | Notes                                                         |
+| Feature                 | Status           | OpenAPI spec section | Notes                                                         |
 | ----------------------- | ---------------- | -------------------- | ------------------------------------------------------------- |
 | JSON pointer resolution | ✅ Supported     | 4.7.23               | Resolves `$ref` using JSON pointer syntax                     |
 | chained refs            | ✅ Supported     | 4.7.23               | Supports multiple levels of `$ref` resolution                 |
@@ -119,7 +120,7 @@ This document lists all OpenAPI 3.0.x features supported by genoc. The tool auto
 
 ## Components
 
-| Feature         | Status           | OpenAPI Spec Section | Notes                                         |
+| Feature         | Status           | OpenAPI spec section | Notes                                         |
 | --------------- | ---------------- | -------------------- | --------------------------------------------- |
 | schemas         | ✅ Supported     | 4.7.7                | Central schema definitions with proper naming |
 | responses       | ✅ Supported     | 4.7.7                | Reusable response definitions                 |
@@ -131,9 +132,9 @@ This document lists all OpenAPI 3.0.x features supported by genoc. The tool auto
 | callbacks       | ❌ Not supported | 4.7.7                | Callback specifications are not processed     |
 | examples        | ✅ Supported     | 4.7.7                | Reusable example definitions                  |
 
-## Security Schemes
+## Security schemes
 
-| Feature                   | Status       | OpenAPI Spec Section | Notes                                              |
+| Feature                   | Status       | OpenAPI spec section | Notes                                              |
 | ------------------------- | ------------ | -------------------- | -------------------------------------------------- |
 | apiKey (query)            | ✅ Supported | 4.7.27.1             | Maps to query parameter authentication             |
 | apiKey (header)           | ✅ Supported | 4.7.27.1             | Maps to header authentication                      |
@@ -150,7 +151,7 @@ This document lists all OpenAPI 3.0.x features supported by genoc. The tool auto
 
 ## Servers
 
-| Feature                 | Status       | OpenAPI Spec Section | Notes                                           |
+| Feature                 | Status       | OpenAPI spec section | Notes                                           |
 | ----------------------- | ------------ | -------------------- | ----------------------------------------------- |
 | server URLs             | ✅ Supported | 4.7.5                | Maps to base URL configuration                  |
 | server variables        | ✅ Supported | 4.7.5                | Maps to configurable URL variables              |
@@ -158,9 +159,9 @@ This document lists all OpenAPI 3.0.x features supported by genoc. The tool auto
 | default variable values | ✅ Supported | 4.7.5                | Uses default values when not specified          |
 | multiple servers        | ✅ Supported | 4.7.5                | Supports multiple server configurations         |
 
-## Path Operations
+## Path operations
 
-| Feature         | Status       | OpenAPI Spec Section | Notes                                             |
+| Feature         | Status       | OpenAPI spec section | Notes                                             |
 | --------------- | ------------ | -------------------- | ------------------------------------------------- |
 | GET             | ✅ Supported | 4.7.10               | Maps to GET method with proper URL handling       |
 | POST            | ✅ Supported | 4.7.10               | Maps to POST method with request body support     |
