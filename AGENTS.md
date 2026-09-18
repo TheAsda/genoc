@@ -77,7 +77,7 @@ spec-reader → version detection → validation → ref-resolver → analyzer (
 | `--config`               | (none)          | Path to `.genocrc.yml` / `.genocrc.json`; skips discovery                                                |
 | `--project`              | (none)          | Run only the named client from a multi-client config                                                     |
 
-Config files: `.genocrc.yml` (not `.genocrc.yaml`) and `.genocrc.json`, discovered per-directory then upward to the git boundary; `--config <path>` skips discovery. Relative `input`/`outputDir` resolve against the config file's directory. See the README "Configuration Files" section for shapes, precedence, and conflict rules.
+Config files: `.genocrc.yml` (not `.genocrc.yaml`) and `.genocrc.json`, discovered per-directory then upward to the git boundary; `--config <path>` skips discovery. Relative `input`/`outputDir` resolve against the config file's directory. See `docs/configuration.md` for shapes, precedence, and conflict rules.
 
 ## ESM module system
 
