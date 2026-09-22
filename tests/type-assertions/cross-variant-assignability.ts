@@ -78,7 +78,10 @@ const _updateRejectsCreate: false = updateRejectsCreate;
 declare const createIsNever: IsNever<CreateThing>;
 const _createNotNever: false = createIsNever;
 const createOk: CreateThing = { $type: 'Create', id: anId, name: 'thing' };
-declare const createRejectsFull: Accepts<CreateThing, { id: UuidString; name: string; $type: 'Full' }>;
+declare const createRejectsFull: Accepts<
+  CreateThing,
+  { id: UuidString; name: string; $type: 'Full' }
+>;
 const _createRejectsFull: false = createRejectsFull;
 declare const createRejectsPartial: Accepts<CreateThing, { id: UuidString; $type: 'Partial' }>;
 const _createRejectsPartial: false = createRejectsPartial;
@@ -251,10 +254,7 @@ const _selfKidNotNever: false = selfKidIsNever;
 const selfKidOk: SelfKid = { self: 'kid', parent: selfVariantValue };
 declare const selfKidRejectsMissingParent: Accepts<SelfKid, { self: 'kid'; kidNote: string }>;
 const _selfKidRejectsMissingParent: false = selfKidRejectsMissingParent;
-declare const selfKidRejectsWrongLiteral: Accepts<
-  SelfKid,
-  { self: 'other'; parent: Self0Variant }
->;
+declare const selfKidRejectsWrongLiteral: Accepts<SelfKid, { self: 'other'; parent: Self0Variant }>;
 const _selfKidRejectsWrongLiteral: false = selfKidRejectsWrongLiteral;
 
 declare const selfVariantIsNever: IsNever<Self0Variant>;
