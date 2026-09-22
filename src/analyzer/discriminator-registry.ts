@@ -2,6 +2,7 @@ import type { RefResolver } from '../parser/ref-resolver.js';
 import type { ReferenceObject, SchemaObject } from '../types/openapi.js';
 import { buildSchemaRenameMap, sanitizeTypeName } from '../utils/generator-helpers.js';
 import { RESERVED_TYPE_NAMES } from '../utils/operation-naming.js';
+import { escapeStringLiteral } from '../utils/string.js';
 import { parseJsonPointer } from '../utils/url.js';
 
 /**
@@ -26,13 +27,7 @@ import { parseJsonPointer } from '../utils/url.js';
  * for renamed subtypes).
  */
 
-/** Escape a discriminator literal for interpolation inside a TS single-quoted string (D8: `'` and `\` only). */
-function escapeDiscriminatorLiteral(value: string): string {
-  return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-}
-
-/**
- * Rename-aware type-name derivation — the exact expression `analyze()` wires
+/** Rename-aware type-name derivation — the exact expression `analyze()` wires
  * into the mapper's `typeNameGenerator` (`renameMap.get(raw) ?? sanitized`).
  * Single source of truth so registry name keys can never diverge from the
  * names the mapper emits for the same `$ref`.
@@ -237,7 +232,7 @@ export function buildDiscriminatorRegistry(
         const rawSegment = rawRefSegment(refStr);
         const entry: DiscriminatorVariantEntry = {
           propertyName: disc.propertyName,
-          literalValue: escapeDiscriminatorLiteral(mappingKey),
+          literalValue: escapeStringLiteral(mappingKey),
           isNamed: allSchemaNames.has(renameAwareTypeName(renameMap, rawSegment)),
           isUnion: (target?.oneOf?.length ?? 0) > 0 || (target?.anyOf?.length ?? 0) > 0,
           isNullable:
@@ -265,7 +260,7 @@ export function buildDiscriminatorRegistry(
         // D3 fallback chain for unmapped variants: own const > single-value
         // enum > RAW last ref segment (the runtime value, NOT the sanitized
         // type name).
-        literalValue: escapeDiscriminatorLiteral(own?.value ?? rawSegment),
+        literalValue: escapeStringLiteral(own?.value ?? rawSegment),
         isNamed: allSchemaNames.has(renameAwareTypeName(renameMap, rawSegment)),
         isUnion: (target?.oneOf?.length ?? 0) > 0 || (target?.anyOf?.length ?? 0) > 0,
         isNullable:

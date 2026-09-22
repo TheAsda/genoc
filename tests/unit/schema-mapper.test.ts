@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { buildDiscriminatorRegistry } from '../../src/analyzer/discriminator-registry.js';
 import { SchemaMapper } from '../../src/analyzer/schema-mapper.js';
 import type { TypeNameGenerator } from '../../src/analyzer/schema-mapper.js';
 import { RefResolver } from '../../src/parser/ref-resolver.js';
@@ -1483,14 +1484,25 @@ describe('SchemaMapper', () => {
       Object.keys(schemas).map((name) => renameMap.get(name) ?? sanitizeTypeName(name))
     );
     const warnings: string[] = [];
+    const warnSink = (msg: string) => {
+      warnings.push(msg);
+    };
+    // Mirrors analyze(): the registry is the mapper's single discriminator
+    // knowledge source (and shares the warning sink).
+    const discriminatorRegistry = buildDiscriminatorRegistry(
+      schemas,
+      resolver,
+      renameMap,
+      allSchemaNames,
+      warnSink
+    );
     const mapper = new SchemaMapper(
       resolver,
       renamingTypeGenerator,
       discriminatorTargets,
       allSchemaNames,
-      (msg) => {
-        warnings.push(msg);
-      }
+      warnSink,
+      discriminatorRegistry
     );
     return { mapper, warnings, schemas };
   }

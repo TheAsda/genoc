@@ -74,6 +74,14 @@ function substituteDiscriminatedType(
 const INDENT_UNIT = '  ';
 
 /**
+ * Shared warning channel for analyze() and the discriminator registry —
+ * the same sink the mapper defaults to.
+ */
+function writeWarning(message: string): void {
+  process.stderr.write(message);
+}
+
+/**
  * Build a description-only type-level JSDoc comment for operation-derived
  * types (body / response). Returns '' when the description is absent or
  * whitespace-only so callers can skip emission entirely.
@@ -423,24 +431,25 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
     }
   }
 
-  // Family-aware discriminator registry (additive infrastructure, plan D5).
-  // Built here once per analyze() run; the mapper seam rewrite (Task 3)
-  // consumes it. Until then the legacy discriminatorInfo /
-  // discriminatorTargets paths above stay fully alive and consumed — the
-  // registry has zero effect on output.
+  // Family-aware discriminator registry (plan D5) — the single knowledge
+  // source the mapper's ref-translation seam consumes. Legacy
+  // discriminatorInfo / discriminatorTargets stay alive above until the
+  // Task 4 deletion pass.
   const discriminatorRegistry = buildDiscriminatorRegistry(
     doc.components?.schemas,
     resolver,
     renameMap,
-    allSchemaNames
+    allSchemaNames,
+    writeWarning
   );
-  void discriminatorRegistry;
 
   const mapper = new SchemaMapper(
     resolver,
     renamingTypeGenerator,
     discriminatorTargets,
-    allSchemaNames
+    allSchemaNames,
+    undefined,
+    discriminatorRegistry
   );
 
   // Section 1: Schema types
@@ -470,16 +479,17 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
     jsDoc: entry.jsDoc,
   }));
 
-  for (const [, info] of discriminatorInfo) {
-    const subtypeNames = Array.from(info.mapping.values());
-    if (subtypeNames.length === 0) continue;
-    const unionType = subtypeNames.join(' | ');
-    const renamedBase = renameMap.get(info.rawName) ?? sanitizeTypeName(info.rawName);
+  // Variant unions are emitted from the registry (D6): ALWAYS (mapping
+  // values ∪ implicit oneOf/anyOf refs, deduped by rename-aware name) and
+  // under collision-safe names so a user schema named `{Base}Variant`
+  // cannot collide with the generated union.
+  for (const family of discriminatorRegistry.families.values()) {
+    if (family.variantUnionMembers.length === 0) continue;
     schemaTypes.push({
-      name: `${renamedBase}Variant`,
-      definition: `export type ${renamedBase}Variant = ${unionType};`,
+      name: family.variantUnionName,
+      definition: `export type ${family.variantUnionName} = ${family.variantUnionMembers.join(' | ')};`,
     });
-    allSchemaNames.add(`${renamedBase}Variant`);
+    allSchemaNames.add(family.variantUnionName);
   }
 
   const { operations: analyzedOperations, requestBodySchemas } = analyzePathsDetailed(
