@@ -177,6 +177,16 @@ export function sanitizeIdentifier(str: string): string {
 }
 
 /**
+ * Escape a value for interpolation inside a TypeScript single-quoted string
+ * literal (backslash first, then the quote itself)
+ * @param value The raw string value
+ * @returns The value with `\` and `'` escaped
+ */
+export function escapeStringLiteral(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+/**
  * Quote a key if needed for TypeScript object literals
  * @param key The key to potentially quote
  * @returns Quoted key if needed, original key otherwise

@@ -1,0 +1,61 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Discriminator Implicit Variant",
+    "version": "1.0.0"
+  },
+  "components": {
+    "schemas": {
+      "Family": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/my-variant"
+          },
+          {
+            "$ref": "#/components/schemas/other-variant"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "kind"
+        }
+      },
+      "my-variant": {
+        "type": "object",
+        "required": ["label"],
+        "properties": {
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "other-variant": {
+        "type": "object",
+        "required": ["note"],
+        "properties": {
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/families": {
+      "get": {
+        "summary": "Get family",
+        "responses": {
+          "200": {
+            "description": "Family payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Family"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

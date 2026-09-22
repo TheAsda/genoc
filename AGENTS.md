@@ -109,7 +109,7 @@ import { load } from '../parser/spec-reader.js';
 - **`tests/validation/`** — comprehensive OpenAPI feature coverage tests organized by version and area (data types, keywords, params, bodies, uploads, refs, components, responses, errors, security, servers, operations, webhooks). 13 test files.
 - **`tests/spec-examples/`** — OpenAPI spec feature tests (schemas, parameters, request bodies, responses). Has `v3.0/` subdirectory for version-specific behavior (nullable, exclusive-min-max, file-upload).
 - **`tests/fixtures/`** — OpenAPI spec files used by tests. `v3.0/` subdirectory for 3.0-specific fixtures.
-- **`tests/type-assertions/`** — Compile-time type correctness checks (e.g. `is-defined-error-types.ts`).
+- **`tests/type-assertions/`** — Compile-time type correctness checks (e.g. `is-defined-error-types.ts`, `cross-variant-assignability.ts`).
 - **`tests/poc/`** — Proof-of-concept files validating codegen patterns compile correctly (e.g. `symbol-const-check.ts`).
 - **`tests/type-helpers.ts`** / **`tests/type-helpers.test.ts`** — Shared type assertion utilities.
 - Vitest config: `globals: true` — tests use global `describe`/`it`/`expect` without explicit imports.
@@ -130,6 +130,8 @@ Integration tests compile generated output with `tsc --strict` to verify type co
 ## Generated output structure
 
 **Contracts file** (`*.contracts.ts`): schema types → security scheme types → server variable types → per-operation query/header/body/response/error types → `StreamResponse` class (headers as `Record<string, string>`) → `ErrorResponse` class (headers as `Record<string, string>`) → `ApiError<TStatus, TData>` class → `DefaultApiError<TData>` class → `RequesterFailError`. Also includes per-operation error union types.
+
+Discriminated families (from the discriminator registry in `AnalyzedSpec`): each variant injects its discriminator literal exactly once, at its own named definition; same-family cross-variant inheritance renders `Omit<Sibling, 'Prop'>`; every family always emits a collision-safe `{Base}Variant` union (mapping values ∪ oneOf refs); a `$ref` to a discriminator base resolves to `{Base}Variant` at all sites except inside same-family member definitions (refs to mapping targets stay bare names).
 
 **Client file** (`*.client.ts`): imports from contracts file (`ApiError`, `UnspecifiedApiError`, `ErrorResponse`, `StreamResponse`, `RequesterFailError`) → `decorateWithErrors<T, E>()` (attaches `__definedErrors` property) → `Requester` type (returns `TResponse | StreamResponse | ErrorResponse`) → `isDefinedError` type guard (uses `__definedErrors` property for narrowing) → `createClient(requester)` factory → methods with try/catch wrapping `ApiError` throws + `StreamResponse` binary handling. Error codes attached via `decorateWithErrors(fn, [400, ...] as const)`.
 

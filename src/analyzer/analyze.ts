@@ -16,6 +16,7 @@ import {
   toPascalCase,
 } from '../utils/generator-helpers.js';
 import { operationEmissions, RESERVED_TYPE_NAMES } from '../utils/operation-naming.js';
+import { buildDiscriminatorRegistry, renameAwareTypeName } from './discriminator-registry.js';
 import { analyzePathsDetailed, type AnalyzedParameter } from './path-analyzer.js';
 import { SchemaMapper } from './schema-mapper.js';
 import type {
@@ -30,47 +31,18 @@ import type {
 } from './types.js';
 
 /**
- * If the schema is a $ref to a discriminated base type (or an array whose items
- * are), replace the type name with the {Base}Variant union type.
- */
-function substituteDiscriminatedType(
-  tsType: string,
-  schema: unknown,
-  discriminatorInfo: Map<string, { propertyName: string; mapping: Map<string, string> }>,
-  renameMap: Map<string, string>
-): string {
-  const refSchema = schema as Record<string, unknown> | null;
-  if (!refSchema || typeof refSchema !== 'object') return tsType;
-
-  if (typeof refSchema.$ref === 'string') {
-    const rawName = (refSchema.$ref as string).split('/').pop()!;
-    const schemaName = sanitizeTypeName(rawName);
-    if (schemaName && discriminatorInfo.has(schemaName)) {
-      const renamed = renameMap.get(rawName) ?? schemaName;
-      return tsType.replace(new RegExp(`\\b${renamed}\\b`, 'g'), `${renamed}Variant`);
-    }
-  }
-
-  if (refSchema.items && typeof refSchema.items === 'object') {
-    const items = refSchema.items as Record<string, unknown>;
-    if (typeof items.$ref === 'string') {
-      const rawName = (items.$ref as string).split('/').pop()!;
-      const schemaName = sanitizeTypeName(rawName);
-      if (schemaName && discriminatorInfo.has(schemaName)) {
-        const renamed = renameMap.get(rawName) ?? schemaName;
-        return tsType.replace(new RegExp(`\\b${renamed}\\b`, 'g'), `${renamed}Variant`);
-      }
-    }
-  }
-
-  return tsType;
-}
-
-/**
  * Indent unit matching `INDENT_UNIT` in schema-mapper.ts (2 spaces, pinned by
  * the mapper's golden tests). Kept local to avoid modifying the mapper module.
  */
 const INDENT_UNIT = '  ';
+
+/**
+ * Shared warning channel for analyze() and the discriminator registry —
+ * the same sink the mapper defaults to.
+ */
+function writeWarning(message: string): void {
+  process.stderr.write(message);
+}
 
 /**
  * Build a description-only type-level JSDoc comment for operation-derived
@@ -372,48 +344,8 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
   const renamingTypeGenerator = (refString: string): string => {
     const segments = refString.split('/');
     const rawSegment = segments[segments.length - 1] || 'unknown';
-    return renameMap.get(rawSegment) ?? sanitizeTypeName(rawSegment);
+    return renameAwareTypeName(renameMap, rawSegment);
   };
-
-  const discriminatorInfo = new Map<
-    string,
-    {
-      rawName: string;
-      propertyName: string;
-      mapping: Map<string, string>;
-    }
-  >();
-
-  if (doc.components?.schemas) {
-    for (const [name, schema] of Object.entries(doc.components.schemas)) {
-      const resolved = resolver.resolve<SchemaObject>(schema as SchemaObject | ReferenceObject);
-      if (resolved.discriminator) {
-        const mapping = new Map<string, string>();
-        if (resolved.discriminator.mapping) {
-          for (const [key, ref] of Object.entries(resolved.discriminator.mapping)) {
-            const rawTarget = ref.split('/').pop() || key;
-            const renamedTarget = renameMap.get(rawTarget) ?? sanitizeTypeName(rawTarget);
-            mapping.set(key, renamedTarget);
-          }
-        }
-        discriminatorInfo.set(sanitizeTypeName(name), {
-          rawName: name,
-          propertyName: resolved.discriminator.propertyName,
-          mapping,
-        });
-      }
-    }
-  }
-
-  const discriminatorTargets = new Map<string, { propertyName: string; literalValue: string }>();
-  for (const [, info] of discriminatorInfo) {
-    for (const [mappingKey, schemaName] of info.mapping) {
-      discriminatorTargets.set(schemaName, {
-        propertyName: info.propertyName,
-        literalValue: mappingKey,
-      });
-    }
-  }
 
   const allSchemaNames = new Set<string>();
   if (doc.components?.schemas) {
@@ -422,11 +354,25 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
     }
   }
 
+  // Family-aware discriminator registry (plan D5) — the single knowledge
+  // source for discriminator translation: the mapper's ref-translation seam
+  // consumes it, and the always-emitted `{Base}Variant` unions below are
+  // emitted from it.
+  const discriminatorRegistry = buildDiscriminatorRegistry(
+    doc.components?.schemas,
+    resolver,
+    renameMap,
+    allSchemaNames,
+    writeWarning
+  );
+
   const mapper = new SchemaMapper(
     resolver,
     renamingTypeGenerator,
-    discriminatorTargets,
-    allSchemaNames
+    undefined,
+    allSchemaNames,
+    undefined,
+    discriminatorRegistry
   );
 
   // Section 1: Schema types
@@ -456,16 +402,17 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
     jsDoc: entry.jsDoc,
   }));
 
-  for (const [, info] of discriminatorInfo) {
-    const subtypeNames = Array.from(info.mapping.values());
-    if (subtypeNames.length === 0) continue;
-    const unionType = subtypeNames.join(' | ');
-    const renamedBase = renameMap.get(info.rawName) ?? sanitizeTypeName(info.rawName);
+  // Variant unions are emitted from the registry (D6): ALWAYS (mapping
+  // values ∪ implicit oneOf/anyOf refs, deduped by rename-aware name) and
+  // under collision-safe names so a user schema named `{Base}Variant`
+  // cannot collide with the generated union.
+  for (const family of discriminatorRegistry.families.values()) {
+    if (family.variantUnionMembers.length === 0) continue;
     schemaTypes.push({
-      name: `${renamedBase}Variant`,
-      definition: `export type ${renamedBase}Variant = ${unionType};`,
+      name: family.variantUnionName,
+      definition: `export type ${family.variantUnionName} = ${family.variantUnionMembers.join(' | ')};`,
     });
-    allSchemaNames.add(`${renamedBase}Variant`);
+    allSchemaNames.add(family.variantUnionName);
   }
 
   const { operations: analyzedOperations, requestBodySchemas } = analyzePathsDetailed(
@@ -576,15 +523,9 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
           return 'StreamResponse';
         }
         if (r.schema) {
-          const result = mapper.mapSchema(r.schema, undefined, 'response').tsType;
-          const substituted = substituteDiscriminatedType(
-            result,
-            r.schema,
-            discriminatorInfo,
-            renameMap
-          );
-          r.finishedType = substituted;
-          return substituted;
+          const tsType = mapper.mapSchema(r.schema, undefined, 'response').tsType;
+          r.finishedType = tsType;
+          return tsType;
         }
         r.finishedType = r.isVoid ? 'void' : 'unknown';
         return r.finishedType;

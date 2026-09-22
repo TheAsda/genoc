@@ -1,0 +1,102 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Discriminator Escaping",
+    "version": "1.0.0"
+  },
+  "components": {
+    "schemas": {
+      "QuoteBase": {
+        "type": "object",
+        "required": ["who", "id"],
+        "properties": {
+          "who": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        },
+        "discriminator": {
+          "propertyName": "who",
+          "mapping": {
+            "O'Brien": "#/components/schemas/ApostropheBean",
+            "back\\slash": "#/components/schemas/BackslashBean",
+            "123": "#/components/schemas/NumericBean"
+          }
+        }
+      },
+      "ApostropheBean": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/QuoteBase"
+          },
+          {
+            "type": "object",
+            "required": ["apostropheNote"],
+            "properties": {
+              "apostropheNote": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "BackslashBean": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/QuoteBase"
+          },
+          {
+            "type": "object",
+            "required": ["backslashNote"],
+            "properties": {
+              "backslashNote": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "NumericBean": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/QuoteBase"
+          },
+          {
+            "type": "object",
+            "required": ["numericNote"],
+            "properties": {
+              "numericNote": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "MoodEnum": {
+        "type": "string",
+        "enum": ["it's fine", "plain"]
+      }
+    }
+  },
+  "paths": {
+    "/quotes": {
+      "get": {
+        "summary": "Get quotes",
+        "responses": {
+          "200": {
+            "description": "Quote list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteBase"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

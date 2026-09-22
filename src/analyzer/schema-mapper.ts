@@ -3,7 +3,9 @@ import type { TypeMappingResult } from '../types/contracts.js';
 import type { SchemaObject, ReferenceObject } from '../types/openapi.js';
 import { formatToBrandTypeName } from '../utils/case.js';
 import { buildTypeJsDoc, sanitizeTypeName } from '../utils/generator-helpers.js';
-import { quoteKey } from '../utils/string.js';
+import { escapeStringLiteral, quoteKey } from '../utils/string.js';
+import { parseJsonPointer } from '../utils/url.js';
+import type { DiscriminatorRegistry, DiscriminatorVariantEntry } from './discriminator-registry.js';
 
 /** Indentation contract for multi-line types — 2-space unit pinned from the generated ServerParams interface; binding for downstream generators. */
 const INDENT_UNIT = '  ';
@@ -47,6 +49,82 @@ function needsParens(tsType: string): boolean {
 }
 
 /**
+ * Whether the rendered type has a top-level `|` (depth 0, outside any
+ * brackets/braces and outside string literals). Unlike the substring check
+ * in `needsParens`, nested unions inside `{...}`, `<...>` or `'...'` do not
+ * trigger it — this is the guard for appending `& {...}` onto a type whose
+ * tail could otherwise capture the append (`X | null & {...}` loses the
+ * literal to `null`).
+ */
+function hasTopLevelUnion(tsType: string): boolean {
+  let depth = 0;
+  let inString = false;
+  for (let i = 0; i < tsType.length; i++) {
+    const ch = tsType[i];
+    if (ch === '\\') {
+      i++;
+      continue;
+    }
+    if (ch === "'") {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+    if (ch === '(' || ch === '{' || ch === '[' || ch === '<') depth++;
+    else if (ch === ')' || ch === '}' || ch === ']' || ch === '>') depth--;
+    else if (depth === 0 && ch === '|' && tsType[i - 1] === ' ' && tsType[i + 1] === ' ') {
+      return true;
+    }
+  }
+  return false;
+}
+
+/** Decode the last segment of a `$ref` string into its raw component key (`~1`/`~0` unescaped). */
+function decodedLastRefSegment(refStr: string): string {
+  const segments = refStr.startsWith('#') ? parseJsonPointer(refStr.slice(1)) : refStr.split('/');
+  return segments[segments.length - 1] ?? refStr;
+}
+
+/** Encode a component key for embedding in a `#/components/schemas/…` ref string. */
+function encodePointerSegment(segment: string): string {
+  return segment.replace(/~/g, '~0').replace(/\//g, '~1');
+}
+
+/**
+ * Same-family definition spine: set while mapping a discriminator mapping
+ * target's OWN named definition (mapSchema with the target's name). Direct
+ * combinator members of that definition see it; nested property/item refs do
+ * not (D1/D2/D4 scoping).
+ */
+interface SpineContext {
+  familyId: string;
+  propertyName: string;
+  literalValue: string;
+}
+
+function spineForEntry(entry: DiscriminatorVariantEntry): SpineContext {
+  return {
+    familyId: entry.familyId,
+    propertyName: entry.propertyName,
+    literalValue: entry.literalValue,
+  };
+}
+
+/**
+ * A variant's own declared discriminant on the discriminator property:
+ * `const` first, then a single-value `enum` (D3). Multi-value enums and
+ * absent props yield nothing.
+ */
+function ownDeclaredDiscriminant(propSchema: SchemaObject | undefined): string | undefined {
+  if (!propSchema) return undefined;
+  if (propSchema.const !== undefined) return String(propSchema.const);
+  if (propSchema.enum !== undefined && propSchema.enum.length === 1) {
+    return String(propSchema.enum[0]);
+  }
+  return undefined;
+}
+
+/**
  * SchemaMapper converts OpenAPI 3.1 Schema Objects to TypeScript type strings.
  *
  * Handles primitives, objects, arrays, enums, combinators (allOf/oneOf/anyOf),
@@ -59,7 +137,8 @@ export class SchemaMapper {
     string,
     { propertyName: string; literalValue: string }
   >;
-  private readonly reservedNames: Set<string>;
+  private readonly emittedNames: Set<string>;
+  private readonly discriminatorRegistry: DiscriminatorRegistry | undefined;
   private readonly brandedTypes: Map<string, { name: string; format: string; baseType: string }> =
     new Map();
   private nullableWarned = false;
@@ -69,17 +148,24 @@ export class SchemaMapper {
     resolver: RefResolver,
     typeNameGenerator?: TypeNameGenerator,
     discriminatorTargets?: Map<string, { propertyName: string; literalValue: string }>,
-    reservedNames?: Set<string>,
-    warnSink?: (message: string) => void
+    emittedNames?: Set<string>,
+    warnSink?: (message: string) => void,
+    discriminatorRegistry?: DiscriminatorRegistry
   ) {
     // NOTE: discriminatorTargets must be keyed by names produced by the SAME
     // (rename-aware) typeNameGenerator that resolves $refs. Passing targets
     // keyed by raw schema names means renamed subtypes silently lose their
     // `& { prop: 'literal' }` intersection in the generated output.
+    // analyze() no longer builds or passes a targets map — the discriminator
+    // registry (when provided) is the SINGLE discriminator knowledge source
+    // (D1–D10 seam). The optional legacy targets param is kept for
+    // registry-less constructions; it only drives the legacy ref fallback in
+    // `resolveDiscriminatorInfo` below.
     this.resolver = resolver;
     this.typeNameGenerator = typeNameGenerator ?? defaultTypeNameGenerator;
     this.discriminatorTargets = discriminatorTargets ?? new Map();
-    this.reservedNames = reservedNames ?? new Set();
+    this.emittedNames = emittedNames ?? new Set();
+    this.discriminatorRegistry = discriminatorRegistry;
     this.warnSink =
       warnSink ??
       ((message) => {
@@ -109,21 +195,42 @@ export class SchemaMapper {
     }
 
     const visited = new Set<SchemaObject>();
-    const result = this.mapInternal(schema, name, context, visited, 0);
 
-    if (name && this.discriminatorTargets.has(name)) {
-      const target = this.discriminatorTargets.get(name)!;
-      result.tsType += ` & { ${quoteKey(target.propertyName)}: '${target.literalValue}' }`;
+    if (this.discriminatorRegistry && name !== undefined) {
+      const entry = this.discriminatorRegistry.byName.get(name);
+      const spine = entry ? spineForEntry(entry) : undefined;
+      const result = this.mapInternal(schema, name, context, visited, 0, spine);
+      if (entry) {
+        return this.appendDiscriminatorLiteral(result, entry.propertyName, entry.literalValue);
+      }
+      return result;
     }
 
-    return result;
+    return this.mapInternal(schema, name, context, visited, 0, undefined);
+  }
+
+  /**
+   * Append the discriminator literal intersection exactly ONCE (site 2),
+   * parenthesizing a top-level union so `X | null & {...}` cannot bind the
+   * literal to the last union member only (D9).
+   */
+  private appendDiscriminatorLiteral(
+    result: TypeMappingResult,
+    propertyName: string,
+    literalValue: string
+  ): TypeMappingResult {
+    const appendage = ` & { ${quoteKey(propertyName)}: '${literalValue}' }`;
+    const tsType = hasTopLevelUnion(result.tsType)
+      ? `(${result.tsType})${appendage}`
+      : `${result.tsType}${appendage}`;
+    return { tsType, imports: result.imports };
   }
 
   private getBrandTypeName(format: string | undefined, openApiType: string): string | null {
     if (!format || format.trim() === '') return null;
     if (format === 'binary' || format === 'byte') return null;
     const brandName = formatToBrandTypeName(format, openApiType);
-    if (this.reservedNames.has(brandName)) return null;
+    if (this.emittedNames.has(brandName)) return null;
     return brandName;
   }
 
@@ -132,11 +239,16 @@ export class SchemaMapper {
     name: string | undefined,
     context: 'request' | 'response' | undefined,
     visited: Set<SchemaObject>,
-    indent: number
+    indent: number,
+    spine: SpineContext | undefined
   ): TypeMappingResult {
     if (isRefObject(schema)) {
       const refStr = (schema as unknown as { $ref: string }).$ref;
       const refName = this.typeNameGenerator(refStr);
+
+      if (this.discriminatorRegistry) {
+        return this.translateRefThroughSeam(refStr, refName, context, visited, indent, spine);
+      }
 
       let resolved: SchemaObject | undefined;
       try {
@@ -148,9 +260,19 @@ export class SchemaMapper {
       if (resolved) {
         const discInfo = this.resolveDiscriminatorInfo(resolved, refStr);
         if (discInfo) {
-          const expanded = this.mapInternal(resolved, undefined, context, visited, indent);
-          expanded.tsType += ` & { ${quoteKey(discInfo.propertyName)}: '${discInfo.literalValue}' }`;
-          return expanded;
+          const expanded = this.mapInternal(
+            resolved,
+            undefined,
+            context,
+            visited,
+            indent,
+            undefined
+          );
+          return this.appendDiscriminatorLiteral(
+            expanded,
+            discInfo.propertyName,
+            escapeStringLiteral(discInfo.literalValue)
+          );
         }
       }
 
@@ -186,7 +308,7 @@ export class SchemaMapper {
     }
 
     if (s.allOf !== undefined && s.allOf.length > 0) {
-      const result = this.mapCombinator(s.allOf, '&', context, visited, indent);
+      const result = this.mapCombinator(s.allOf, '&', context, visited, indent, spine);
       if (s.nullable === true) {
         return {
           tsType: needsParens(result.tsType)
@@ -200,8 +322,8 @@ export class SchemaMapper {
 
     if (s.oneOf !== undefined && s.oneOf.length > 0) {
       const result = s.discriminator
-        ? this.mapDiscriminatedUnion(s.oneOf, s.discriminator, context, visited, indent)
-        : this.mapCombinator(s.oneOf, '|', context, visited, indent);
+        ? this.mapDiscriminatedUnion(s.oneOf, s.discriminator, context, visited, indent, spine)
+        : this.mapCombinator(s.oneOf, '|', context, visited, indent, spine);
       if (s.nullable === true) {
         return {
           tsType: needsParens(result.tsType)
@@ -215,8 +337,8 @@ export class SchemaMapper {
 
     if (s.anyOf !== undefined && s.anyOf.length > 0) {
       const result = s.discriminator
-        ? this.mapDiscriminatedUnion(s.anyOf, s.discriminator, context, visited, indent)
-        : this.mapCombinator(s.anyOf, '|', context, visited, indent);
+        ? this.mapDiscriminatedUnion(s.anyOf, s.discriminator, context, visited, indent, spine)
+        : this.mapCombinator(s.anyOf, '|', context, visited, indent, spine);
       if (s.nullable === true) {
         return {
           tsType: needsParens(result.tsType)
@@ -243,7 +365,8 @@ export class SchemaMapper {
         name,
         context,
         new Set(visited),
-        indent
+        indent,
+        spine
       );
       if (hasNull) {
         return {
@@ -302,10 +425,116 @@ export class SchemaMapper {
       case 'array':
         return this.mapArray(s, context, visited, indent);
       case 'object':
-        return this.mapObject(s, name, context, visited, indent);
+        return this.mapObject(s, name, context, visited, indent, spine);
       default:
         return { tsType: 'unknown', imports: [] };
     }
+  }
+
+  /**
+   * The single ref-translation seam (site 1). When the mapper carries a
+   * discriminator registry, EVERY `$ref` resolves through here:
+   *
+   * - a discriminator BASE becomes `{Base}Variant` at all sites except
+   *   inside a same-family member's own definition spine, where it stays
+   *   the bare base name (structural inheritance, no circularity — D1);
+   * - a same-family mapping target inside a spine becomes `Omit<M, 'P'>`,
+   *   falling back to inline expansion WITHOUT the literal when M is a
+   *   union, nullable, unnamed or non-object (D2/D4);
+   * - a mapping target at any other site is its bare name — the literal is
+   *   injected exactly once, at the target's own named definition.
+   */
+  private translateRefThroughSeam(
+    refStr: string,
+    refName: string,
+    context: 'request' | 'response' | undefined,
+    visited: Set<SchemaObject>,
+    indent: number,
+    spine: SpineContext | undefined
+  ): TypeMappingResult {
+    const registry = this.discriminatorRegistry!;
+    const canonical = this.canonicalSchemasRef(refStr);
+
+    const baseFamily = registry.baseRefs.get(refStr) ?? registry.baseRefs.get(canonical);
+    if (baseFamily) {
+      if (spine && spine.familyId === baseFamily.familyId) {
+        return { tsType: baseFamily.baseTypeName, imports: [baseFamily.baseTypeName] };
+      }
+      return { tsType: baseFamily.variantUnionName, imports: [baseFamily.variantUnionName] };
+    }
+
+    const entry = registry.byRef.get(refStr) ?? registry.byRef.get(canonical);
+    if (entry) {
+      if (spine && spine.familyId === entry.familyId) {
+        return this.mapSameFamilySpineRef(entry, context, visited, indent);
+      }
+      if (entry.isNamed) {
+        return { tsType: entry.typeName, imports: [entry.typeName] };
+      }
+      // Unnamed target at a leaf site: expand inline and append the literal
+      // here — the target has no named definition to carry it.
+      const resolved = this.tryResolveRef(entry.refStr);
+      if (resolved) {
+        const expanded = this.mapInternal(
+          resolved,
+          undefined,
+          context,
+          visited,
+          indent,
+          spineForEntry(entry)
+        );
+        return this.appendDiscriminatorLiteral(expanded, entry.propertyName, entry.literalValue);
+      }
+      return { tsType: entry.typeName, imports: [entry.typeName] };
+    }
+
+    return { tsType: refName, imports: [refName] };
+  }
+
+  /**
+   * D2/D4 spine rule for a same-family `$ref`. `Omit<M, 'P'>` strips the
+   * sibling's own literal so the appender can re-add ours; the inline-strip
+   * fallback covers the cases where `Omit` would silently drop data
+   * (union target: `Omit<A|B,K>` drops variant props; nullable target:
+   * `Omit<M|null,K>` collapses to `{}`; unnamed/non-object target).
+   */
+  private mapSameFamilySpineRef(
+    entry: DiscriminatorVariantEntry,
+    context: 'request' | 'response' | undefined,
+    visited: Set<SchemaObject>,
+    indent: number
+  ): TypeMappingResult {
+    const resolved = this.tryResolveRef(entry.refStr);
+    if (entry.isNamed && !entry.isUnion && !entry.isNullable && this.isObjectIshSchema(resolved)) {
+      const key = `'${escapeStringLiteral(entry.propertyName)}'`;
+      return { tsType: `Omit<${entry.typeName}, ${key}>`, imports: [entry.typeName] };
+    }
+    if (resolved) {
+      return this.mapInternal(resolved, undefined, context, visited, indent, spineForEntry(entry));
+    }
+    return { tsType: entry.typeName, imports: [entry.typeName] };
+  }
+
+  /** Normalize a `#/components/schemas/…` ref to its canonically-encoded form (`a/b` ↔ `a~1b`). */
+  private canonicalSchemasRef(refStr: string): string {
+    if (!refStr.startsWith('#/components/schemas/')) return refStr;
+    return `#/components/schemas/${encodePointerSegment(decodedLastRefSegment(refStr))}`;
+  }
+
+  private tryResolveRef(refStr: string): SchemaObject | undefined {
+    try {
+      return this.resolver.resolveSchema({ $ref: refStr } as SchemaObject);
+    } catch {
+      return undefined;
+    }
+  }
+
+  private isObjectIshSchema(s: SchemaObject | undefined): boolean {
+    if (!s) return false;
+    if (s.type === 'object') return true;
+    if (Array.isArray(s.type)) return s.type.includes('object');
+    if (s.allOf !== undefined && s.allOf.length > 0) return true;
+    return s.type === undefined && s.properties !== undefined;
   }
 
   private resolveDiscriminatorInfo(
@@ -339,7 +568,7 @@ export class SchemaMapper {
   private mapEnumValues(values: unknown[]): string {
     return values
       .map((v) => {
-        if (typeof v === 'string') return `'${v}'`;
+        if (typeof v === 'string') return `'${escapeStringLiteral(v)}'`;
         if (typeof v === 'number') return String(v);
         if (typeof v === 'boolean') return String(v);
         if (v === null) return 'null';
@@ -353,9 +582,12 @@ export class SchemaMapper {
     kind: '&' | '|',
     context: 'request' | 'response' | undefined,
     visited: Set<SchemaObject>,
-    indent: number
+    indent: number,
+    spine: SpineContext | undefined
   ): TypeMappingResult {
-    const results = schemas.map((s) => this.mapInternal(s, undefined, context, visited, indent));
+    const results = schemas.map((s) =>
+      this.mapInternal(s, undefined, context, visited, indent, spine)
+    );
 
     const allImports: string[] = [];
     for (const r of results) {
@@ -378,7 +610,8 @@ export class SchemaMapper {
     discriminator: NonNullable<SchemaObject['discriminator']>,
     context: 'request' | 'response' | undefined,
     visited: Set<SchemaObject>,
-    indent: number
+    indent: number,
+    spine: SpineContext | undefined
   ): TypeMappingResult {
     const propertyName = discriminator.propertyName;
     const mapping = discriminator.mapping;
@@ -387,8 +620,61 @@ export class SchemaMapper {
     const parts: string[] = [];
 
     for (const schema of schemas) {
-      const discriminantValue = this.resolveDiscriminantValue(schema, propertyName, mapping);
-      const variantResult = this.mapInternal(schema, undefined, context, visited, indent);
+      if (this.discriminatorRegistry && isRefObject(schema)) {
+        const refStr = (schema as unknown as { $ref: string }).$ref;
+        const canonical = this.canonicalSchemasRef(refStr);
+        const entry =
+          this.discriminatorRegistry.byRef.get(refStr) ??
+          this.discriminatorRegistry.byRef.get(canonical);
+        // D7: registered family variants are bare names — their named
+        // definitions already carry the literal exactly once. An explicit
+        // mapping defines the family's membership: when one exists, a
+        // oneOf member absent from it is foreign (wrapper + warn below);
+        // without a mapping every oneOf ref is an implicit member (D3).
+        const mappedRef =
+          mapping !== undefined &&
+          (Object.values(mapping).includes(refStr) || Object.values(mapping).includes(canonical));
+        if (entry && entry.propertyName === propertyName && (mapping === undefined || mappedRef)) {
+          if (entry.isNamed) {
+            allImports.push(entry.typeName);
+            parts.push(entry.typeName);
+            continue;
+          }
+          const resolved = this.tryResolveRef(entry.refStr);
+          if (resolved) {
+            const expanded = this.mapInternal(
+              resolved,
+              undefined,
+              context,
+              visited,
+              indent,
+              spineForEntry(entry)
+            );
+            allImports.push(...expanded.imports);
+            parts.push(
+              this.appendDiscriminatorLiteral(expanded, propertyName, entry.literalValue).tsType
+            );
+            continue;
+          }
+        }
+        // Foreign (non-family) ref: keep the literal wrapper and warn —
+        // nothing guarantees the target declares its own discriminant.
+        this.warnSink(
+          `Warning: discriminated union member "${refStr}" is not registered in a discriminator family; keeping the inline '{ ${propertyName}: <literal> } &' wrapper.\n`
+        );
+      }
+
+      const discriminantValue = this.discriminatorRegistry
+        ? this.resolveRegistryDiscriminantValue(schema, propertyName, mapping)
+        : this.resolveDiscriminantValue(schema, propertyName, mapping);
+      const variantResult = this.mapInternal(
+        schema,
+        undefined,
+        context,
+        visited,
+        indent,
+        this.discriminatorRegistry ? undefined : spine
+      );
       allImports.push(...variantResult.imports);
 
       const quotedProp = quoteKey(propertyName);
@@ -396,6 +682,45 @@ export class SchemaMapper {
     }
 
     return { tsType: parts.join(' | '), imports: allImports };
+  }
+
+  /**
+   * D3 literal precedence for registry-mode wrapper literals (inline variant
+   * schemas and foreign refs): mapping key > own `const` on the discriminant
+   * property > single-value `enum` > RAW last ref segment (the runtime
+   * value, NOT the sanitized type name). Values are escaped for a
+   * single-quoted TS string.
+   */
+  private resolveRegistryDiscriminantValue(
+    schema: SchemaObject | ReferenceObject,
+    propertyName: string,
+    mapping: Record<string, string> | undefined
+  ): string {
+    if (mapping && isRefObject(schema)) {
+      const refStr = (schema as unknown as { $ref: string }).$ref;
+      for (const [value, ref] of Object.entries(mapping)) {
+        if (ref === refStr) return escapeStringLiteral(value);
+      }
+    }
+
+    const resolved = isRefObject(schema)
+      ? this.tryResolveRef((schema as unknown as { $ref: string }).$ref)
+      : (schema as SchemaObject);
+
+    const propSchema = resolved?.properties?.[propertyName];
+    if (propSchema && propSchema.const !== undefined) {
+      return escapeStringLiteral(String(propSchema.const));
+    }
+    if (propSchema && propSchema.enum !== undefined && propSchema.enum.length === 1) {
+      return escapeStringLiteral(String(propSchema.enum[0]));
+    }
+
+    if (isRefObject(schema)) {
+      const refStr = (schema as unknown as { $ref: string }).$ref;
+      return escapeStringLiteral(decodedLastRefSegment(refStr));
+    }
+
+    return 'unknown';
   }
 
   private resolveDiscriminantValue(
@@ -443,7 +768,14 @@ export class SchemaMapper {
       };
     }
 
-    const itemResult = this.mapInternal(schema.items, undefined, context, visited, indent);
+    const itemResult = this.mapInternal(
+      schema.items,
+      undefined,
+      context,
+      visited,
+      indent,
+      undefined
+    );
     const tsType = isComplexType(itemResult.tsType)
       ? `Array<${itemResult.tsType}>`
       : `${itemResult.tsType}[]`;
@@ -487,7 +819,8 @@ export class SchemaMapper {
     name: string | undefined,
     context: 'request' | 'response' | undefined,
     visited: Set<SchemaObject>,
-    indent: number
+    indent: number,
+    spine: SpineContext | undefined
   ): TypeMappingResult {
     const properties = schema.properties ?? {};
     const requiredSet = new Set(schema.required ?? []);
@@ -502,6 +835,22 @@ export class SchemaMapper {
       if (context === 'request' && resolved.readOnly === true) return false;
       return true;
     });
+
+    // Inside a mapping target's own definition the discriminator property is
+    // supplied by the single literal append — an own redeclaration (const or
+    // enum) would intersect a conflicting literal and collapse to `never`.
+    if (spine) {
+      const ownDiscIndex = filteredPropNames.indexOf(spine.propertyName);
+      if (ownDiscIndex !== -1) {
+        const ownValue = ownDeclaredDiscriminant(properties[spine.propertyName]);
+        if (ownValue !== undefined && escapeStringLiteral(ownValue) !== spine.literalValue) {
+          this.warnSink(
+            `Warning: Discriminator mapping key "${spine.literalValue}" for property "${spine.propertyName}" conflicts with the variant's own declared value "${ownValue}"; the mapping key wins.\n`
+          );
+        }
+        filteredPropNames.splice(ownDiscIndex, 1);
+      }
+    }
 
     const ownIndent = indentBy(indent);
     const memberIndent = indentBy(indent + 1);
@@ -520,7 +869,14 @@ export class SchemaMapper {
 
     for (const propName of filteredPropNames) {
       const propSchema = properties[propName];
-      const propResult = this.mapInternal(propSchema, undefined, context, visited, indent + 1);
+      const propResult = this.mapInternal(
+        propSchema,
+        undefined,
+        context,
+        visited,
+        indent + 1,
+        undefined
+      );
       allImports.push(...propResult.imports);
 
       memberLines.push(...this.renderPropertyJsDoc(propSchema, indent + 1));
@@ -543,7 +899,8 @@ export class SchemaMapper {
         undefined,
         context,
         visited,
-        indent + 1
+        indent + 1,
+        undefined
       );
       allImports.push(...addPropResult.imports);
       indexSignature = `[key: string]: ${addPropResult.tsType}`;
@@ -591,7 +948,9 @@ export class SchemaMapper {
 
     if (schema.nullable === true) {
       return {
-        tsType: `${result.tsType} | null`,
+        tsType: hasTopLevelUnion(result.tsType)
+          ? `(${result.tsType}) | null`
+          : `${result.tsType} | null`,
         imports: result.imports,
       };
     }
