@@ -31,43 +31,6 @@ import type {
 } from './types.js';
 
 /**
- * If the schema is a $ref to a discriminated base type (or an array whose items
- * are), replace the type name with the {Base}Variant union type.
- */
-function substituteDiscriminatedType(
-  tsType: string,
-  schema: unknown,
-  discriminatorInfo: Map<string, { propertyName: string; mapping: Map<string, string> }>,
-  renameMap: Map<string, string>
-): string {
-  const refSchema = schema as Record<string, unknown> | null;
-  if (!refSchema || typeof refSchema !== 'object') return tsType;
-
-  if (typeof refSchema.$ref === 'string') {
-    const rawName = (refSchema.$ref as string).split('/').pop()!;
-    const schemaName = sanitizeTypeName(rawName);
-    if (schemaName && discriminatorInfo.has(schemaName)) {
-      const renamed = renameMap.get(rawName) ?? schemaName;
-      return tsType.replace(new RegExp(`\\b${renamed}\\b`, 'g'), `${renamed}Variant`);
-    }
-  }
-
-  if (refSchema.items && typeof refSchema.items === 'object') {
-    const items = refSchema.items as Record<string, unknown>;
-    if (typeof items.$ref === 'string') {
-      const rawName = (items.$ref as string).split('/').pop()!;
-      const schemaName = sanitizeTypeName(rawName);
-      if (schemaName && discriminatorInfo.has(schemaName)) {
-        const renamed = renameMap.get(rawName) ?? schemaName;
-        return tsType.replace(new RegExp(`\\b${renamed}\\b`, 'g'), `${renamed}Variant`);
-      }
-    }
-  }
-
-  return tsType;
-}
-
-/**
  * Indent unit matching `INDENT_UNIT` in schema-mapper.ts (2 spaces, pinned by
  * the mapper's golden tests). Kept local to avoid modifying the mapper module.
  */
@@ -384,46 +347,6 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
     return renameAwareTypeName(renameMap, rawSegment);
   };
 
-  const discriminatorInfo = new Map<
-    string,
-    {
-      rawName: string;
-      propertyName: string;
-      mapping: Map<string, string>;
-    }
-  >();
-
-  if (doc.components?.schemas) {
-    for (const [name, schema] of Object.entries(doc.components.schemas)) {
-      const resolved = resolver.resolve<SchemaObject>(schema as SchemaObject | ReferenceObject);
-      if (resolved.discriminator) {
-        const mapping = new Map<string, string>();
-        if (resolved.discriminator.mapping) {
-          for (const [key, ref] of Object.entries(resolved.discriminator.mapping)) {
-            const rawTarget = ref.split('/').pop() || key;
-            const renamedTarget = renameMap.get(rawTarget) ?? sanitizeTypeName(rawTarget);
-            mapping.set(key, renamedTarget);
-          }
-        }
-        discriminatorInfo.set(sanitizeTypeName(name), {
-          rawName: name,
-          propertyName: resolved.discriminator.propertyName,
-          mapping,
-        });
-      }
-    }
-  }
-
-  const discriminatorTargets = new Map<string, { propertyName: string; literalValue: string }>();
-  for (const [, info] of discriminatorInfo) {
-    for (const [mappingKey, schemaName] of info.mapping) {
-      discriminatorTargets.set(schemaName, {
-        propertyName: info.propertyName,
-        literalValue: mappingKey,
-      });
-    }
-  }
-
   const allSchemaNames = new Set<string>();
   if (doc.components?.schemas) {
     for (const name of Object.keys(doc.components.schemas)) {
@@ -432,9 +355,9 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
   }
 
   // Family-aware discriminator registry (plan D5) — the single knowledge
-  // source the mapper's ref-translation seam consumes. Legacy
-  // discriminatorInfo / discriminatorTargets stay alive above until the
-  // Task 4 deletion pass.
+  // source for discriminator translation: the mapper's ref-translation seam
+  // consumes it, and the always-emitted `{Base}Variant` unions below are
+  // emitted from it.
   const discriminatorRegistry = buildDiscriminatorRegistry(
     doc.components?.schemas,
     resolver,
@@ -446,7 +369,7 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
   const mapper = new SchemaMapper(
     resolver,
     renamingTypeGenerator,
-    discriminatorTargets,
+    undefined,
     allSchemaNames,
     undefined,
     discriminatorRegistry
@@ -600,15 +523,9 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
           return 'StreamResponse';
         }
         if (r.schema) {
-          const result = mapper.mapSchema(r.schema, undefined, 'response').tsType;
-          const substituted = substituteDiscriminatedType(
-            result,
-            r.schema,
-            discriminatorInfo,
-            renameMap
-          );
-          r.finishedType = substituted;
-          return substituted;
+          const tsType = mapper.mapSchema(r.schema, undefined, 'response').tsType;
+          r.finishedType = tsType;
+          return tsType;
         }
         r.finishedType = r.isVoid ? 'void' : 'unknown';
         return r.finishedType;

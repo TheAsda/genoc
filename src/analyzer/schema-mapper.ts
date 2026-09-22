@@ -156,9 +156,11 @@ export class SchemaMapper {
     // (rename-aware) typeNameGenerator that resolves $refs. Passing targets
     // keyed by raw schema names means renamed subtypes silently lose their
     // `& { prop: 'literal' }` intersection in the generated output.
-    // When discriminatorRegistry is provided it is the SINGLE discriminator
-    // knowledge source (D1–D10 seam); the legacy targets map only drives
-    // registry-less constructions until the old paths are deleted.
+    // analyze() no longer builds or passes a targets map — the discriminator
+    // registry (when provided) is the SINGLE discriminator knowledge source
+    // (D1–D10 seam). The optional legacy targets param is kept for
+    // registry-less constructions; it only drives the legacy ref fallback in
+    // `resolveDiscriminatorInfo` below.
     this.resolver = resolver;
     this.typeNameGenerator = typeNameGenerator ?? defaultTypeNameGenerator;
     this.discriminatorTargets = discriminatorTargets ?? new Map();
@@ -204,18 +206,7 @@ export class SchemaMapper {
       return result;
     }
 
-    const result = this.mapInternal(schema, name, context, visited, 0, undefined);
-
-    if (name && this.discriminatorTargets.has(name)) {
-      const target = this.discriminatorTargets.get(name)!;
-      return this.appendDiscriminatorLiteral(
-        result,
-        target.propertyName,
-        escapeStringLiteral(target.literalValue)
-      );
-    }
-
-    return result;
+    return this.mapInternal(schema, name, context, visited, 0, undefined);
   }
 
   /**

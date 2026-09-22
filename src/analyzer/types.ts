@@ -102,7 +102,9 @@ export interface AnalyzedSpec {
   /**
    * Section-1 component schema declarations as finished entries, in the
    * pre-refactor emission order: topologically sorted schemas first, then
-   * discriminator `{Base}Variant` unions in discovery order.
+   * one always-emitted `{Base}Variant` union per discriminator family
+   * (members = mapping values ∪ implicit oneOf/anyOf refs, sourced from the
+   * discriminator registry; collision-safe names) in family discovery order.
    */
   schemaTypes: TypeDeclaration[];
   /** Branded format types discovered during mapping, in discovery order. */

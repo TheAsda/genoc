@@ -19,8 +19,8 @@ import { parseJsonPointer } from '../utils/url.js';
  *   the RAW last ref segment as their literal (D3 precedence: mapping key >
  *   own `const` > single-value `enum` > raw segment).
  *
- * Field budget (D5): every field below has a planned consumer in the seam
- * rewrite / Variant-union emission; fields left unconsumed get deleted there.
+ * Field budget (D5): audited — every remaining field has a live consumer in
+ * production (seam / Variant-union emission) or in the registry unit tests.
  * Rename-aware keying is mandatory: the name index goes through the same
  * `buildSchemaRenameMap` machinery `analyze()` uses (see the past-bug note at
  * schema-mapper.ts:75–78 — raw-name keying silently drops literal injection
@@ -84,14 +84,13 @@ function resolveOwnDiscriminatorLiteral(
 }
 
 /**
- * One discriminator variant target inside a family. Consumers (Task 3 seam /
- * Task 4 emission): `propertyName` → literal append + `Omit<M, quoteKey(P)>`
- * key + union wrapper; `literalValue` → the appended literal (pre-escaped —
- * render as `'${literalValue}'`); `isNamed` → bare-name vs inline-expansion
- * decision; `isUnion`/`isNullable` → spine `Omit` fallback decision (D2);
- * `familyId` → same-family spine detection (D1/D2); `refStr` → identity match
- * at the ref-translation seam; `typeName` → bare-name emission and the name
- * index.
+ * One discriminator variant target inside a family. Consumers: `propertyName`
+ * → literal append + `Omit<M, quoteKey(P)>` key + union wrapper;
+ * `literalValue` → the appended literal (pre-escaped — render as
+ * `'${literalValue}'`); `isNamed` → bare-name vs inline-expansion decision;
+ * `isUnion`/`isNullable` → spine `Omit` fallback decision (D2); `familyId` →
+ * same-family spine detection (D1/D2); `refStr` → identity match at the
+ * ref-translation seam; `typeName` → bare-name emission and the name index.
  */
 export interface DiscriminatorVariantEntry {
   /** Discriminator property name declared by the family base (e.g. `'$type'`). */
@@ -114,11 +113,11 @@ export interface DiscriminatorVariantEntry {
 
 /**
  * One discriminator family: a component schema declaring `discriminator`
- * (`familyId` = its raw component name). Consumers (Task 3/4):
- * `baseRefStr` → base-ref detection at the seam (D1: `$ref` to the base
- * emits `variantUnionName` outside same-family spines); `variantUnionName` /
- * `variantUnionMembers` → the always-emit `{Base}Variant` union (D6);
- * `entriesByRef` / `entriesByName` → family-scoped lookups.
+ * (`familyId` = its raw component name). Consumers: `baseRefStr` → base-ref
+ * detection at the seam (D1: `$ref` to the base emits `variantUnionName`
+ * outside same-family spines); `variantUnionName` / `variantUnionMembers` →
+ * the always-emit `{Base}Variant` union (D6); `entriesByRef` → family
+ * construction substrate and per-family lookups.
  */
 export interface DiscriminatorFamily {
   /** Raw component name of the discriminator base — the family id. */
@@ -135,17 +134,15 @@ export interface DiscriminatorFamily {
   variantUnionMembers: string[];
   /** Family entries keyed by the FULL `$ref` string (mapping value or oneOf/anyOf member ref). */
   entriesByRef: Map<string, DiscriminatorVariantEntry>;
-  /** Derived rename-aware name index (typeName → entry). */
-  entriesByName: Map<string, DiscriminatorVariantEntry>;
 }
 
 /**
- * The discriminator registry built once per `analyze()` run. Consumers
- * (Task 3 seam): `byRef`/`byName` for variant-target lookup at the
- * ref-translation seam; `baseRefs` for D1 base-ref translation; `families`
- * for same-family spine scoping (entry `familyId` → family). Flat lookups
- * are first-wins across families (spec order) — ambiguous cross-family
- * targets stay reachable through their per-family maps.
+ * The discriminator registry built once per `analyze()` run. Consumers:
+ * `byRef`/`byName` for variant-target lookup at the ref-translation seam;
+ * `baseRefs` for D1 base-ref translation; `families` for same-family spine
+ * scoping (entry `familyId` → family) and the `{Base}Variant` union emission.
+ * Flat lookups are first-wins across families (spec order) — ambiguous
+ * cross-family targets stay reachable through their per-family maps.
  */
 export interface DiscriminatorRegistry {
   /** Families keyed by familyId (raw base component name), in spec order. */
@@ -214,7 +211,6 @@ export function buildDiscriminatorRegistry(
       variantUnionName: '',
       variantUnionMembers: [],
       entriesByRef: new Map(),
-      entriesByName: new Map(),
     };
 
     const mappedRefStrs = new Set<string>();
@@ -284,8 +280,6 @@ export function buildDiscriminatorRegistry(
     const seenNames = new Set<string>();
     for (const [refStr, entry] of family.entriesByRef) {
       if (!registry.byRef.has(refStr)) registry.byRef.set(refStr, entry);
-      if (!family.entriesByName.has(entry.typeName))
-        family.entriesByName.set(entry.typeName, entry);
       if (!registry.byName.has(entry.typeName)) registry.byName.set(entry.typeName, entry);
       if (!seenNames.has(entry.typeName)) {
         seenNames.add(entry.typeName);
