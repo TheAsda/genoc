@@ -16,6 +16,7 @@ import {
   toPascalCase,
 } from '../utils/generator-helpers.js';
 import { operationEmissions, RESERVED_TYPE_NAMES } from '../utils/operation-naming.js';
+import { buildDiscriminatorRegistry, renameAwareTypeName } from './discriminator-registry.js';
 import { analyzePathsDetailed, type AnalyzedParameter } from './path-analyzer.js';
 import { SchemaMapper } from './schema-mapper.js';
 import type {
@@ -372,7 +373,7 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
   const renamingTypeGenerator = (refString: string): string => {
     const segments = refString.split('/');
     const rawSegment = segments[segments.length - 1] || 'unknown';
-    return renameMap.get(rawSegment) ?? sanitizeTypeName(rawSegment);
+    return renameAwareTypeName(renameMap, rawSegment);
   };
 
   const discriminatorInfo = new Map<
@@ -421,6 +422,19 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
       allSchemaNames.add(renameMap.get(name) ?? sanitizeTypeName(name));
     }
   }
+
+  // Family-aware discriminator registry (additive infrastructure, plan D5).
+  // Built here once per analyze() run; the mapper seam rewrite (Task 3)
+  // consumes it. Until then the legacy discriminatorInfo /
+  // discriminatorTargets paths above stay fully alive and consumed — the
+  // registry has zero effect on output.
+  const discriminatorRegistry = buildDiscriminatorRegistry(
+    doc.components?.schemas,
+    resolver,
+    renameMap,
+    allSchemaNames
+  );
+  void discriminatorRegistry;
 
   const mapper = new SchemaMapper(
     resolver,
