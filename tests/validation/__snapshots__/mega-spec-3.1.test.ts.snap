@@ -291,7 +291,7 @@ export type GetAnyofResponse = {
   status?: number;
 };
 
-export type PostDiscriminatorBody = DiscriminatorSchema;
+export type PostDiscriminatorBody = DiscriminatorSchemaVariant;
 
 /** Successful response */
 export type PostDiscriminatorResponse = {
@@ -2532,7 +2532,7 @@ export type GetAnyofResponse = {
   status?: number;
 };
 
-export type PostDiscriminatorBody = DiscriminatorSchema;
+export type PostDiscriminatorBody = DiscriminatorSchemaVariant;
 
 /** Successful response */
 export type PostDiscriminatorResponse = {

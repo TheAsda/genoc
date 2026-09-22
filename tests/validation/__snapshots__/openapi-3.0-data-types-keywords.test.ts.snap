@@ -146,15 +146,11 @@ export type Dog = Pet & {
   bark?: boolean;
 } & { petType: 'dog' };
 
-export type PetVariant = ({ petType: 'cat' } & Pet & {
-  meow?: boolean;
-} & { petType: 'cat' }) | ({ petType: 'dog' } & Pet & {
-  bark?: boolean;
-} & { petType: 'dog' });
+export type PetVariant = Cat | Dog;
 
 export type MixedUnion = string | number;
 
-export type PetVariant = Cat | Dog;
+export type PetVariantModel = Cat | Dog;
 
 export type PetVariantVariant = Cat | Dog;"
 `;
@@ -208,15 +204,11 @@ export type Dog = Pet & {
   bark?: boolean;
 } & { petType: 'dog' };
 
-export type PetVariant = ({ petType: 'cat' } & Pet & {
-  meow?: boolean;
-} & { petType: 'cat' }) | ({ petType: 'dog' } & Pet & {
-  bark?: boolean;
-} & { petType: 'dog' });
+export type PetVariant = Cat | Dog;
 
 export type MixedUnion = string | number;
 
-export type PetVariant = Cat | Dog;
+export type PetVariantModel = Cat | Dog;
 
 export type PetVariantVariant = Cat | Dog;"
 `;
@@ -246,15 +238,11 @@ export type Dog = Pet & {
   bark?: boolean;
 } & { petType: 'dog' };
 
-export type PetVariant = ({ petType: 'cat' } & Pet & {
-  meow?: boolean;
-} & { petType: 'cat' }) | ({ petType: 'dog' } & Pet & {
-  bark?: boolean;
-} & { petType: 'dog' });
+export type PetVariant = Cat | Dog;
 
 export type MixedUnion = string | number;
 
-export type PetVariant = Cat | Dog;
+export type PetVariantModel = Cat | Dog;
 
 export type PetVariantVariant = Cat | Dog;"
 `;
