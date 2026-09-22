@@ -4,6 +4,8 @@ import { SchemaMapper } from '../../src/analyzer/schema-mapper.js';
 import type { TypeNameGenerator } from '../../src/analyzer/schema-mapper.js';
 import { RefResolver } from '../../src/parser/ref-resolver.js';
 import type { OpenAPIDocument, SchemaObject } from '../../src/types/openapi.js';
+import { buildSchemaRenameMap, sanitizeTypeName } from '../../src/utils/generator-helpers.js';
+import { RESERVED_TYPE_NAMES } from '../../src/utils/operation-naming.js';
 
 function createResolver(schemas?: Record<string, SchemaObject>): RefResolver {
   const doc: OpenAPIDocument = {
@@ -1426,6 +1428,614 @@ describe('SchemaMapper', () => {
       m.mapSchema({ type: 'string' });
 
       expect(writes).toEqual([]);
+    });
+  });
+
+  // ------------------------------------------------------------------------
+  // RED matrix for the single-injection discriminator architecture
+  // (plan: .sisyphus/plans/discriminator-cross-variant-fix.md, D1–D10).
+  //
+  // These cases encode the NEW output shapes and are intentionally RED
+  // against the current mapper: literals must be injected exactly once (at
+  // the mapping target's own named definition), $refs translate through a
+  // single seam (bare names / Omit<Parent, P> / {Base}Variant), and literal
+  // values must be escaped. Tasks 3–4 of the plan drive them GREEN.
+  //
+  // The mapper is constructed exactly the way production analyze() does:
+  // rename-aware typeNameGenerator, mapping-derived discriminatorTargets
+  // keyed by renamed names, and allSchemaNames as the reserved-name set.
+  // ------------------------------------------------------------------------
+
+  interface ProductionFixture {
+    mapper: SchemaMapper;
+    warnings: string[];
+    schemas: Record<string, SchemaObject>;
+  }
+
+  function buildProductionFixture(schemas: Record<string, SchemaObject>): ProductionFixture {
+    const doc: OpenAPIDocument = {
+      openapi: '3.0.3',
+      info: { title: 'Test', version: '1.0.0' },
+      components: { schemas },
+    };
+    const resolver = new RefResolver(doc);
+    const renameMap = buildSchemaRenameMap(Object.keys(schemas), RESERVED_TYPE_NAMES);
+    const renamingTypeGenerator = (refString: string): string => {
+      const segments = refString.split('/');
+      const rawSegment = segments[segments.length - 1] || 'unknown';
+      return renameMap.get(rawSegment) ?? sanitizeTypeName(rawSegment);
+    };
+    // Mirrors analyze(): targets keyed by the RENAMED target schema name.
+    const discriminatorTargets = new Map<string, { propertyName: string; literalValue: string }>();
+    for (const schema of Object.values(schemas)) {
+      const disc = schema.discriminator;
+      if (disc?.mapping) {
+        for (const [key, ref] of Object.entries(disc.mapping)) {
+          const rawTarget = ref.split('/').pop() || key;
+          discriminatorTargets.set(renameMap.get(rawTarget) ?? sanitizeTypeName(rawTarget), {
+            propertyName: disc.propertyName,
+            literalValue: key,
+          });
+        }
+      }
+    }
+    const allSchemaNames = new Set(
+      Object.keys(schemas).map((name) => renameMap.get(name) ?? sanitizeTypeName(name))
+    );
+    const warnings: string[] = [];
+    const mapper = new SchemaMapper(
+      resolver,
+      renamingTypeGenerator,
+      discriminatorTargets,
+      allSchemaNames,
+      (msg) => {
+        warnings.push(msg);
+      }
+    );
+    return { mapper, warnings, schemas };
+  }
+
+  describe('discriminator single-injection architecture (RED matrix)', () => {
+    it('T1: cross-variant inheritance emits Omit<Parent> with exactly ONE literal', () => {
+      const thingSchemas: Record<string, SchemaObject> = {
+        BaseThing: {
+          type: 'object',
+          required: ['$type', 'id'],
+          properties: { $type: { type: 'string' }, id: { type: 'string' } },
+          discriminator: {
+            propertyName: '$type',
+            mapping: {
+              Partial: '#/components/schemas/PartialThing',
+              Full: '#/components/schemas/UpdateThing',
+              Create: '#/components/schemas/CreateThing',
+            },
+          },
+        },
+        PartialThing: {
+          allOf: [{ $ref: '#/components/schemas/BaseThing' }, { type: 'object' }],
+        },
+        UpdateThing: {
+          allOf: [
+            { $ref: '#/components/schemas/BaseThing' },
+            {
+              type: 'object',
+              required: ['name'],
+              properties: { name: { type: 'string' } },
+            },
+          ],
+        },
+        CreateThing: {
+          allOf: [
+            { $ref: '#/components/schemas/UpdateThing' },
+            { type: 'object', additionalProperties: false },
+          ],
+        },
+      };
+      const { mapper, schemas } = buildProductionFixture(thingSchemas);
+
+      const result = mapper.mapSchema(schemas.CreateThing!, 'CreateThing');
+
+      // NEW shape: exactly one literal, parent referenced via Omit (D2),
+      // pre-existing Record<string, unknown> member preserved.
+      expect(result.tsType).toMatch(
+        /^Omit<UpdateThing, ["']?\$type["']?> & Record<string, unknown> & \{ ["']?\$type["']?: 'Create' \}$/
+      );
+      // The parent's 'Full' literal must NOT leak into the child (the `never` bug).
+      expect(result.tsType).not.toContain("'Full'");
+    });
+
+    it('T2: $ref to a named mapping target at a leaf site emits the bare name', () => {
+      const thingSchemas: Record<string, SchemaObject> = {
+        BaseThing: {
+          type: 'object',
+          properties: { id: { type: 'string' } },
+          discriminator: {
+            propertyName: '$type',
+            mapping: { Create: '#/components/schemas/CreateThing' },
+          },
+        },
+        CreateThing: {
+          allOf: [
+            { $ref: '#/components/schemas/BaseThing' },
+            { type: 'object', properties: { name: { type: 'string' } } },
+          ],
+        },
+      };
+      const { mapper } = buildProductionFixture(thingSchemas);
+
+      const result = mapper.mapSchema({ $ref: '#/components/schemas/CreateThing' });
+
+      expect(result.tsType).toBe('CreateThing');
+      expect(result.imports).toEqual(['CreateThing']);
+    });
+
+    it('T3: $ref to a discriminator base at a leaf site emits {Base}Variant (D1)', () => {
+      const thingSchemas: Record<string, SchemaObject> = {
+        BaseThing: {
+          type: 'object',
+          properties: { id: { type: 'string' } },
+          discriminator: {
+            propertyName: '$type',
+            mapping: { Create: '#/components/schemas/CreateThing' },
+          },
+        },
+        CreateThing: {
+          allOf: [
+            { $ref: '#/components/schemas/BaseThing' },
+            { type: 'object', properties: { name: { type: 'string' } } },
+          ],
+        },
+      };
+      const { mapper } = buildProductionFixture(thingSchemas);
+
+      const result = mapper.mapSchema({ $ref: '#/components/schemas/BaseThing' });
+
+      expect(result.tsType).toBe('BaseThingVariant');
+      expect(result.imports).toEqual(['BaseThingVariant']);
+    });
+
+    it('T4: two sibling $refs to the same mapping target keep full types (no visited-set collapse)', () => {
+      const holderSchemas: Record<string, SchemaObject> = {
+        Widget: {
+          type: 'object',
+          properties: { label: { type: 'string' } },
+          discriminator: {
+            propertyName: 'kind',
+            mapping: { Big: '#/components/schemas/BigWidget' },
+          },
+        },
+        BigWidget: {
+          allOf: [
+            { $ref: '#/components/schemas/Widget' },
+            { type: 'object', properties: { size: { type: 'integer' } } },
+          ],
+        },
+        Holder: {
+          type: 'object',
+          required: ['first', 'second'],
+          properties: {
+            first: { $ref: '#/components/schemas/BigWidget' },
+            second: { $ref: '#/components/schemas/BigWidget' },
+          },
+        },
+      };
+      const { mapper, schemas } = buildProductionFixture(holderSchemas);
+
+      const result = mapper.mapSchema(schemas.Holder!, 'Holder');
+
+      // Both siblings must survive as full named types — the second must not
+      // collapse to `unknown & { kind: 'Big' }` (props dropped).
+      expect(result.tsType).toBe('{\n  first: BigWidget;\n  second: BigWidget;\n}');
+      expect(result.imports).toEqual(['BigWidget', 'BigWidget']);
+    });
+
+    it('T5: nullable mapping target keeps its literal via parenthesized append (D9)', () => {
+      const gateSchemas: Record<string, SchemaObject> = {
+        GateBase: {
+          type: 'object',
+          properties: { label: { type: 'string' } },
+          discriminator: {
+            propertyName: 'state',
+            mapping: { On: '#/components/schemas/OnGate' },
+          },
+        },
+        OnGate: {
+          nullable: true,
+          allOf: [
+            { $ref: '#/components/schemas/GateBase' },
+            { type: 'object', properties: { level: { type: 'integer' } } },
+          ],
+        },
+      };
+      const { mapper, schemas } = buildProductionFixture(gateSchemas);
+
+      const result = mapper.mapSchema(schemas.OnGate!, 'OnGate');
+
+      // The append must wrap the `| null` tail in parens so the literal is not
+      // silently lost (`X | null & { ... }` distributes the & onto null only).
+      expect(result.tsType).toMatch(/\| null\) & \{ ["']?state["']?: 'On' \}$/);
+    });
+
+    it('T6: implicit oneOf variants without mapping map to bare names (D7)', () => {
+      const familySchemas: Record<string, SchemaObject> = {
+        Family: {
+          oneOf: [
+            { $ref: '#/components/schemas/my-variant' },
+            { $ref: '#/components/schemas/other-variant' },
+          ],
+          discriminator: { propertyName: 'kind' },
+        },
+        'my-variant': {
+          type: 'object',
+          properties: { label: { type: 'string' } },
+        },
+        'other-variant': {
+          type: 'object',
+          properties: { note: { type: 'string' } },
+        },
+      };
+      const { mapper, schemas } = buildProductionFixture(familySchemas);
+
+      const result = mapper.mapSchema(schemas.Family!);
+
+      // Ref variants are bare names; their named definitions carry the
+      // literal (with the RAW ref segment 'my-variant', not 'MyVariant' — D3).
+      expect(result.tsType).toBe('MyVariant | OtherVariant');
+      expect(result.imports).toEqual(['MyVariant', 'OtherVariant']);
+    });
+
+    it('T7: mapping keys containing quotes and backslashes are escaped (D8)', () => {
+      const quoteSchemas: Record<string, SchemaObject> = {
+        QuoteBase: {
+          type: 'object',
+          properties: { id: { type: 'string' } },
+          discriminator: {
+            propertyName: 'who',
+            mapping: {
+              "O'Brien": '#/components/schemas/ApostropheBean',
+              'back\\slash': '#/components/schemas/BackslashBean',
+              '123': '#/components/schemas/NumericBean',
+            },
+          },
+        },
+        ApostropheBean: {
+          allOf: [
+            { $ref: '#/components/schemas/QuoteBase' },
+            { type: 'object', properties: { note: { type: 'string' } } },
+          ],
+        },
+        BackslashBean: {
+          allOf: [
+            { $ref: '#/components/schemas/QuoteBase' },
+            { type: 'object', properties: { note: { type: 'string' } } },
+          ],
+        },
+        NumericBean: {
+          allOf: [
+            { $ref: '#/components/schemas/QuoteBase' },
+            { type: 'object', properties: { note: { type: 'string' } } },
+          ],
+        },
+      };
+      const { mapper, schemas } = buildProductionFixture(quoteSchemas);
+
+      const apostrophe = mapper.mapSchema(schemas.ApostropheBean!, 'ApostropheBean');
+      expect(apostrophe.tsType).toContain(String.raw`{ who: 'O\'Brien' }`);
+      expect(apostrophe.tsType).not.toContain(String.raw`'O'Brien'`);
+
+      const backslash = mapper.mapSchema(schemas.BackslashBean!, 'BackslashBean');
+      expect(backslash.tsType).toContain(String.raw`{ who: 'back\\slash' }`);
+
+      // Numeric mapping keys are quoted as string literals.
+      const numeric = mapper.mapSchema(schemas.NumericBean!, 'NumericBean');
+      expect(numeric.tsType).toContain("{ who: '123' }");
+
+      // Same escaping applies to enum members (mapEnumValues shares the helper).
+      const plain = new SchemaMapper(createResolver());
+      const mood = plain.mapSchema({ enum: ["it's fine", 'plain'] });
+      expect(mood.tsType).toBe(String.raw`'it\'s fine' | 'plain'`);
+    });
+
+    it('T8: discriminated union refs are bare names; foreign refs keep the wrapper and warn (D7)', () => {
+      const classicSchemas: Record<string, SchemaObject> = {
+        Pet: {
+          oneOf: [{ $ref: '#/components/schemas/Cat' }, { $ref: '#/components/schemas/Dog' }],
+          discriminator: {
+            propertyName: 'petType',
+            mapping: {
+              Cat: '#/components/schemas/Cat',
+              Dog: '#/components/schemas/Dog',
+            },
+          },
+        },
+        Cat: {
+          type: 'object',
+          properties: { meow: { type: 'string' } },
+        },
+        Dog: {
+          type: 'object',
+          properties: { bark: { type: 'string' } },
+        },
+      };
+      const classic = buildProductionFixture(classicSchemas);
+      const union = classic.mapper.mapSchema(classicSchemas.Pet!);
+      expect(union.tsType).toBe('Cat | Dog');
+      expect(union.imports).toEqual(['Cat', 'Dog']);
+
+      // A foreign (non-family) ref keeps the inline wrapper and warns.
+      const foreignSchemas: Record<string, SchemaObject> = {
+        Pet: {
+          oneOf: [{ $ref: '#/components/schemas/Cat' }, { $ref: '#/components/schemas/Alien' }],
+          discriminator: {
+            propertyName: 'petType',
+            mapping: { Cat: '#/components/schemas/Cat' },
+          },
+        },
+        Cat: {
+          type: 'object',
+          properties: { petType: { const: 'cat' } },
+        },
+        Alien: {
+          type: 'object',
+          properties: { petType: { const: 'martian' }, planet: { type: 'string' } },
+        },
+      };
+      const foreign = buildProductionFixture(foreignSchemas);
+      const mixed = foreign.mapper.mapSchema(foreignSchemas.Pet!);
+      expect(mixed.tsType).toBe("Cat | ({ petType: 'martian' } & Alien)");
+      expect(foreign.warnings.length).toBeGreaterThan(0);
+    });
+
+    it('T9: a property $ref to another family variant target stays a bare name (multi-family scoping)', () => {
+      const multiFamilySchemas: Record<string, SchemaObject> = {
+        BaseThing: {
+          type: 'object',
+          properties: { id: { type: 'string' } },
+          discriminator: {
+            propertyName: '$type',
+            mapping: { Full: '#/components/schemas/UpdateThing' },
+          },
+        },
+        UpdateThing: {
+          allOf: [
+            { $ref: '#/components/schemas/BaseThing' },
+            {
+              type: 'object',
+              required: ['bulletin'],
+              properties: { bulletin: { $ref: '#/components/schemas/BulletinArtifact' } },
+            },
+          ],
+        },
+        BaseArtifact: {
+          type: 'object',
+          properties: { artifactId: { type: 'string' } },
+          discriminator: {
+            propertyName: '$type',
+            mapping: { Bulletin: '#/components/schemas/BulletinArtifact' },
+          },
+        },
+        BulletinArtifact: {
+          allOf: [
+            { $ref: '#/components/schemas/BaseArtifact' },
+            { type: 'object', properties: { url: { type: 'string' } } },
+          ],
+        },
+      };
+      const { mapper, schemas } = buildProductionFixture(multiFamilySchemas);
+
+      const result = mapper.mapSchema(schemas.UpdateThing!, 'UpdateThing');
+
+      expect(result.tsType).toContain('bulletin?: BulletinArtifact;');
+      // The sibling family's literal must not be inlined here.
+      expect(result.tsType).not.toContain("'Bulletin'");
+      expect(result.tsType).toMatch(/\{ ["']?\$type["']?: 'Full' \}$/);
+    });
+
+    it('T10a: grandchild chain emits Omit<mid, P> with exactly one literal', () => {
+      const chainSchemas: Record<string, SchemaObject> = {
+        Chain0: {
+          type: 'object',
+          discriminator: {
+            propertyName: 'chain',
+            mapping: {
+              mid: '#/components/schemas/ChainMid',
+              leaf: '#/components/schemas/ChainLeaf',
+            },
+          },
+        },
+        ChainMid: {
+          allOf: [
+            { $ref: '#/components/schemas/Chain0' },
+            { type: 'object', properties: { level: { type: 'integer' } } },
+          ],
+        },
+        ChainLeaf: {
+          allOf: [
+            { $ref: '#/components/schemas/ChainMid' },
+            { type: 'object', properties: { leafNote: { type: 'string' } } },
+          ],
+        },
+      };
+      const { mapper, schemas } = buildProductionFixture(chainSchemas);
+
+      const leaf = mapper.mapSchema(schemas.ChainLeaf!, 'ChainLeaf');
+
+      expect(leaf.tsType).toMatch(/^Omit<ChainMid, ["']?chain["']?>/);
+      expect(leaf.tsType).not.toContain("'mid'");
+      expect(leaf.tsType).toMatch(/\{ ["']?chain["']?: 'leaf' \}$/);
+    });
+
+    it('T10b: multi-parent spine Omit-references every same-family sibling (D4)', () => {
+      const multiSchemas: Record<string, SchemaObject> = {
+        Multi0: {
+          type: 'object',
+          discriminator: {
+            propertyName: 'mult',
+            mapping: {
+              left: '#/components/schemas/MultiLeft',
+              right: '#/components/schemas/MultiRight',
+            },
+          },
+        },
+        MultiLeft: {
+          allOf: [
+            { $ref: '#/components/schemas/Multi0' },
+            { type: 'object', properties: { leftNote: { type: 'string' } } },
+          ],
+        },
+        MultiRight: {
+          allOf: [
+            { $ref: '#/components/schemas/Multi0' },
+            { $ref: '#/components/schemas/MultiLeft' },
+            { type: 'object', properties: { rightNote: { type: 'string' } } },
+          ],
+        },
+      };
+      const { mapper, schemas } = buildProductionFixture(multiSchemas);
+
+      const right = mapper.mapSchema(schemas.MultiRight!, 'MultiRight');
+
+      expect(right.tsType).toContain('Omit<MultiLeft');
+      expect(right.tsType.match(/'right'/g)).toHaveLength(1);
+      expect(right.tsType).not.toContain("'left'");
+    });
+
+    it('T10c: cyclic sibling spines terminate and keep exactly one literal each', () => {
+      const loopSchemas: Record<string, SchemaObject> = {
+        Loop0: {
+          type: 'object',
+          discriminator: {
+            propertyName: 'loop',
+            mapping: {
+              alpha: '#/components/schemas/LoopAlpha',
+              beta: '#/components/schemas/LoopBeta',
+            },
+          },
+        },
+        LoopAlpha: {
+          allOf: [
+            { $ref: '#/components/schemas/Loop0' },
+            { $ref: '#/components/schemas/LoopBeta' },
+            { type: 'object', properties: { alphaNote: { type: 'string' } } },
+          ],
+        },
+        LoopBeta: {
+          allOf: [
+            { $ref: '#/components/schemas/Loop0' },
+            { $ref: '#/components/schemas/LoopAlpha' },
+            { type: 'object', properties: { betaNote: { type: 'string' } } },
+          ],
+        },
+      };
+      const { mapper, schemas } = buildProductionFixture(loopSchemas);
+
+      const alpha = mapper.mapSchema(schemas.LoopAlpha!, 'LoopAlpha');
+      expect(alpha.tsType).toContain('Omit<LoopBeta');
+      expect(alpha.tsType.match(/'alpha'/g)).toHaveLength(1);
+      expect(alpha.tsType).not.toContain("'beta'");
+
+      const beta = mapper.mapSchema(schemas.LoopBeta!, 'LoopBeta');
+      expect(beta.tsType).toContain('Omit<LoopAlpha');
+      expect(beta.tsType.match(/'beta'/g)).toHaveLength(1);
+    });
+
+    it('T10d: spine $ref to a oneOf-union target falls back to inline expansion without the literal', () => {
+      const uniSchemas: Record<string, SchemaObject> = {
+        Uni0: {
+          type: 'object',
+          discriminator: {
+            propertyName: 'uni',
+            mapping: {
+              mix: '#/components/schemas/UniMix',
+              pick: '#/components/schemas/UniPick',
+            },
+          },
+        },
+        UniMix: {
+          oneOf: [{ $ref: '#/components/schemas/UniA1' }, { $ref: '#/components/schemas/UniA2' }],
+        },
+        UniA1: { type: 'object', properties: { aOne: { type: 'string' } } },
+        UniA2: { type: 'object', properties: { aTwo: { type: 'string' } } },
+        UniPick: {
+          allOf: [
+            { $ref: '#/components/schemas/Uni0' },
+            { $ref: '#/components/schemas/UniMix' },
+            { type: 'object', properties: { pickNote: { type: 'string' } } },
+          ],
+        },
+      };
+      const { mapper, schemas } = buildProductionFixture(uniSchemas);
+
+      // The union target itself: site-2 append must parenthesize (D9) so the
+      // literal applies to the whole union, not just its last member.
+      const mix = mapper.mapSchema(schemas.UniMix!, 'UniMix');
+      expect(mix.tsType).toBe("(UniA1 | UniA2) & { uni: 'mix' }");
+
+      // The spine consumer: inline expansion, no 'mix' literal leak (D2 fallback).
+      const pick = mapper.mapSchema(schemas.UniPick!, 'UniPick');
+      expect(pick.tsType).toContain('(UniA1 | UniA2) &');
+      expect(pick.tsType).not.toContain("'mix'");
+      expect(pick.tsType).toMatch(/\{ ["']?uni["']?: 'pick' \}$/);
+    });
+
+    it('T10e: nested base $ref inside a variant becomes {Base}Variant; spine base ref stays bare (D1)', () => {
+      const selfSchemas: Record<string, SchemaObject> = {
+        Self0: {
+          type: 'object',
+          discriminator: {
+            propertyName: 'self',
+            mapping: { kid: '#/components/schemas/SelfKid' },
+          },
+        },
+        SelfKid: {
+          allOf: [
+            { $ref: '#/components/schemas/Self0' },
+            {
+              type: 'object',
+              required: ['parent'],
+              properties: { parent: { $ref: '#/components/schemas/Self0' } },
+            },
+          ],
+        },
+      };
+      const { mapper, schemas } = buildProductionFixture(selfSchemas);
+
+      const kid = mapper.mapSchema(schemas.SelfKid!, 'SelfKid');
+
+      expect(kid.tsType).toContain('parent: Self0Variant;');
+      expect(kid.tsType).toMatch(/\{ ["']?self["']?: 'kid' \}$/);
+    });
+
+    it('T10f: variant redeclaring its own discriminator value loses to the mapping key and warns (D3)', () => {
+      const constSchemas: Record<string, SchemaObject> = {
+        Const0: {
+          type: 'object',
+          discriminator: {
+            propertyName: 'mode',
+            mapping: { fast: '#/components/schemas/ConstFast' },
+          },
+        },
+        ConstFast: {
+          allOf: [
+            { $ref: '#/components/schemas/Const0' },
+            {
+              type: 'object',
+              required: ['mode', 'speed'],
+              properties: {
+                mode: { type: 'string', enum: ['slow'] },
+                speed: { type: 'integer' },
+              },
+            },
+          ],
+        },
+      };
+      const { mapper, warnings, schemas } = buildProductionFixture(constSchemas);
+
+      const fast = mapper.mapSchema(schemas.ConstFast!, 'ConstFast');
+
+      expect(fast.tsType).not.toContain("'slow'");
+      expect(fast.tsType.match(/'fast'/g)).toHaveLength(1);
+      expect(warnings.length).toBeGreaterThan(0);
     });
   });
 });

@@ -1,0 +1,76 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Discriminator Sibling Refs",
+    "version": "1.0.0"
+  },
+  "components": {
+    "schemas": {
+      "Widget": {
+        "type": "object",
+        "required": ["kind", "label"],
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "discriminator": {
+          "propertyName": "kind",
+          "mapping": {
+            "Big": "#/components/schemas/BigWidget"
+          }
+        }
+      },
+      "BigWidget": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Widget"
+          },
+          {
+            "type": "object",
+            "required": ["size"],
+            "properties": {
+              "size": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      "Holder": {
+        "type": "object",
+        "required": ["first", "second"],
+        "properties": {
+          "first": {
+            "$ref": "#/components/schemas/BigWidget"
+          },
+          "second": {
+            "$ref": "#/components/schemas/BigWidget"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/holders": {
+      "get": {
+        "summary": "Get holders",
+        "responses": {
+          "200": {
+            "description": "Holder list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Holder"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

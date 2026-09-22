@@ -1,0 +1,65 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Discriminator Nullable Variant",
+    "version": "1.0.0"
+  },
+  "components": {
+    "schemas": {
+      "GateBase": {
+        "type": "object",
+        "required": ["state", "label"],
+        "properties": {
+          "state": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "discriminator": {
+          "propertyName": "state",
+          "mapping": {
+            "On": "#/components/schemas/OnGate"
+          }
+        }
+      },
+      "OnGate": {
+        "nullable": true,
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/GateBase"
+          },
+          {
+            "type": "object",
+            "required": ["level"],
+            "properties": {
+              "level": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "paths": {
+    "/gates": {
+      "get": {
+        "summary": "Get gates",
+        "responses": {
+          "200": {
+            "description": "Gate list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnGate"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

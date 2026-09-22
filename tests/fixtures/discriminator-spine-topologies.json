@@ -1,0 +1,315 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Discriminator Spine Topologies",
+    "version": "1.0.0"
+  },
+  "components": {
+    "schemas": {
+      "Chain0": {
+        "type": "object",
+        "required": ["chain"],
+        "properties": {
+          "chain": {
+            "type": "string"
+          }
+        },
+        "discriminator": {
+          "propertyName": "chain",
+          "mapping": {
+            "mid": "#/components/schemas/ChainMid",
+            "leaf": "#/components/schemas/ChainLeaf"
+          }
+        }
+      },
+      "ChainMid": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Chain0"
+          },
+          {
+            "type": "object",
+            "required": ["level"],
+            "properties": {
+              "level": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      "ChainLeaf": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ChainMid"
+          },
+          {
+            "type": "object",
+            "required": ["leafNote"],
+            "properties": {
+              "leafNote": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "Loop0": {
+        "type": "object",
+        "required": ["loop"],
+        "properties": {
+          "loop": {
+            "type": "string"
+          }
+        },
+        "discriminator": {
+          "propertyName": "loop",
+          "mapping": {
+            "alpha": "#/components/schemas/LoopAlpha",
+            "beta": "#/components/schemas/LoopBeta"
+          }
+        }
+      },
+      "LoopAlpha": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Loop0"
+          },
+          {
+            "$ref": "#/components/schemas/LoopBeta"
+          },
+          {
+            "type": "object",
+            "required": ["alphaNote"],
+            "properties": {
+              "alphaNote": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "LoopBeta": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Loop0"
+          },
+          {
+            "$ref": "#/components/schemas/LoopAlpha"
+          },
+          {
+            "type": "object",
+            "required": ["betaNote"],
+            "properties": {
+              "betaNote": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "Multi0": {
+        "type": "object",
+        "required": ["mult"],
+        "properties": {
+          "mult": {
+            "type": "string"
+          }
+        },
+        "discriminator": {
+          "propertyName": "mult",
+          "mapping": {
+            "left": "#/components/schemas/MultiLeft",
+            "right": "#/components/schemas/MultiRight"
+          }
+        }
+      },
+      "MultiLeft": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Multi0"
+          },
+          {
+            "type": "object",
+            "required": ["leftNote"],
+            "properties": {
+              "leftNote": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "MultiRight": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Multi0"
+          },
+          {
+            "$ref": "#/components/schemas/MultiLeft"
+          },
+          {
+            "type": "object",
+            "required": ["rightNote"],
+            "properties": {
+              "rightNote": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "Const0": {
+        "type": "object",
+        "required": ["mode"],
+        "properties": {
+          "mode": {
+            "type": "string"
+          }
+        },
+        "discriminator": {
+          "propertyName": "mode",
+          "mapping": {
+            "fast": "#/components/schemas/ConstFast"
+          }
+        }
+      },
+      "ConstFast": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Const0"
+          },
+          {
+            "type": "object",
+            "required": ["mode", "speed"],
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": ["slow"]
+              },
+              "speed": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      "Uni0": {
+        "type": "object",
+        "required": ["uni"],
+        "properties": {
+          "uni": {
+            "type": "string"
+          }
+        },
+        "discriminator": {
+          "propertyName": "uni",
+          "mapping": {
+            "mix": "#/components/schemas/UniMix",
+            "pick": "#/components/schemas/UniPick"
+          }
+        }
+      },
+      "UniMix": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/UniA1"
+          },
+          {
+            "$ref": "#/components/schemas/UniA2"
+          }
+        ]
+      },
+      "UniA1": {
+        "type": "object",
+        "required": ["aOne"],
+        "properties": {
+          "aOne": {
+            "type": "string"
+          }
+        }
+      },
+      "UniA2": {
+        "type": "object",
+        "required": ["aTwo"],
+        "properties": {
+          "aTwo": {
+            "type": "string"
+          }
+        }
+      },
+      "UniPick": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Uni0"
+          },
+          {
+            "$ref": "#/components/schemas/UniMix"
+          },
+          {
+            "type": "object",
+            "required": ["pickNote"],
+            "properties": {
+              "pickNote": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "Self0": {
+        "type": "object",
+        "required": ["self"],
+        "properties": {
+          "self": {
+            "type": "string"
+          }
+        },
+        "discriminator": {
+          "propertyName": "self",
+          "mapping": {
+            "kid": "#/components/schemas/SelfKid"
+          }
+        }
+      },
+      "SelfKid": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Self0"
+          },
+          {
+            "type": "object",
+            "required": ["parent"],
+            "properties": {
+              "parent": {
+                "$ref": "#/components/schemas/Self0"
+              },
+              "kidNote": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "paths": {
+    "/topologies": {
+      "get": {
+        "summary": "Get topology samples",
+        "responses": {
+          "200": {
+            "description": "Topology samples",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainLeaf"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

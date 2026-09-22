@@ -1,0 +1,188 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Dotnet Polymorphism Cross Variant",
+    "version": "1.0.0"
+  },
+  "components": {
+    "schemas": {
+      "BaseThing": {
+        "type": "object",
+        "required": ["$type", "id"],
+        "properties": {
+          "$type": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "discriminator": {
+          "propertyName": "$type",
+          "mapping": {
+            "Partial": "#/components/schemas/PartialThing",
+            "Full": "#/components/schemas/UpdateThing",
+            "Create": "#/components/schemas/CreateThing"
+          }
+        }
+      },
+      "PartialThing": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseThing"
+          },
+          {
+            "type": "object"
+          }
+        ]
+      },
+      "UpdateThing": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseThing"
+          },
+          {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "detectionDateTime": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "bulletin": {
+                "$ref": "#/components/schemas/BulletinArtifact"
+              },
+              "affectedReleaseIds": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "CreateThing": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/UpdateThing"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false
+          }
+        ]
+      },
+      "BaseArtifact": {
+        "type": "object",
+        "required": ["$type", "artifactId"],
+        "properties": {
+          "$type": {
+            "type": "string"
+          },
+          "artifactId": {
+            "type": "string"
+          }
+        },
+        "discriminator": {
+          "propertyName": "$type",
+          "mapping": {
+            "Bulletin": "#/components/schemas/BulletinArtifact"
+          }
+        }
+      },
+      "BulletinArtifact": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseArtifact"
+          },
+          {
+            "type": "object",
+            "required": ["url"],
+            "properties": {
+              "url": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "paths": {
+    "/things": {
+      "post": {
+        "summary": "Create a thing",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateThing"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateThing"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateThing"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thing created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseThing"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/things/{id}": {
+      "put": {
+        "summary": "Replace a thing",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BaseThing"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Thing replaced"
+          }
+        }
+      }
+    }
+  }
+}

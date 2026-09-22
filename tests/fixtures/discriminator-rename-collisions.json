@@ -1,0 +1,90 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Discriminator Rename Collisions",
+    "version": "1.0.0"
+  },
+  "components": {
+    "schemas": {
+      "Thing": {
+        "type": "object",
+        "required": ["flavor", "id"],
+        "properties": {
+          "flavor": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        },
+        "discriminator": {
+          "propertyName": "flavor",
+          "mapping": {
+            "first": "#/components/schemas/User-Dto",
+            "second": "#/components/schemas/User[Dto]"
+          }
+        }
+      },
+      "User-Dto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Thing"
+          },
+          {
+            "type": "object",
+            "required": ["firstNote"],
+            "properties": {
+              "firstNote": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "User[Dto]": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Thing"
+          },
+          {
+            "type": "object",
+            "required": ["secondNote"],
+            "properties": {
+              "secondNote": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "ThingVariant": {
+        "type": "object",
+        "required": ["manualNote"],
+        "properties": {
+          "manualNote": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/things": {
+      "get": {
+        "summary": "Get things",
+        "responses": {
+          "200": {
+            "description": "Thing list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Thing"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
