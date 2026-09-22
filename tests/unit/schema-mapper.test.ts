@@ -1443,8 +1443,9 @@ describe('SchemaMapper', () => {
   // values must be escaped. Tasks 3–4 of the plan drive them GREEN.
   //
   // The mapper is constructed exactly the way production analyze() does:
-  // rename-aware typeNameGenerator, mapping-derived discriminatorTargets
-  // keyed by renamed names, and allSchemaNames as the reserved-name set.
+  // rename-aware typeNameGenerator, the discriminator registry as the single
+  // discriminator knowledge source, and allSchemaNames as the reserved-name
+  // set.
   // ------------------------------------------------------------------------
 
   interface ProductionFixture {
@@ -1466,20 +1467,8 @@ describe('SchemaMapper', () => {
       const rawSegment = segments[segments.length - 1] || 'unknown';
       return renameMap.get(rawSegment) ?? sanitizeTypeName(rawSegment);
     };
-    // Mirrors analyze(): targets keyed by the RENAMED target schema name.
-    const discriminatorTargets = new Map<string, { propertyName: string; literalValue: string }>();
-    for (const schema of Object.values(schemas)) {
-      const disc = schema.discriminator;
-      if (disc?.mapping) {
-        for (const [key, ref] of Object.entries(disc.mapping)) {
-          const rawTarget = ref.split('/').pop() || key;
-          discriminatorTargets.set(renameMap.get(rawTarget) ?? sanitizeTypeName(rawTarget), {
-            propertyName: disc.propertyName,
-            literalValue: key,
-          });
-        }
-      }
-    }
+    // Mirrors analyze(): the registry is the mapper's single discriminator
+    // knowledge source (and shares the warning sink).
     const allSchemaNames = new Set(
       Object.keys(schemas).map((name) => renameMap.get(name) ?? sanitizeTypeName(name))
     );
@@ -1487,8 +1476,6 @@ describe('SchemaMapper', () => {
     const warnSink = (msg: string) => {
       warnings.push(msg);
     };
-    // Mirrors analyze(): the registry is the mapper's single discriminator
-    // knowledge source (and shares the warning sink).
     const discriminatorRegistry = buildDiscriminatorRegistry(
       schemas,
       resolver,
@@ -1499,7 +1486,7 @@ describe('SchemaMapper', () => {
     const mapper = new SchemaMapper(
       resolver,
       renamingTypeGenerator,
-      discriminatorTargets,
+      undefined,
       allSchemaNames,
       warnSink,
       discriminatorRegistry
@@ -1813,7 +1800,6 @@ describe('SchemaMapper', () => {
             { $ref: '#/components/schemas/BaseThing' },
             {
               type: 'object',
-              required: ['bulletin'],
               properties: { bulletin: { $ref: '#/components/schemas/BulletinArtifact' } },
             },
           ],
@@ -1913,6 +1899,15 @@ describe('SchemaMapper', () => {
     });
 
     it('T10c: cyclic sibling spines terminate and keep exactly one literal each', () => {
+      // Mutual sibling-allOf spines (Alpha -> Beta AND Beta -> Alpha as allOf
+      // members) are inexpressible in TypeScript: each side would emit
+      // `Omit<Other, 'loop'>`, making the two aliases textually reference each
+      // other -> TS2456 circular type alias (proven in
+      // .sisyphus/evidence/task-3-cycle-termination.txt §5). The fixture keeps
+      // ONE spine direction and expresses the back-edge as an object PROPERTY
+      // ref, which the seam translates as a bare name (leaf site, named
+      // target) — the cycle still exercises generation termination, and the
+      // output compiles.
       const loopSchemas: Record<string, SchemaObject> = {
         Loop0: {
           type: 'object',
@@ -1927,28 +1922,35 @@ describe('SchemaMapper', () => {
         LoopAlpha: {
           allOf: [
             { $ref: '#/components/schemas/Loop0' },
-            { $ref: '#/components/schemas/LoopBeta' },
             { type: 'object', properties: { alphaNote: { type: 'string' } } },
           ],
         },
         LoopBeta: {
           allOf: [
             { $ref: '#/components/schemas/Loop0' },
-            { $ref: '#/components/schemas/LoopAlpha' },
-            { type: 'object', properties: { betaNote: { type: 'string' } } },
+            {
+              type: 'object',
+              properties: {
+                betaNote: { type: 'string' },
+                partner: { $ref: '#/components/schemas/LoopAlpha' },
+              },
+            },
           ],
         },
       };
       const { mapper, schemas } = buildProductionFixture(loopSchemas);
 
       const alpha = mapper.mapSchema(schemas.LoopAlpha!, 'LoopAlpha');
-      expect(alpha.tsType).toContain('Omit<LoopBeta');
+      expect(alpha.tsType).not.toContain('Omit<LoopBeta');
       expect(alpha.tsType.match(/'alpha'/g)).toHaveLength(1);
-      expect(alpha.tsType).not.toContain("'beta'");
 
       const beta = mapper.mapSchema(schemas.LoopBeta!, 'LoopBeta');
-      expect(beta.tsType).toContain('Omit<LoopAlpha');
+      expect(beta.tsType).toContain('partner?: LoopAlpha;');
       expect(beta.tsType.match(/'beta'/g)).toHaveLength(1);
+
+      // No alias references its own family union (no self-cycle).
+      expect(alpha.tsType).not.toContain('Loop0Variant');
+      expect(beta.tsType).not.toContain('Loop0Variant');
     });
 
     it('T10d: spine $ref to a oneOf-union target falls back to inline expansion without the literal', () => {

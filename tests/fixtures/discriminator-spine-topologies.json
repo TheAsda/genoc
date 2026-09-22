@@ -76,9 +76,6 @@
             "$ref": "#/components/schemas/Loop0"
           },
           {
-            "$ref": "#/components/schemas/LoopBeta"
-          },
-          {
             "type": "object",
             "required": ["alphaNote"],
             "properties": {
@@ -95,14 +92,14 @@
             "$ref": "#/components/schemas/Loop0"
           },
           {
-            "$ref": "#/components/schemas/LoopAlpha"
-          },
-          {
             "type": "object",
             "required": ["betaNote"],
             "properties": {
               "betaNote": {
                 "type": "string"
+              },
+              "partner": {
+                "$ref": "#/components/schemas/LoopAlpha"
               }
             }
           }

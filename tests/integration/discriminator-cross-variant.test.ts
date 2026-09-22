@@ -251,14 +251,21 @@ describe('Discriminator cross-variant integration', () => {
     });
 
     it('T10: cyclic sibling spines terminate with one literal each', () => {
+      // Mutual sibling-allOf spines (Alpha ⇄ Beta) are inexpressible as TS
+      // type aliases: mutual `Omit<...>` references trip TS2456 (see
+      // .sisyphus/evidence/task-3-cycle-termination.txt §5). The fixture keeps
+      // one spine direction and expresses the back-edge as an object property
+      // ref, which renders as a bare name — the cycle still exercises
+      // generation termination while the output compiles.
       const alpha = typeBlock(output.contracts, 'LoopAlpha');
-      expect(alpha).toContain('Omit<LoopBeta');
       expect(alpha.match(/'alpha'/g)).toHaveLength(1);
-      expect(alpha).not.toContain("'beta'");
+      expect(alpha).not.toContain('Omit<LoopBeta');
+      expect(alpha).not.toContain('Loop0Variant');
 
       const beta = typeBlock(output.contracts, 'LoopBeta');
-      expect(beta).toContain('Omit<LoopAlpha');
+      expect(beta).toContain('partner?: LoopAlpha;');
       expect(beta.match(/'beta'/g)).toHaveLength(1);
+      expect(beta).not.toContain('Loop0Variant');
     });
 
     it('T10: multi-parent spine Omit-references the sibling (D4)', () => {
