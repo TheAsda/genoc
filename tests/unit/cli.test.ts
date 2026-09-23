@@ -1,3 +1,4 @@
+import { spawnSync } from 'child_process';
 import {
   copyFileSync,
   readFileSync,
@@ -8,11 +9,11 @@ import {
   mkdtempSync,
 } from 'fs';
 import { tmpdir } from 'os';
-import { join } from 'path';
+import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
 import { run } from '@stricli/core';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { afterAll, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 import { app } from '../../src/cli/app.js';
 import type { AppFlags } from '../../src/cli/app.js';
@@ -899,5 +900,69 @@ describe('CLI Entry Point', () => {
         targetNameFromInput('C:\\specs\\api.yaml'),
       ]).toMatchSnapshot();
     });
+  });
+});
+
+/**
+ * Regression e2e for issue #48, run against the REAL built CLI process
+ * (`dist/cli/index.js`) so stderr is captured exactly as a user sees it.
+ * Requires `npm run build` first. Harness mirrors config-file.test.ts's runCli.
+ */
+describe('CLI e2e: nullable deprecation warning is dialect-gated (child process)', () => {
+  const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+  const CLI_ENTRY = join(REPO_ROOT, 'dist/cli/index.js');
+  const NULLABLE_WARNING =
+    'Warning: \'nullable\' is deprecated in OpenAPI 3.1. Use \'type: ["string", "null"]\' instead.';
+  const PETSTORE_30_FIXTURE = join(REPO_ROOT, 'tests/fixtures/v3.0/petstore.yaml');
+  const NULLABLE_31_FIXTURE = join(REPO_ROOT, 'tests/fixtures/nullable-3.1.json');
+
+  let tmpRoot: string;
+
+  function countOccurrences(haystack: string, needle: string): number {
+    return haystack.split(needle).length - 1;
+  }
+
+  type CliResult = { status: number | null; stdout: string; stderr: string };
+
+  function runCli(args: string[]): CliResult {
+    const result = spawnSync(process.execPath, [CLI_ENTRY, ...args], {
+      cwd: REPO_ROOT,
+      encoding: 'utf8',
+    });
+    if (result.error !== undefined) {
+      throw new Error(`Failed to spawn CLI: ${String(result.error)}`);
+    }
+    return { status: result.status, stdout: result.stdout ?? '', stderr: result.stderr ?? '' };
+  }
+
+  beforeAll(() => {
+    tmpRoot = mkdtempSync(join(tmpdir(), 'genoc-nullable-e2e-'));
+  });
+
+  afterAll(() => {
+    rmSync(tmpRoot, { recursive: true, force: true });
+  });
+
+  it('dist/cli/index.js exists (build before running this suite)', () => {
+    expect(existsSync(CLI_ENTRY)).toBe(true);
+  });
+
+  it('3.0 petstore spec: CLI stderr never contains the nullable deprecation warning', () => {
+    const outDir = join(tmpRoot, 'out-30');
+    const result = runCli([PETSTORE_30_FIXTURE, '--output-dir', outDir]);
+
+    expect(result.status).toBe(0);
+    // The v3.0 fixture carries `nullable: true` twice — dialect gate must keep it silent.
+    expect(countOccurrences(result.stderr, "'nullable' is deprecated in OpenAPI 3.1")).toBe(0);
+    expect(existsSync(join(outDir, 'client.ts'))).toBe(true);
+  });
+
+  it('3.1 spec with nullable: CLI stderr contains the warning exactly once', () => {
+    const outDir = join(tmpRoot, 'out-31');
+    const result = runCli([NULLABLE_31_FIXTURE, '--output-dir', outDir]);
+
+    expect(result.status).toBe(0);
+    expect(countOccurrences(result.stderr, NULLABLE_WARNING)).toBe(1);
+    expect(existsSync(join(outDir, 'client.ts'))).toBe(true);
   });
 });

@@ -101,7 +101,13 @@ describe('Petstore full output pipeline', () => {
       input: FIXTURE_PATH,
       outputDir: tmpDir,
     };
-    await generateFullOutput(doc, config);
+    // Thread the version profile the way production's resolveVersion() derives
+    // it for a 3.1 doc. The 3.1 petstore fixture has no `nullable`, so there is
+    // no meaningful absence-assertion here — this mirrors the CLI threading.
+    await generateFullOutput(doc, config, {
+      preserveRefSiblings: true,
+      effectiveVersion: '3.1',
+    });
   });
 
   afterAll(() => {
