@@ -1,5 +1,13 @@
 # genoc
 
+## 0.4.1
+
+### Patch Changes
+
+- d871e0e: Fixed discriminator cross-variant inheritance collapsing generated variants to `never` (the .NET System.Text.Json polymorphism style, where each variant inherits the discriminated base). Discriminator literals are now injected exactly once — at each mapping target's own named definition — and same-family variant references render as `Omit<Sibling, 'Prop'>` instead of re-inlining the parent literal. Every discriminated family also emits a collision-safe `{Base}Variant` union (mapping values ∪ oneOf refs), and a `$ref` to a discriminator base resolves to that union at all usage sites. Also fixes four latent analyzer bugs: repeated sibling `$ref`s dropping all properties, injected literals binding only to the last member of a union, implicit variant literals using the sanitized type name instead of the raw ref segment, and mapping keys containing `'` / `\` producing syntactically invalid TypeScript.
+- d871e0e: The `'nullable' is deprecated in OpenAPI 3.1` generation warning is now gated by the effective spec dialect: it only fires when generating from a 3.1 spec, where `type: ["string", "null"]` is the modern replacement. OpenAPI 3.0 specs — where `nullable` is the correct and only mechanism — no longer produce the warning. The effective dialect is sourced from version detection (honoring `--spec-version` overrides) and threaded through the pipeline into the analyzer; as part of this, `SchemaMapper` now takes an options object instead of positional constructor parameters.
+- c0ee6dc: `undici` is no longer bundled as a regular dependency: it moved to an optional peer dependency (`^6.13.0 || ^7 || ^8`). Fetching specs through a proxy now requires installing it yourself (`npm install undici`); genoc keeps working without undici when no proxy is configured. The Node.js engine floor rises from 18 to 20.18.1 — the minimum required by undici v7, which the peer range now admits. A missing `undici` during a proxied fetch now produces an actionable install hint instead of a wrapped fetch failure.
+
 ## 0.4.0
 
 ### Minor Changes
