@@ -125,6 +125,19 @@ function ownDeclaredDiscriminant(propSchema: SchemaObject | undefined): string |
 }
 
 /**
+ * Optional construction dependencies for {@link SchemaMapper}. Every field is
+ * optional and defaults exactly as the previous positional constructor
+ * parameters did.
+ */
+export interface SchemaMapperOptions {
+  typeNameGenerator?: TypeNameGenerator;
+  discriminatorTargets?: Map<string, { propertyName: string; literalValue: string }>;
+  emittedNames?: Set<string>;
+  warnSink?: (message: string) => void;
+  discriminatorRegistry?: DiscriminatorRegistry;
+}
+
+/**
  * SchemaMapper converts OpenAPI 3.1 Schema Objects to TypeScript type strings.
  *
  * Handles primitives, objects, arrays, enums, combinators (allOf/oneOf/anyOf),
@@ -144,14 +157,7 @@ export class SchemaMapper {
   private nullableWarned = false;
   private readonly warnSink: (message: string) => void;
 
-  constructor(
-    resolver: RefResolver,
-    typeNameGenerator?: TypeNameGenerator,
-    discriminatorTargets?: Map<string, { propertyName: string; literalValue: string }>,
-    emittedNames?: Set<string>,
-    warnSink?: (message: string) => void,
-    discriminatorRegistry?: DiscriminatorRegistry
-  ) {
+  constructor(resolver: RefResolver, opts?: SchemaMapperOptions) {
     // NOTE: discriminatorTargets must be keyed by names produced by the SAME
     // (rename-aware) typeNameGenerator that resolves $refs. Passing targets
     // keyed by raw schema names means renamed subtypes silently lose their
@@ -162,12 +168,12 @@ export class SchemaMapper {
     // registry-less constructions; it only drives the legacy ref fallback in
     // `resolveDiscriminatorInfo` below.
     this.resolver = resolver;
-    this.typeNameGenerator = typeNameGenerator ?? defaultTypeNameGenerator;
-    this.discriminatorTargets = discriminatorTargets ?? new Map();
-    this.emittedNames = emittedNames ?? new Set();
-    this.discriminatorRegistry = discriminatorRegistry;
+    this.typeNameGenerator = opts?.typeNameGenerator ?? defaultTypeNameGenerator;
+    this.discriminatorTargets = opts?.discriminatorTargets ?? new Map();
+    this.emittedNames = opts?.emittedNames ?? new Set();
+    this.discriminatorRegistry = opts?.discriminatorRegistry;
     this.warnSink =
-      warnSink ??
+      opts?.warnSink ??
       ((message) => {
         process.stderr.write(message);
       });

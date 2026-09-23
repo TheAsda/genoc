@@ -366,14 +366,11 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
     writeWarning
   );
 
-  const mapper = new SchemaMapper(
-    resolver,
-    renamingTypeGenerator,
-    undefined,
-    allSchemaNames,
-    undefined,
-    discriminatorRegistry
-  );
+  const mapper = new SchemaMapper(resolver, {
+    typeNameGenerator: renamingTypeGenerator,
+    emittedNames: allSchemaNames,
+    discriminatorRegistry,
+  });
 
   // Section 1: Schema types
   const schemaEntries: ContractEntry[] = [];
