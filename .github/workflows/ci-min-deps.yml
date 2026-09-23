@@ -24,10 +24,10 @@ jobs:
         with:
           node-version: 22
 
-      - run: npm ci
+      # No package-lock.json (bun-only repo); npm 10 (bundled with Node 22) crashes on
+      # installs here ("Cannot read properties of null (reading 'edgesOut')") — pin npm 11.
+      - run: npx -y npm@11 install --no-audit --no-fund
 
-      # npm 10 (bundled with Node 22) crashes on `install --no-save` after `npm ci`
-      # with "Cannot read properties of null (reading 'edgesOut')"; npm 11 works.
       - run: npx -y npm@11 install --no-save yaml@${{ env.YAML_FLOOR }} zod@${{ env.ZOD_FLOOR }}
 
       - run: |

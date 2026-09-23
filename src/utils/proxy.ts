@@ -60,6 +60,17 @@ export function hasProxyEnv(): boolean {
   );
 }
 
+/** True when the dynamic `import('undici')` failed because undici is not installed (Node: ERR_MODULE_NOT_FOUND; Bun: "Cannot find package" message). */
+export function isMissingUndiciError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const code = (err as NodeJS.ErrnoException).code;
+  if (code === 'ERR_MODULE_NOT_FOUND') return true;
+  return /Cannot find (?:module|package) ['"]?undici/.test(err.message);
+}
+
+const MISSING_UNDICI_MESSAGE =
+  "Proxy support requires the 'undici' package. Install it: npm install undici";
+
 export async function fetchSpec(url: string, opts?: LoadOptions): Promise<Response> {
   if (opts?.proxy) {
     assertValidProxyUrl(opts.proxy);
@@ -70,6 +81,9 @@ export async function fetchSpec(url: string, opts?: LoadOptions): Promise<Respon
         dispatcher: new ProxyAgent(opts.proxy),
       })) as unknown as Response;
     } catch (err) {
+      if (isMissingUndiciError(err)) {
+        throw new Error(MISSING_UNDICI_MESSAGE);
+      }
       throw new Error(
         `Failed to fetch spec from URL via proxy ${redacted}: ${describeFetchError(err)}`,
         {
@@ -86,6 +100,9 @@ export async function fetchSpec(url: string, opts?: LoadOptions): Promise<Respon
         dispatcher: new EnvHttpProxyAgent(),
       })) as unknown as Response;
     } catch (err) {
+      if (isMissingUndiciError(err)) {
+        throw new Error(MISSING_UNDICI_MESSAGE);
+      }
       throw new Error(`Failed to fetch spec from URL via proxy env: ${describeFetchError(err)}`, {
         cause: err,
       });

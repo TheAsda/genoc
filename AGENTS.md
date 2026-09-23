@@ -2,7 +2,7 @@
 
 ## What this project does
 
-Generates typed TypeScript HTTP clients from OpenAPI 3.0 / 3.1 specs (JSON/YAML, file or URL). Outputs three files: `contracts.ts` (types), `client.ts` (client with `createClient(requester)` factory), and `index.ts` (barrel re-exporting both) into the specified output directory. The user supplies a `Requester` implementation at runtime. Requires Node ≥ 18.
+Generates typed TypeScript HTTP clients from OpenAPI 3.0 / 3.1 specs (JSON/YAML, file or URL). Outputs three files: `contracts.ts` (types), `client.ts` (client with `createClient(requester)` factory), and `index.ts` (barrel re-exporting both) into the specified output directory. The user supplies a `Requester` implementation at runtime. Requires Node ≥ 20.18.1.
 
 ## Commands
 
@@ -139,4 +139,4 @@ Discriminated families (from the discriminator registry in `AnalyzedSpec`): each
 
 ## Dependencies
 
-Runtime: `yaml` (parsing), `@stricli/core` (CLI framework). Dev: `typescript`, `vitest`, `oxlint`, `oxfmt`.
+Runtime: `yaml` (parsing), `@stricli/core` (CLI framework). Optional peer: `undici` (proxy support, `^6.13.0 || ^7 || ^8`). Dev: `typescript`, `vitest`, `oxlint`, `oxfmt`.
