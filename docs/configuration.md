@@ -2,17 +2,17 @@
 
 ## CLI reference
 
-| Argument                 | Default         | Description                                                                                                                                             |
-| ------------------------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `<spec>` (positional)    | (optional)      | Path or URL to an OpenAPI 3.0 or 3.1 spec (JSON or YAML); optional when a config file supplies `input`; see [Configuration files](#configuration-files) |
-| `--output-dir`, `-o`     | (optional)      | Output directory for generated files; required when no config file supplies `outputDir`                                                                 |
-| `--method-name-strategy` | `path-based`    | Method naming strategy                                                                                                                                  |
-| `--spec-version`         | auto-detect     | Override version detection (`"3.0"` or `"3.1"`)                                                                                                         |
-| `--strict-version`       | `true`          | Warn if `--spec-version` mismatches detected version; a config file value applies when the flag is omitted                                              |
-| `--runtime-import-path`  | `genoc/runtime` | Module specifier generated code imports runtime classes from                                                                                            |
-| `--proxy`                | (none)          | HTTP or HTTPS proxy URL for fetching specs from URLs; overrides the `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY` environment variables                   |
-| `--config`               | (none)          | Path to a config file (`.genocrc.yml` or `.genocrc.json`); skips config discovery                                                                       |
-| `--project`              | (none)          | Run only the named client from a multi-client config; omit to run all clients                                                                           |
+| Argument                 | Default         | Description                                                                                                                                                                                                |
+| ------------------------ | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<spec>` (positional)    | (optional)      | Path or URL to an OpenAPI 3.0 or 3.1 spec (JSON or YAML); optional when a config file supplies `input`; see [Configuration files](#configuration-files)                                                    |
+| `--output-dir`, `-o`     | (optional)      | Output directory for generated files; required when no config file supplies `outputDir`                                                                                                                    |
+| `--method-name-strategy` | `path-based`    | Method naming strategy                                                                                                                                                                                     |
+| `--spec-version`         | auto-detect     | Override version detection (`"3.0"` or `"3.1"`)                                                                                                                                                            |
+| `--strict-version`       | `true`          | Warn if `--spec-version` mismatches detected version; a config file value applies when the flag is omitted                                                                                                 |
+| `--runtime-import-path`  | `genoc/runtime` | Module specifier generated code imports runtime classes from                                                                                                                                               |
+| `--proxy`                | (none)          | HTTP or HTTPS proxy URL for fetching specs from URLs; overrides the `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY` environment variables; requires the `undici` package (see [Proxy support](#proxy-support)) |
+| `--config`               | (none)          | Path to a config file (`.genocrc.yml` or `.genocrc.json`); skips config discovery                                                                                                                          |
+| `--project`              | (none)          | Run only the named client from a multi-client config; omit to run all clients                                                                                                                              |
 
 ## Configuration files
 
@@ -80,6 +80,7 @@ genoc https://api.example.com/openapi.yaml --output-dir ./src/api \
   --proxy http://user:pass@proxy.example.com:8080
 ```
 
+- Proxy fetching requires the `undici` package (`^6.13.0 || ^7 || ^8`): install it with `npm install undici`. Without a proxy configured, genoc works without undici.
 - Credentials are supported in the proxy URL (`user:pass@host:port`).
 - Without `--proxy`, the `HTTP_PROXY` and `HTTPS_PROXY` environment variables
   (either casing) are respected, with `NO_PROXY` exclusions; an explicit
