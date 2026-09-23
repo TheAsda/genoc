@@ -126,4 +126,9 @@ export interface AnalyzeOptions {
   resolver?: RefResolver;
   /** Method naming strategy; defaults to `'path-based'`. */
   strategy?: MethodNameStrategy;
+  /**
+   * Effective OpenAPI dialect, sourced from `VersionProfile.effective`.
+   * Omitted is treated as `'3.1'`.
+   */
+  effectiveVersion?: '3.0' | '3.1';
 }

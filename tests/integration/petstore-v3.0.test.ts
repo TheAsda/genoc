@@ -4,7 +4,7 @@ import { tmpdir } from 'os';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 
 import { generateOutput } from '../../src/generator/client-generator.js';
 import { renderContracts } from '../../src/generator/contracts-generator.js';
@@ -94,6 +94,7 @@ describe('Petstore v3.0 integration', () => {
 
 describe('Petstore v3.0 full output pipeline', () => {
   let tmpDir: string;
+  const stderrWrites: string[] = [];
 
   beforeAll(async () => {
     tmpDir = await mkdtemp(join(tmpdir(), 'petstore-v3-full-'));
@@ -103,11 +104,34 @@ describe('Petstore v3.0 full output pipeline', () => {
       input: FIXTURE_PATH,
       outputDir: tmpDir,
     };
-    await generateFullOutput(doc, config);
+    // Regression guard (issue #48): the v3.0 petstore fixture carries
+    // `nullable: true` twice — the deprecation warning must stay gated off
+    // when the pipeline runs with the 3.0 dialect (mirrors resolveVersion()).
+    const stderrWrite = vi
+      .spyOn(process.stderr, 'write')
+      .mockImplementation((chunk: Uint8Array | string) => {
+        stderrWrites.push(typeof chunk === 'string' ? chunk : new TextDecoder().decode(chunk));
+        return true;
+      });
+    try {
+      await generateFullOutput(doc, config, {
+        preserveRefSiblings: false,
+        effectiveVersion: '3.0',
+      });
+    } finally {
+      stderrWrite.mockRestore();
+    }
   });
 
   afterAll(() => {
     rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('emits no nullable deprecation warning when gated by the 3.0 dialect', () => {
+    const nullableWarnings = stderrWrites.filter((chunk) =>
+      chunk.includes("'nullable' is deprecated in OpenAPI 3.1")
+    );
+    expect(nullableWarnings).toEqual([]);
   });
 
   it('writes contracts.ts and client.ts to disk', () => {

@@ -125,6 +125,25 @@ function ownDeclaredDiscriminant(propSchema: SchemaObject | undefined): string |
 }
 
 /**
+ * Optional construction dependencies for {@link SchemaMapper}. Every field is
+ * optional and defaults exactly as the previous positional constructor
+ * parameters did.
+ */
+export interface SchemaMapperOptions {
+  typeNameGenerator?: TypeNameGenerator;
+  discriminatorTargets?: Map<string, { propertyName: string; literalValue: string }>;
+  emittedNames?: Set<string>;
+  warnSink?: (message: string) => void;
+  discriminatorRegistry?: DiscriminatorRegistry;
+  /**
+   * Effective OpenAPI dialect. Omitted is treated as '3.1' (the nullable
+   * deprecation warning fires). Pass '3.0' to silence it — 'nullable' is the
+   * correct mechanism in 3.0.
+   */
+  effectiveVersion?: '3.0' | '3.1';
+}
+
+/**
  * SchemaMapper converts OpenAPI 3.1 Schema Objects to TypeScript type strings.
  *
  * Handles primitives, objects, arrays, enums, combinators (allOf/oneOf/anyOf),
@@ -143,15 +162,9 @@ export class SchemaMapper {
     new Map();
   private nullableWarned = false;
   private readonly warnSink: (message: string) => void;
+  private readonly effectiveVersion: '3.0' | '3.1' | undefined;
 
-  constructor(
-    resolver: RefResolver,
-    typeNameGenerator?: TypeNameGenerator,
-    discriminatorTargets?: Map<string, { propertyName: string; literalValue: string }>,
-    emittedNames?: Set<string>,
-    warnSink?: (message: string) => void,
-    discriminatorRegistry?: DiscriminatorRegistry
-  ) {
+  constructor(resolver: RefResolver, opts?: SchemaMapperOptions) {
     // NOTE: discriminatorTargets must be keyed by names produced by the SAME
     // (rename-aware) typeNameGenerator that resolves $refs. Passing targets
     // keyed by raw schema names means renamed subtypes silently lose their
@@ -162,15 +175,16 @@ export class SchemaMapper {
     // registry-less constructions; it only drives the legacy ref fallback in
     // `resolveDiscriminatorInfo` below.
     this.resolver = resolver;
-    this.typeNameGenerator = typeNameGenerator ?? defaultTypeNameGenerator;
-    this.discriminatorTargets = discriminatorTargets ?? new Map();
-    this.emittedNames = emittedNames ?? new Set();
-    this.discriminatorRegistry = discriminatorRegistry;
+    this.typeNameGenerator = opts?.typeNameGenerator ?? defaultTypeNameGenerator;
+    this.discriminatorTargets = opts?.discriminatorTargets ?? new Map();
+    this.emittedNames = opts?.emittedNames ?? new Set();
+    this.discriminatorRegistry = opts?.discriminatorRegistry;
     this.warnSink =
-      warnSink ??
+      opts?.warnSink ??
       ((message) => {
         process.stderr.write(message);
       });
+    this.effectiveVersion = opts?.effectiveVersion;
   }
 
   getBrandedTypes(): Map<string, { name: string; format: string; baseType: string }> {
@@ -292,7 +306,7 @@ export class SchemaMapper {
     // TODO: Remove deprecated nullable warning and handling when OpenAPI 3.1 support is complete
     // The 'nullable' property is deprecated in OpenAPI 3.1 in favor of type arrays like ["string", "null"]
     // This warning should be removed once full type array support is implemented
-    if (s.nullable === true && !this.nullableWarned) {
+    if (s.nullable === true && this.effectiveVersion !== '3.0' && !this.nullableWarned) {
       this.warnSink(
         'Warning: \'nullable\' is deprecated in OpenAPI 3.1. Use \'type: ["string", "null"]\' instead.'
       );

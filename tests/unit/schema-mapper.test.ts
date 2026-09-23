@@ -195,7 +195,7 @@ describe('SchemaMapper', () => {
         const parts = ref.split('/');
         return `I${parts[parts.length - 1]}`;
       };
-      const m = new SchemaMapper(resolver, customGen);
+      const m = new SchemaMapper(resolver, { typeNameGenerator: customGen });
       const result = m.mapSchema({ $ref: '#/components/schemas/User' });
       expect(result.tsType).toBe('IUser');
       expect(result.imports).toEqual(['IUser']);
@@ -898,12 +898,9 @@ describe('SchemaMapper', () => {
     });
 
     it('skips branding when name collides with reserved name', () => {
-      const mapper = new SchemaMapper(
-        createResolver(),
-        undefined,
-        undefined,
-        new Set(['DateTimeString'])
-      );
+      const mapper = new SchemaMapper(createResolver(), {
+        emittedNames: new Set(['DateTimeString']),
+      });
       const result = mapper.mapSchema({ type: 'string', format: 'date-time' });
       expect(result.tsType).toBe('string');
       expect(mapper.getBrandedTypes().size).toBe(0);
@@ -1372,8 +1369,10 @@ describe('SchemaMapper', () => {
     it('warns exactly once per instance when mapping a nullable schema', () => {
       const writes: string[] = [];
       const r = createResolver();
-      const m = new SchemaMapper(r, undefined, undefined, undefined, (msg) => {
-        writes.push(msg);
+      const m = new SchemaMapper(r, {
+        warnSink: (msg) => {
+          writes.push(msg);
+        },
       });
 
       m.mapSchema(nullableSchema);
@@ -1387,11 +1386,15 @@ describe('SchemaMapper', () => {
       const firstWrites: string[] = [];
       const secondWrites: string[] = [];
       const r = createResolver();
-      const first = new SchemaMapper(r, undefined, undefined, undefined, (msg) => {
-        firstWrites.push(msg);
+      const first = new SchemaMapper(r, {
+        warnSink: (msg) => {
+          firstWrites.push(msg);
+        },
       });
-      const second = new SchemaMapper(r, undefined, undefined, undefined, (msg) => {
-        secondWrites.push(msg);
+      const second = new SchemaMapper(r, {
+        warnSink: (msg) => {
+          secondWrites.push(msg);
+        },
       });
 
       first.mapSchema(nullableSchema);
@@ -1406,8 +1409,10 @@ describe('SchemaMapper', () => {
       try {
         const writes: string[] = [];
         const r = createResolver();
-        const m = new SchemaMapper(r, undefined, undefined, undefined, (msg) => {
-          writes.push(msg);
+        const m = new SchemaMapper(r, {
+          warnSink: (msg) => {
+            writes.push(msg);
+          },
         });
 
         m.mapSchema(nullableSchema);
@@ -1422,13 +1427,95 @@ describe('SchemaMapper', () => {
     it('does not warn for schemas without nullable', () => {
       const writes: string[] = [];
       const r = createResolver();
-      const m = new SchemaMapper(r, undefined, undefined, undefined, (msg) => {
-        writes.push(msg);
+      const m = new SchemaMapper(r, {
+        warnSink: (msg) => {
+          writes.push(msg);
+        },
       });
 
       m.mapSchema({ type: 'string' });
 
       expect(writes).toEqual([]);
+    });
+  });
+
+  describe('nullable warning dialect gating', () => {
+    const nullableSchema: SchemaObject = { type: 'string', nullable: true };
+    const expectedMessage =
+      'Warning: \'nullable\' is deprecated in OpenAPI 3.1. Use \'type: ["string", "null"]\' instead.';
+
+    function nullableWarnings(writes: string[]): string[] {
+      return writes.filter((msg) => msg === expectedMessage);
+    }
+
+    it("does not warn when effectiveVersion is '3.0' while keeping nullable → | null mapping", () => {
+      const writes: string[] = [];
+      const r = createResolver();
+      const m = new SchemaMapper(r, {
+        effectiveVersion: '3.0',
+        warnSink: (msg) => {
+          writes.push(msg);
+        },
+      });
+
+      const first = m.mapSchema(nullableSchema);
+      m.mapSchema(nullableSchema);
+      m.mapSchema(nullableSchema);
+
+      expect(nullableWarnings(writes)).toEqual([]);
+      expect(first.tsType).toBe('string | null');
+    });
+
+    it("warns exactly once when effectiveVersion is '3.1'", () => {
+      const writes: string[] = [];
+      const r = createResolver();
+      const m = new SchemaMapper(r, {
+        effectiveVersion: '3.1',
+        warnSink: (msg) => {
+          writes.push(msg);
+        },
+      });
+
+      const first = m.mapSchema(nullableSchema);
+      m.mapSchema(nullableSchema);
+      m.mapSchema(nullableSchema);
+
+      expect(nullableWarnings(writes)).toEqual([expectedMessage]);
+      expect(first.tsType).toBe('string | null');
+    });
+
+    it('warns exactly once when effectiveVersion is omitted (default is treated as 3.1)', () => {
+      const writes: string[] = [];
+      const r = createResolver();
+      const m = new SchemaMapper(r, {
+        warnSink: (msg) => {
+          writes.push(msg);
+        },
+      });
+
+      m.mapSchema(nullableSchema);
+      m.mapSchema(nullableSchema);
+      m.mapSchema(nullableSchema);
+
+      expect(nullableWarnings(writes)).toEqual([expectedMessage]);
+    });
+
+    it('never warns for nullable: false or absent nullable regardless of version', () => {
+      for (const effectiveVersion of ['3.0', '3.1'] as const) {
+        const writes: string[] = [];
+        const r = createResolver();
+        const m = new SchemaMapper(r, {
+          effectiveVersion,
+          warnSink: (msg) => {
+            writes.push(msg);
+          },
+        });
+
+        m.mapSchema({ type: 'string', nullable: false });
+        m.mapSchema({ type: 'string' });
+
+        expect(nullableWarnings(writes)).toEqual([]);
+      }
     });
   });
 
@@ -1483,14 +1570,12 @@ describe('SchemaMapper', () => {
       allSchemaNames,
       warnSink
     );
-    const mapper = new SchemaMapper(
-      resolver,
-      renamingTypeGenerator,
-      undefined,
-      allSchemaNames,
+    const mapper = new SchemaMapper(resolver, {
+      typeNameGenerator: renamingTypeGenerator,
+      emittedNames: allSchemaNames,
       warnSink,
-      discriminatorRegistry
-    );
+      discriminatorRegistry,
+    });
     return { mapper, warnings, schemas };
   }
 
