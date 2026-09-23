@@ -1439,6 +1439,86 @@ describe('SchemaMapper', () => {
     });
   });
 
+  describe('nullable warning dialect gating', () => {
+    const nullableSchema: SchemaObject = { type: 'string', nullable: true };
+    const expectedMessage =
+      'Warning: \'nullable\' is deprecated in OpenAPI 3.1. Use \'type: ["string", "null"]\' instead.';
+
+    function nullableWarnings(writes: string[]): string[] {
+      return writes.filter((msg) => msg === expectedMessage);
+    }
+
+    it("does not warn when effectiveVersion is '3.0' while keeping nullable → | null mapping", () => {
+      const writes: string[] = [];
+      const r = createResolver();
+      const m = new SchemaMapper(r, {
+        effectiveVersion: '3.0',
+        warnSink: (msg) => {
+          writes.push(msg);
+        },
+      });
+
+      const first = m.mapSchema(nullableSchema);
+      m.mapSchema(nullableSchema);
+      m.mapSchema(nullableSchema);
+
+      expect(nullableWarnings(writes)).toEqual([]);
+      expect(first.tsType).toBe('string | null');
+    });
+
+    it("warns exactly once when effectiveVersion is '3.1'", () => {
+      const writes: string[] = [];
+      const r = createResolver();
+      const m = new SchemaMapper(r, {
+        effectiveVersion: '3.1',
+        warnSink: (msg) => {
+          writes.push(msg);
+        },
+      });
+
+      const first = m.mapSchema(nullableSchema);
+      m.mapSchema(nullableSchema);
+      m.mapSchema(nullableSchema);
+
+      expect(nullableWarnings(writes)).toEqual([expectedMessage]);
+      expect(first.tsType).toBe('string | null');
+    });
+
+    it('warns exactly once when effectiveVersion is omitted (default is treated as 3.1)', () => {
+      const writes: string[] = [];
+      const r = createResolver();
+      const m = new SchemaMapper(r, {
+        warnSink: (msg) => {
+          writes.push(msg);
+        },
+      });
+
+      m.mapSchema(nullableSchema);
+      m.mapSchema(nullableSchema);
+      m.mapSchema(nullableSchema);
+
+      expect(nullableWarnings(writes)).toEqual([expectedMessage]);
+    });
+
+    it('never warns for nullable: false or absent nullable regardless of version', () => {
+      for (const effectiveVersion of ['3.0', '3.1'] as const) {
+        const writes: string[] = [];
+        const r = createResolver();
+        const m = new SchemaMapper(r, {
+          effectiveVersion,
+          warnSink: (msg) => {
+            writes.push(msg);
+          },
+        });
+
+        m.mapSchema({ type: 'string', nullable: false });
+        m.mapSchema({ type: 'string' });
+
+        expect(nullableWarnings(writes)).toEqual([]);
+      }
+    });
+  });
+
   // ------------------------------------------------------------------------
   // RED matrix for the single-injection discriminator architecture
   // (plan: .sisyphus/plans/discriminator-cross-variant-fix.md, D1–D10).

@@ -370,6 +370,7 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
     typeNameGenerator: renamingTypeGenerator,
     emittedNames: allSchemaNames,
     discriminatorRegistry,
+    effectiveVersion: opts?.effectiveVersion,
   });
 
   // Section 1: Schema types

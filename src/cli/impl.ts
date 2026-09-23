@@ -246,7 +246,10 @@ async function runOneTarget(target: GenerationTarget, context: CommandContext): 
 
   const { preserveRefSiblings } = profile;
   context.process.stdout.write('Generating client...\n');
-  await generateFullOutput(doc, config, { preserveRefSiblings });
+  await generateFullOutput(doc, config, {
+    preserveRefSiblings,
+    effectiveVersion: profile.effective,
+  });
 
   context.process.stdout.write(`✅ Success! Generated client files:\n`);
   context.process.stdout.write(`  - ${target.outputDir}/contracts.ts\n`);

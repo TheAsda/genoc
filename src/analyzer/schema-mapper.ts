@@ -135,6 +135,12 @@ export interface SchemaMapperOptions {
   emittedNames?: Set<string>;
   warnSink?: (message: string) => void;
   discriminatorRegistry?: DiscriminatorRegistry;
+  /**
+   * Effective OpenAPI dialect. Omitted is treated as '3.1' (the nullable
+   * deprecation warning fires). Pass '3.0' to silence it — 'nullable' is the
+   * correct mechanism in 3.0.
+   */
+  effectiveVersion?: '3.0' | '3.1';
 }
 
 /**
@@ -156,6 +162,7 @@ export class SchemaMapper {
     new Map();
   private nullableWarned = false;
   private readonly warnSink: (message: string) => void;
+  private readonly effectiveVersion: '3.0' | '3.1' | undefined;
 
   constructor(resolver: RefResolver, opts?: SchemaMapperOptions) {
     // NOTE: discriminatorTargets must be keyed by names produced by the SAME
@@ -177,6 +184,7 @@ export class SchemaMapper {
       ((message) => {
         process.stderr.write(message);
       });
+    this.effectiveVersion = opts?.effectiveVersion;
   }
 
   getBrandedTypes(): Map<string, { name: string; format: string; baseType: string }> {
@@ -298,7 +306,7 @@ export class SchemaMapper {
     // TODO: Remove deprecated nullable warning and handling when OpenAPI 3.1 support is complete
     // The 'nullable' property is deprecated in OpenAPI 3.1 in favor of type arrays like ["string", "null"]
     // This warning should be removed once full type array support is implemented
-    if (s.nullable === true && !this.nullableWarned) {
+    if (s.nullable === true && this.effectiveVersion !== '3.0' && !this.nullableWarned) {
       this.warnSink(
         'Warning: \'nullable\' is deprecated in OpenAPI 3.1. Use \'type: ["string", "null"]\' instead.'
       );

@@ -11,6 +11,8 @@ import type { OpenAPIDocument } from './types/openapi.js';
 export interface GenerationOptions {
   /** When true, sibling properties alongside $ref are preserved (OpenAPI 3.1 behavior). */
   preserveRefSiblings?: boolean;
+  /** Effective OpenAPI dialect, sourced from `VersionProfile.effective`. */
+  effectiveVersion?: '3.0' | '3.1';
 }
 
 /**
@@ -30,6 +32,7 @@ export async function generateFullOutput(
   const analyzed = analyze(doc, {
     resolver,
     strategy: config.methodNameStrategy ?? 'path-based',
+    effectiveVersion: options?.effectiveVersion,
   });
 
   const { contracts, client, index } = generateOutput(analyzed, config);
