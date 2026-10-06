@@ -17,8 +17,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // /api/v1/entity: optional query, optional JSON body, required header) so the
 // optional-before-required rendering rule is asserted per dialect.
 const DIALECT_CASES = [
-  ['3.0', join(__dirname, '../fixtures/optional-body-required-header.yaml')],
-  ['3.1', join(__dirname, '../fixtures/optional-body-required-header-3.1.yaml')],
+  ['3.0', join(__dirname, '../fixtures/optional-body-required-header-v3.0.yaml')],
+  ['3.1', join(__dirname, '../fixtures/optional-body-required-header-v3.1.yaml')],
 ] as const;
 
 const tempDirs: string[] = [];

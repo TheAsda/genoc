@@ -64,24 +64,26 @@ function pathParam(name: string): AnalyzedParameter {
   };
 }
 
-function queryParam(name: string, required = false): AnalyzedParameter {
+function makeParam(
+  name: string,
+  location: AnalyzedParameter['in'],
+  required: boolean
+): AnalyzedParameter {
   return {
     name,
-    in: 'query',
+    in: location,
     required,
     schema: { type: 'string' },
     description: undefined,
   };
 }
 
+function queryParam(name: string, required = false): AnalyzedParameter {
+  return makeParam(name, 'query', required);
+}
+
 function headerParam(name: string, required: boolean): AnalyzedParameter {
-  return {
-    name,
-    in: 'header',
-    required,
-    schema: { type: 'string' },
-    description: undefined,
-  };
+  return makeParam(name, 'header', required);
 }
 
 describe('generateMethod', () => {
@@ -734,6 +736,53 @@ describe('generateMethod', () => {
       expect(result.signature).toBe(
         'postApiV1Products(body: PostApiV1ProductsBody, headers: PostApiV1ProductsHeaders): Promise<PostApiV1ProductsResponse>'
       );
+    });
+
+    // Spec #64 user story 16: the widening rule is independent of the
+    // method-naming strategy. generateMethod consumes the already-named
+    // AnalyzedOperation, so methodName below mirrors exactly what
+    // getMethodName('post', '/api/v1/products', 'createEntity', strategy)
+    // yields for each strategy; type names stay path-derived by design
+    // (typePrefix is always computed from method + path).
+    it('widens optional body under the operationId strategy when a required header follows', () => {
+      const op = makeOp({
+        method: 'post',
+        path: '/api/v1/products',
+        operationId: 'createEntity',
+        methodName: 'createEntity',
+        queryParams: [queryParam('page', false)],
+        requestBody: optionalBody,
+        headerParams: [headerParam('X-Api-Key', true)],
+        responses: [successResponse('200')],
+      });
+
+      const result = generateMethod(op);
+
+      expect(result.name).toBe('createEntity');
+      expect(result.signature).toBe(
+        'createEntity(query: PostApiV1ProductsQuery | undefined, body: PostApiV1ProductsBody | undefined, headers: PostApiV1ProductsHeaders): Promise<PostApiV1ProductsResponse>'
+      );
+      expect(result.signature).not.toContain('body?:');
+    });
+
+    it('widens optional body under operationId-with-fallback when a required header follows', () => {
+      const op = makeOp({
+        method: 'post',
+        path: '/api/v1/products',
+        operationId: 'createEntity',
+        methodName: 'createEntity',
+        requestBody: optionalBody,
+        headerParams: [headerParam('X-Api-Key', true)],
+        responses: [successResponse('200')],
+      });
+
+      const result = generateMethod(op);
+
+      expect(result.name).toBe('createEntity');
+      expect(result.signature).toBe(
+        'createEntity(body: PostApiV1ProductsBody | undefined, headers: PostApiV1ProductsHeaders): Promise<PostApiV1ProductsResponse>'
+      );
+      expect(result.signature).not.toContain('body?:');
     });
   });
 
