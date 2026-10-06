@@ -3,7 +3,7 @@ import type { GeneratedMethod } from '../types/client.js';
 import { sanitizeJsDocText } from '../utils/generator-helpers.js';
 import { getSuccessType, operationEmissions } from '../utils/operation-naming.js';
 
-type ParamSpec = { name: string; type: string | undefined; isOptional: boolean };
+type ParamSpec = { name: string; type: string; isOptional: boolean };
 
 /**
  * A `?:` parameter may only be followed by other optional parameters — a
@@ -41,7 +41,13 @@ function buildParameters(op: AnalyzedOperation): string {
   }
 
   if (op.requestBody) {
-    specs.push({ name: 'body', type: emissions.body, isOptional: !op.requestBody.required });
+    // A schema-less body has no named type; the literal keeps the rendered
+    // signature byte-identical to the previous template-literal fallback.
+    specs.push({
+      name: 'body',
+      type: emissions.body ?? 'undefined',
+      isOptional: !op.requestBody.required,
+    });
   }
 
   if (emissions.headers !== undefined) {
