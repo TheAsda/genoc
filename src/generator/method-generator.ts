@@ -3,40 +3,53 @@ import type { GeneratedMethod } from '../types/client.js';
 import { sanitizeJsDocText } from '../utils/generator-helpers.js';
 import { getSuccessType, operationEmissions } from '../utils/operation-naming.js';
 
+type ParamSpec = { name: string; type: string | undefined; isOptional: boolean };
+
+/**
+ * A `?:` parameter may only be followed by other optional parameters — a
+ * required parameter after an optional one is a TS1016 compile error
+ * ("A required parameter cannot follow an optional parameter"). Optional
+ * parameters that precede a required one are therefore rendered as
+ * `name: T | undefined` instead of `name?: T`.
+ */
+function renderParams(specs: ParamSpec[]): string {
+  return specs
+    .map((spec, index) => {
+      if (!spec.isOptional) {
+        return `${spec.name}: ${spec.type}`;
+      }
+      const hasRequiredAfter = specs.slice(index + 1).some((s) => !s.isOptional);
+      if (hasRequiredAfter) {
+        return `${spec.name}: ${spec.type} | undefined`;
+      }
+      return `${spec.name}?: ${spec.type}`;
+    })
+    .join(', ');
+}
+
 function buildParameters(op: AnalyzedOperation): string {
-  const params: string[] = [];
   const emissions = operationEmissions(op);
+  const specs: ParamSpec[] = [];
 
   for (const param of op.pathParams) {
-    params.push(`${param.name}: string`);
+    specs.push({ name: param.name, type: 'string', isOptional: false });
   }
 
   if (emissions.query !== undefined) {
     const allOptional = op.queryParams.every((p) => !p.required);
-    const hasRequiredAfter = !!op.requestBody?.required || op.headerParams.some((p) => p.required);
-
-    if (allOptional && hasRequiredAfter) {
-      // All optional query params + required param after: use explicit undefined to avoid "required param cannot follow optional" error
-      params.push(`query: ${emissions.query} | undefined`);
-    } else {
-      // Normal case: use optional notation
-      const optional = allOptional ? '?' : '';
-      params.push(`query${optional}: ${emissions.query}`);
-    }
+    specs.push({ name: 'query', type: emissions.query, isOptional: allOptional });
   }
 
   if (op.requestBody) {
-    const optional = op.requestBody.required ? '' : '?';
-    params.push(`body${optional}: ${emissions.body}`);
+    specs.push({ name: 'body', type: emissions.body, isOptional: !op.requestBody.required });
   }
 
   if (emissions.headers !== undefined) {
     const allOptional = op.headerParams.every((p) => !p.required);
-    const optional = allOptional ? '?' : '';
-    params.push(`headers${optional}: ${emissions.headers}`);
+    specs.push({ name: 'headers', type: emissions.headers, isOptional: allOptional });
   }
 
-  return params.join(', ');
+  return renderParams(specs);
 }
 
 function buildJsDoc(op: AnalyzedOperation): string {

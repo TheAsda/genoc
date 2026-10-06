@@ -74,6 +74,16 @@ function queryParam(name: string, required = false): AnalyzedParameter {
   };
 }
 
+function headerParam(name: string, required: boolean): AnalyzedParameter {
+  return {
+    name,
+    in: 'header',
+    required,
+    schema: { type: 'string' },
+    description: undefined,
+  };
+}
+
 describe('generateMethod', () => {
   describe('Section 7.2 Example 1: GET /api/v1/products', () => {
     it('generates correct signature with optional query param object', () => {
@@ -645,6 +655,83 @@ describe('generateMethod', () => {
       const result = generateMethod(op);
 
       expect(result.signature).toContain('body?: PostApiV1ProductsBody');
+    });
+  });
+
+  describe('optional parameter followed by required parameter (TS1016 regression)', () => {
+    const optionalBody: AnalyzedRequestBody = {
+      required: false,
+      contentTypes: ['application/json'],
+      hasSchema: true,
+      isMultipart: false,
+      isBinary: false,
+    };
+
+    it('uses explicit undefined for optional body when a required header follows', () => {
+      const op = makeOp({
+        method: 'post',
+        path: '/api/v1/products',
+        methodName: 'postApiV1Products',
+        requestBody: optionalBody,
+        headerParams: [headerParam('X-Api-Key', true)],
+        responses: [successResponse('200')],
+      });
+
+      const result = generateMethod(op);
+
+      expect(result.signature).toContain('body: PostApiV1ProductsBody | undefined');
+      expect(result.signature).not.toContain('body?:');
+    });
+
+    it('uses explicit undefined for both query and body when required header follows', () => {
+      const op = makeOp({
+        method: 'post',
+        path: '/api/v1/products',
+        methodName: 'postApiV1Products',
+        queryParams: [queryParam('page', false)],
+        requestBody: optionalBody,
+        headerParams: [headerParam('X-Api-Key', true)],
+        responses: [successResponse('200')],
+      });
+
+      const result = generateMethod(op);
+
+      expect(result.signature).toContain('query: PostApiV1ProductsQuery | undefined');
+      expect(result.signature).toContain('body: PostApiV1ProductsBody | undefined');
+      expect(result.signature).toContain('headers: PostApiV1ProductsHeaders');
+      expect(result.signature).not.toContain('query?:');
+      expect(result.signature).not.toContain('body?:');
+    });
+
+    it('keeps optional marker for body when only optional headers follow', () => {
+      const op = makeOp({
+        method: 'post',
+        path: '/api/v1/products',
+        methodName: 'postApiV1Products',
+        requestBody: optionalBody,
+        headerParams: [headerParam('X-Request-Id', false)],
+        responses: [successResponse('200')],
+      });
+
+      const result = generateMethod(op);
+
+      expect(result.signature).toContain('body?: PostApiV1ProductsBody');
+      expect(result.signature).toContain('headers?: PostApiV1ProductsHeaders');
+    });
+
+    it('keeps required body without optional marker when a required header follows', () => {
+      const op = makeOp({
+        method: 'post',
+        path: '/api/v1/products',
+        methodName: 'postApiV1Products',
+        requestBody: { ...optionalBody, required: true },
+        headerParams: [headerParam('X-Api-Key', true)],
+        responses: [successResponse('200')],
+      });
+
+      const result = generateMethod(op);
+
+      expect(result.signature).toContain('body: PostApiV1ProductsBody,');
     });
   });
 
