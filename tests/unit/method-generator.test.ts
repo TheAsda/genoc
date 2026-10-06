@@ -679,8 +679,9 @@ describe('generateMethod', () => {
 
       const result = generateMethod(op);
 
-      expect(result.signature).toContain('body: PostApiV1ProductsBody | undefined');
-      expect(result.signature).not.toContain('body?:');
+      expect(result.signature).toBe(
+        'postApiV1Products(body: PostApiV1ProductsBody | undefined, headers: PostApiV1ProductsHeaders): Promise<PostApiV1ProductsResponse>'
+      );
     });
 
     it('uses explicit undefined for both query and body when required header follows', () => {
@@ -696,11 +697,9 @@ describe('generateMethod', () => {
 
       const result = generateMethod(op);
 
-      expect(result.signature).toContain('query: PostApiV1ProductsQuery | undefined');
-      expect(result.signature).toContain('body: PostApiV1ProductsBody | undefined');
-      expect(result.signature).toContain('headers: PostApiV1ProductsHeaders');
-      expect(result.signature).not.toContain('query?:');
-      expect(result.signature).not.toContain('body?:');
+      expect(result.signature).toBe(
+        'postApiV1Products(query: PostApiV1ProductsQuery | undefined, body: PostApiV1ProductsBody | undefined, headers: PostApiV1ProductsHeaders): Promise<PostApiV1ProductsResponse>'
+      );
     });
 
     it('keeps optional marker for body when only optional headers follow', () => {
@@ -715,8 +714,9 @@ describe('generateMethod', () => {
 
       const result = generateMethod(op);
 
-      expect(result.signature).toContain('body?: PostApiV1ProductsBody');
-      expect(result.signature).toContain('headers?: PostApiV1ProductsHeaders');
+      expect(result.signature).toBe(
+        'postApiV1Products(body?: PostApiV1ProductsBody, headers?: PostApiV1ProductsHeaders): Promise<PostApiV1ProductsResponse>'
+      );
     });
 
     it('keeps required body without optional marker when a required header follows', () => {
@@ -731,7 +731,9 @@ describe('generateMethod', () => {
 
       const result = generateMethod(op);
 
-      expect(result.signature).toContain('body: PostApiV1ProductsBody,');
+      expect(result.signature).toBe(
+        'postApiV1Products(body: PostApiV1ProductsBody, headers: PostApiV1ProductsHeaders): Promise<PostApiV1ProductsResponse>'
+      );
     });
   });
 
