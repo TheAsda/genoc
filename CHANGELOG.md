@@ -1,5 +1,11 @@
 # genoc
 
+## 0.4.2
+
+### Patch Changes
+
+- 4e8d64f: Fixed generated client signatures placing an optional (`?:`) parameter before a required one, which produced invalid TypeScript (`error TS1016: A required parameter cannot follow an optional parameter`) — for example an operation with an optional request body and a required header generated `body?: PostApiV1EntityBody, headers: PostApiV1EntityHeaders`. Optional parameters that precede a required one are now rendered as `name: T | undefined` instead of `name?: T`, uniformly for every parameter slot (query, body, headers), replacing the previous query-only special case. (#63)
+
 ## 0.4.1
 
 ### Patch Changes
@@ -67,6 +73,7 @@
   Generated code now imports these from `genoc/runtime` instead of declaring inline copies (the generated `contracts.ts` re-exports them, so existing consumer imports keep working). This gives all generated clients a single class identity — `instanceof` checks work across clients and a shared `Requester` can be written and compiled against the package before any generation.
 
   Notes for consumers:
+
   - `genoc` is now a runtime dependency of generated output (previously the generated code was fully self-contained).
   - New `--runtime-import-path` CLI flag / `runtimeImportPath` programmatic config option overrides the import specifier (default `genoc/runtime`), e.g. `genoc@2.0.0/runtime` for version pinning.
 
