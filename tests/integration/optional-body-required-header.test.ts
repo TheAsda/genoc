@@ -53,6 +53,11 @@ describe('Optional body + required header signature', () => {
     // Optional body before required headers must use `| undefined`, not `?:`.
     expect(signatureLine).toContain('body: PostApiV1EntityBody | undefined');
     expect(signatureLine).not.toContain('body?:');
+    // The all-optional query slot widens too; headers (required, last) stay
+    // untouched — no `| undefined` on the headers slot.
+    expect(signatureLine).toContain('query: PostApiV1EntityQuery | undefined');
+    expect(signatureLine).not.toContain('query?:');
+    expect(signatureLine).not.toContain('headers: PostApiV1EntityHeaders | undefined');
     expect(signatureLine).toContain('headers: PostApiV1EntityHeaders');
   });
 
