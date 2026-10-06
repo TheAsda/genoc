@@ -1119,6 +1119,43 @@ paths:
         200:
           $ref: '#/components/responses/SuccessResponse'
 
+  # Optional-before-required parameter ordering (TS1016 regression)
+  /optional-body-required-header:
+    post:
+      operationId: postOptionalBodyRequiredHeader
+      summary: Optional body with required header
+      description: An optional body followed by a required header must widen to `T | undefined`
+      tags: [parameters]
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+          description: Page number
+        - name: X-Api-Key
+          in: header
+          required: true
+          schema:
+            type: string
+          description: API key
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                value:
+                  type: number
+              required: [name]
+      responses:
+        200:
+          $ref: '#/components/responses/SuccessResponse'
+
   # Error handling tests
   /error-handling:
     get:
