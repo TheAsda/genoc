@@ -12,6 +12,7 @@ Generated code depends only on the tiny `genoc/runtime` module. Full type safety
 
 - Full OpenAPI 3.0 and 3.1 specification support with automatic version detection
 - End-to-end type safety: requests, responses, and errors are fully typed
+- Typed path parameters: values are typed from their schema and serialized through a `formatPathParam` formatter you can override per client via `createClient(requester, options)`
 - Works with any HTTP client: plug in fetch, axios, or anything else
 - Shared runtime contract: `genoc/runtime` exports the `Requester` type and response and error classes, so one requester implementation works with every generated client
 - Error types with per-status-code narrowing and type guards
@@ -115,7 +116,7 @@ For the full example of catching and narrowing errors, see [Error handling](./do
 ## Documentation
 
 - [Configuration](./docs/configuration.md): CLI flags, `.genocrc` config files, method naming strategies, and proxy support
-- [Usage](./docs/usage.md): the `Requester` contract, shared runtime, binary and file responses, and JSDoc output
+- [Usage](./docs/usage.md): the `Requester` contract, `createClient` options, shared runtime, binary and file responses, and JSDoc output
 - [Error handling](./docs/error-handling.md): typed errors, `isDefinedError`, and the catching example
 - [OpenAPI 3.0 support](./docs/openapi-3.0-support.md): data types, schema keywords, parameters, bodies, uploads, responses, errors, `$ref`, components, security, servers, and operations
 - [OpenAPI 3.1 support](./docs/openapi-3.1-support.md): all 3.0 features plus webhooks and JSON Schema 2020-12 alignment, with a diff against 3.0
