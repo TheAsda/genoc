@@ -10,22 +10,7 @@ import type { Requester } from 'genoc/runtime';
 export { isDefinedError } from 'genoc/runtime';
 export type { Requester } from 'genoc/runtime';
 
-/**
- * Options for \`createClient\`.
- */
-export type CreateClientOptions = {
-  /**
-   * Formats one path parameter value to its string form before URL-encoding
-   * and interpolation. Defaults to \`String\`.
-   *
-   * The union includes \`null\` because a nullable path parameter maps to a
-   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
-   */
-  formatPathParam?: (value: string | number | boolean | null) => string;
-};
-
-export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const __formatPathParam = options?.formatPathParam ?? String;
+export function createClient(requester: Requester) {
   return {
     /**
      * List all pets
@@ -95,7 +80,7 @@ export function createClient(requester: Requester, options?: CreateClientOptions
     getPetsByPetId: decorateWithErrors<(petId: string) => Promise<GetPetsPetIdResponse>, GetPetsPetIdErrors>(
       async (petId: string): Promise<GetPetsPetIdResponse> => {
         try {
-          const result = await requester<GetPetsPetIdResponse>("GET", \`/pets/\${encodeURIComponent(__formatPathParam(petId))}\`, {});
+          const result = await requester<GetPetsPetIdResponse>("GET", \`/pets/\${encodeURIComponent(String(petId))}\`, {});
           if (result instanceof ErrorResponse) {
             if (result.status === 404) throw new ApiError(404, result.data as GetPetsPetIdError404, result.message ?? \`Request failed with status 404\`);
             if (result.status === 500) throw new ApiError(500, result.data as GetPetsPetIdError500, result.message ?? \`Request failed with status 500\`);
@@ -125,7 +110,7 @@ export function createClient(requester: Requester, options?: CreateClientOptions
     putPetsByPetId: decorateWithErrors<(petId: string, body: PutPetsPetIdBody) => Promise<PutPetsPetIdResponse>, PutPetsPetIdErrors>(
       async (petId: string, body: PutPetsPetIdBody): Promise<PutPetsPetIdResponse> => {
         try {
-          const result = await requester<PutPetsPetIdResponse>("PUT", \`/pets/\${encodeURIComponent(__formatPathParam(petId))}\`, { body });
+          const result = await requester<PutPetsPetIdResponse>("PUT", \`/pets/\${encodeURIComponent(String(petId))}\`, { body });
           if (result instanceof ErrorResponse) {
             if (result.status === 400) throw new ApiError(400, result.data as PutPetsPetIdError400, result.message ?? \`Request failed with status 400\`);
             if (result.status === 404) throw new ApiError(404, result.data as PutPetsPetIdError404, result.message ?? \`Request failed with status 404\`);
@@ -154,7 +139,7 @@ export function createClient(requester: Requester, options?: CreateClientOptions
     deletePetsByPetId: decorateWithErrors<(petId: string) => Promise<void>, DeletePetsPetIdErrors>(
       async (petId: string): Promise<void> => {
         try {
-          const result = await requester<void>("DELETE", \`/pets/\${encodeURIComponent(__formatPathParam(petId))}\`, {});
+          const result = await requester<void>("DELETE", \`/pets/\${encodeURIComponent(String(petId))}\`, {});
           if (result instanceof ErrorResponse) {
             if (result.status === 400) throw new ApiError(400, result.data as DeletePetsPetIdError400, result.message ?? \`Request failed with status 400\`);
             if (result.status === 404) throw new ApiError(404, result.data as DeletePetsPetIdError404, result.message ?? \`Request failed with status 404\`);

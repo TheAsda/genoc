@@ -34,7 +34,16 @@ function buildParameters(op: AnalyzedOperation): string {
   for (const param of op.pathParams) {
     // Finished signature type text arrives from the analyzer's translation
     // layer; `?? 'string'` only guards hand-built `AnalyzedOperation` inputs.
-    specs.push({ name: param.name, type: param.finishedType ?? 'string', isOptional: false });
+    const finished = param.finishedType ?? 'string';
+    // `T | string` is the caller escape hatch for custom wire formatting:
+    // pass a pre-formatted string instead of the schema type. When T is
+    // already `string` the union is skipped, and string-literal unions
+    // deliberately widen to `string` (flexibility over strictness here).
+    specs.push({
+      name: param.name,
+      type: finished === 'string' ? 'string' : `${finished} | string`,
+      isOptional: false,
+    });
   }
 
   if (emissions.query !== undefined) {

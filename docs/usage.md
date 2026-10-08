@@ -26,59 +26,31 @@ type Requester = <TResponse>(
 ) => Promise<TResponse | StreamResponse | ErrorResponse>;
 ```
 
-## Client options (`createClient`)
+## Path parameters
 
-`createClient` accepts an optional second argument with per-client options:
+Path parameters are typed from their schema: `type: integer`/`type: number`
+becomes `number | string`, `type: boolean` becomes `boolean | string`, an enum
+becomes a union of its literals widened by `string` (which TypeScript collapses
+to plain `string`), and a `$ref` resolves to the named contract type widened by
+`string`. A `type: string` parameter stays a plain `string`.
 
-```typescript
-const client = createClient(requester, options);
-```
-
-```typescript
-type CreateClientOptions = {
-  /**
-   * Formats one path parameter value to its string form before URL-encoding
-   * and interpolation. Defaults to `String`.
-   *
-   * The union includes `null` because a nullable path parameter maps to a
-   * `T | null` signature; the default `String` renders `null` as `"null"`.
-   */
-  formatPathParam?: (value: string | number | boolean | null) => string;
-};
-```
-
-### `formatPathParam`
-
-Every path parameter value passes through `formatPathParam` before it is
-URL-encoded and interpolated into the request path:
+Every path parameter also accepts a plain `string`. That is the escape hatch
+when `String()` would not produce the wire form your API expects: pre-format
+the value on your side and pass a string.
 
 ```typescript
-// Inside a generated method (the formatter binding is emitted as
-// `__formatPathParam` so it can never be shadowed by a parameter):
-const path = `/pets/${encodeURIComponent(__formatPathParam(id))}`;
+// `{id}` is `{ type: integer }` → `number | string`
+await client.getPetsById(42);
+// Zero-padded ids: format on your side, pass a plain string.
+await client.getPetsById(String(7).padStart(4, '0'));
 ```
 
-The formatter receives the raw, schema-typed value — not a string. Path
-parameters are typed from their schema: `type: integer` becomes `number`,
-`type: boolean` becomes `boolean`, an enum becomes a union of its literals,
-and a `$ref` becomes the named contract type.
-
-The default formatter is `String`, which produces the right wire form for most
-specs. Override it when `String()` would not — for example, booleans
-serialized as `1`/`0`, numeric ids that need padding, or lowercase enums:
+Typed values are serialized inline with `String()` and then URL-encoded:
 
 ```typescript
-const client = createClient(requester, {
-  formatPathParam: (value) => {
-    if (typeof value === 'boolean') return value ? '1' : '0';
-    return String(value);
-  },
-});
+// Inside a generated method:
+const path = `/pets/${encodeURIComponent(String(id))}`;
 ```
-
-Options apply per client: each `createClient(requester, options)` call returns
-an independent client, so a formatter configured for one client never affects
-other clients.
 
 ## Shared runtime (`genoc/runtime`)
 

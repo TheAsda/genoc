@@ -32,22 +32,7 @@ import type { Requester } from 'genoc/runtime';
 export { isDefinedError } from 'genoc/runtime';
 export type { Requester } from 'genoc/runtime';
 
-/**
- * Options for \`createClient\`.
- */
-export type CreateClientOptions = {
-  /**
-   * Formats one path parameter value to its string form before URL-encoding
-   * and interpolation. Defaults to \`String\`.
-   *
-   * The union includes \`null\` because a nullable path parameter maps to a
-   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
-   */
-  formatPathParam?: (value: string | number | boolean | null) => string;
-};
-
-export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const __formatPathParam = options?.formatPathParam ?? String;
+export function createClient(requester: Requester) {
   return {
     /**
      * Updated
@@ -57,7 +42,7 @@ export function createClient(requester: Requester, options?: CreateClientOptions
     putUsersByUserId: decorateWithErrors<(userId: string, body: PutUsersUserIdBody) => Promise<void>, never>(
       async (userId: string, body: PutUsersUserIdBody): Promise<void> => {
         try {
-          const result = await requester<void>("PUT", \`/users/\${encodeURIComponent(__formatPathParam(userId))}\`, { body });
+          const result = await requester<void>("PUT", \`/users/\${encodeURIComponent(String(userId))}\`, { body });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -112,22 +97,7 @@ import type { Requester } from 'genoc/runtime';
 export { isDefinedError } from 'genoc/runtime';
 export type { Requester } from 'genoc/runtime';
 
-/**
- * Options for \`createClient\`.
- */
-export type CreateClientOptions = {
-  /**
-   * Formats one path parameter value to its string form before URL-encoding
-   * and interpolation. Defaults to \`String\`.
-   *
-   * The union includes \`null\` because a nullable path parameter maps to a
-   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
-   */
-  formatPathParam?: (value: string | number | boolean | null) => string;
-};
-
-export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const __formatPathParam = options?.formatPathParam ?? String;
+export function createClient(requester: Requester) {
   return {
     /**
      * Created
@@ -215,22 +185,7 @@ import type { Requester } from 'genoc/runtime';
 export { isDefinedError } from 'genoc/runtime';
 export type { Requester } from 'genoc/runtime';
 
-/**
- * Options for \`createClient\`.
- */
-export type CreateClientOptions = {
-  /**
-   * Formats one path parameter value to its string form before URL-encoding
-   * and interpolation. Defaults to \`String\`.
-   *
-   * The union includes \`null\` because a nullable path parameter maps to a
-   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
-   */
-  formatPathParam?: (value: string | number | boolean | null) => string;
-};
-
-export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const __formatPathParam = options?.formatPathParam ?? String;
+export function createClient(requester: Requester) {
   return {
     /**
      * Order created
@@ -272,22 +227,7 @@ import type { Requester } from 'genoc/runtime';
 export { isDefinedError } from 'genoc/runtime';
 export type { Requester } from 'genoc/runtime';
 
-/**
- * Options for \`createClient\`.
- */
-export type CreateClientOptions = {
-  /**
-   * Formats one path parameter value to its string form before URL-encoding
-   * and interpolation. Defaults to \`String\`.
-   *
-   * The union includes \`null\` because a nullable path parameter maps to a
-   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
-   */
-  formatPathParam?: (value: string | number | boolean | null) => string;
-};
-
-export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const __formatPathParam = options?.formatPathParam ?? String;
+export function createClient(requester: Requester) {
   return {
     /**
      * Updated

@@ -11,10 +11,10 @@ import type { GeneratorConfig } from '../../src/types/client.js';
 import { analyzeYaml } from '../analyze-fixture.js';
 import { linkGenoc } from '../helpers/link-genoc.js';
 
-// Spec #71 T3 execution seam: the only place formatter behavior is observed
-// as behavior. Generated output is compiled to JS, the client is dynamically
-// imported, and a mock Requester captures the (method, URL) it is invoked
-// with — proving what the formatter emits instead of inferring it from
+// Spec #71 T3 execution seam: the only place path-param serialization is
+// observed as behavior. Generated output is compiled to JS, the client is
+// dynamically imported, and a mock Requester captures the (method, URL) it is
+// invoked with — proving what the client emits instead of inferring it from
 // generated text.
 
 const EXECUTION_SPEC = `
@@ -118,7 +118,7 @@ function emitToJs(entryFiles: string[]): void {
 describe('path-param execution seam (spec #71 T3)', () => {
   let outDir = '';
   type Client = Record<string, (...args: never[]) => unknown>;
-  let createClient: (requester: unknown, options?: unknown) => Client;
+  let createClient: (requester: unknown) => Client;
 
   beforeAll(async () => {
     outDir = mkdtempSync(join(tmpdir(), 'genoc-path-param-execution-'));
@@ -136,10 +136,7 @@ describe('path-param execution seam (spec #71 T3)', () => {
     // the `linkGenoc` symlink exactly like a real consumer would.
     const clientUrl = pathToFileURL(join(outDir, 'client.js')).href;
     const imported = (await import(/* @vite-ignore */ clientUrl)) as {
-      createClient: (
-        requester: unknown,
-        options?: unknown
-      ) => Record<string, (...args: never[]) => unknown>;
+      createClient: (requester: unknown) => Record<string, (...args: never[]) => unknown>;
     };
     createClient = imported.createClient;
   });
@@ -148,7 +145,7 @@ describe('path-param execution seam (spec #71 T3)', () => {
     rmSync(outDir, { recursive: true, force: true });
   });
 
-  it('default formatter serializes an integer path param into the expected URL segment', async () => {
+  it('String() serializes an integer path param into the expected URL segment', async () => {
     const calls: CapturedCall[] = [];
     const client = createClient(makeCapturingRequester(calls));
 
@@ -157,19 +154,15 @@ describe('path-param execution seam (spec #71 T3)', () => {
     expect(calls).toEqual([{ method: 'GET', path: '/pets/42' }]);
   });
 
-  it('custom formatPathParam demonstrably changes the emitted URL for the same input', async () => {
-    const defaultCalls: CapturedCall[] = [];
-    const doubledCalls: CapturedCall[] = [];
-    const defaultClient = createClient(makeCapturingRequester(defaultCalls));
-    const doubledClient = createClient(makeCapturingRequester(doubledCalls), {
-      formatPathParam: (value: string | number | boolean) => String(Number(value) * 2),
-    });
+  it('a pre-formatted string is accepted for a typed param and passes through verbatim', async () => {
+    // `T | string` is the caller's escape hatch: pre-format on your side and
+    // pass a plain string — the client must not reformat it.
+    const calls: CapturedCall[] = [];
+    const client = createClient(makeCapturingRequester(calls));
 
-    await defaultClient.getPetsById(42);
-    await doubledClient.getPetsById(42);
+    await client.getPetsById('0042');
 
-    expect(defaultCalls).toEqual([{ method: 'GET', path: '/pets/42' }]);
-    expect(doubledCalls).toEqual([{ method: 'GET', path: '/pets/84' }]);
+    expect(calls).toEqual([{ method: 'GET', path: '/pets/0042' }]);
   });
 
   it('values containing special characters come out URL-encoded in the final path', async () => {
@@ -181,7 +174,7 @@ describe('path-param execution seam (spec #71 T3)', () => {
     expect(calls).toEqual([{ method: 'GET', path: '/files/docs%2Fa%20b%20%C3%BC%3Fx%3D1%23f' }]);
   });
 
-  it('a null path param goes through the formatter (String(null) renders the "null" segment)', async () => {
+  it('a null path param serializes via String(null) (rendering the "null" segment)', async () => {
     const calls: CapturedCall[] = [];
     const client = createClient(makeCapturingRequester(calls));
 
@@ -190,22 +183,14 @@ describe('path-param execution seam (spec #71 T3)', () => {
     expect(calls).toEqual([{ method: 'GET', path: '/nullable/null' }]);
   });
 
-  it('a path param named formatPathParam is still formatted (no local shadowing)', async () => {
-    // If the emitted formatter local were named `formatPathParam`, the
-    // generated body would resolve that name to the parameter itself and
-    // invoking the client would throw (calling a string) instead of
-    // formatting — so a formatted URL proves the collision-safe rename.
-    const defaultCalls: CapturedCall[] = [];
-    const customCalls: CapturedCall[] = [];
-    const defaultClient = createClient(makeCapturingRequester(defaultCalls));
-    const customClient = createClient(makeCapturingRequester(customCalls), {
-      formatPathParam: (value: string | number | boolean | null) => 'FMT',
-    });
+  it('a path param named formatPathParam serializes like any other string param', async () => {
+    // With the formatter option gone there is no local left to shadow; the
+    // name is an ordinary parameter and percent-encoding still applies.
+    const calls: CapturedCall[] = [];
+    const client = createClient(makeCapturingRequester(calls));
 
-    await defaultClient.getEchoByFormatPathParam('a b');
-    await customClient.getEchoByFormatPathParam('a b');
+    await client.getEchoByFormatPathParam('a b');
 
-    expect(defaultCalls).toEqual([{ method: 'GET', path: '/echo/a%20b' }]);
-    expect(customCalls).toEqual([{ method: 'GET', path: '/echo/FMT' }]);
+    expect(calls).toEqual([{ method: 'GET', path: '/echo/a%20b' }]);
   });
 });

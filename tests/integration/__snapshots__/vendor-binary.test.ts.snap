@@ -10,22 +10,7 @@ import type { Requester } from 'genoc/runtime';
 export { isDefinedError } from 'genoc/runtime';
 export type { Requester } from 'genoc/runtime';
 
-/**
- * Options for \`createClient\`.
- */
-export type CreateClientOptions = {
-  /**
-   * Formats one path parameter value to its string form before URL-encoding
-   * and interpolation. Defaults to \`String\`.
-   *
-   * The union includes \`null\` because a nullable path parameter maps to a
-   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
-   */
-  formatPathParam?: (value: string | number | boolean | null) => string;
-};
-
-export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const __formatPathParam = options?.formatPathParam ?? String;
+export function createClient(requester: Requester) {
   return {
     /**
      * Download a spreadsheet export
@@ -35,7 +20,7 @@ export function createClient(requester: Requester, options?: CreateClientOptions
     getFilesById: decorateWithErrors<(id: string) => Promise<GetFilesIdResponse>, GetFilesIdErrors>(
       async (id: string): Promise<GetFilesIdResponse> => {
         try {
-          const result = await requester<GetFilesIdResponse>("GET", \`/files/\${encodeURIComponent(__formatPathParam(id))}\`, { expectStream: true });
+          const result = await requester<GetFilesIdResponse>("GET", \`/files/\${encodeURIComponent(String(id))}\`, { expectStream: true });
           if (result instanceof ErrorResponse) {
             if (result.status === 404) throw new ApiError(404, result.data as GetFilesIdError404, result.message ?? \`Request failed with status 404\`);
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
@@ -62,7 +47,7 @@ export function createClient(requester: Requester, options?: CreateClientOptions
     postFilesById: decorateWithErrors<(id: string, body: PostFilesIdBody) => Promise<void>, never>(
       async (id: string, body: PostFilesIdBody): Promise<void> => {
         try {
-          const result = await requester<void>("POST", \`/files/\${encodeURIComponent(__formatPathParam(id))}\`, { body });
+          const result = await requester<void>("POST", \`/files/\${encodeURIComponent(String(id))}\`, { body });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }

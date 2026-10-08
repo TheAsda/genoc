@@ -17,7 +17,7 @@ import {
 } from '../../src/utils/operation-naming.js';
 
 describe('RESERVED_TYPE_NAMES membership', () => {
-  it('derives exactly the frozen 13-name set', () => {
+  it('derives exactly the frozen 12-name set', () => {
     const frozenNames = [
       'StreamResponse',
       'ErrorResponse',
@@ -30,7 +30,6 @@ describe('RESERVED_TYPE_NAMES membership', () => {
       'decorateWithErrors',
       'ApiClient',
       'createClient',
-      'CreateClientOptions',
       'FileInput',
     ].sort();
     expect([...RESERVED_TYPE_NAMES].sort()).toEqual(frozenNames);

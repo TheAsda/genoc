@@ -67,7 +67,7 @@ describe('OpenAPI 3.1 — Parameters (3.1-#33-#42)', () => {
   });
 
   // spec #71 T2: schema-driven path-param typing — boolean, enum unions and
-  // $ref named types, each serialized through `formatPathParam`.
+  // $ref named types, each serialized inline with `String()`.
   describe('3.1-#33: path-param schema typing (boolean, enum, $ref) — spec #71 T2', () => {
     const SCHEMA_TYPED_PATH_PARAMS_SPEC = (version: '3.0.3' | '3.1.0'): string => `
       openapi: "${version}"
@@ -105,30 +105,30 @@ describe('OpenAPI 3.1 — Parameters (3.1-#33-#42)', () => {
               "200": { description: OK }
     `;
 
-    it('3.1-#33: boolean path param is typed `boolean` and formatted in the URL template', () => {
+    it('3.1-#33: boolean path param is typed `boolean | string` and serialized in the URL template', () => {
       const { client } = generateClientFromYaml(SCHEMA_TYPED_PATH_PARAMS_SPEC('3.1.0'));
 
-      expect(client).toContain('flag: boolean');
+      expect(client).toContain('flag: boolean | string');
       expect(client).not.toContain('flag: string');
-      expect(client).toContain('`/flags/${encodeURIComponent(__formatPathParam(flag))}`');
+      expect(client).toContain('`/flags/${encodeURIComponent(String(flag))}`');
     });
 
-    it('3.1-#33: enum path param is typed as a union of literals and formatted in the URL template', () => {
+    it('3.1-#33: enum path param is emitted widened to `string` and serialized in the URL template', () => {
       const { client } = generateClientFromYaml(SCHEMA_TYPED_PATH_PARAMS_SPEC('3.1.0'));
 
-      expect(client).toContain("mode: 'fast' | 'slow'");
-      expect(client).toContain('`/jobs/${encodeURIComponent(__formatPathParam(mode))}`');
+      expect(client).toContain("mode: 'fast' | 'slow' | string");
+      expect(client).toContain('`/jobs/${encodeURIComponent(String(mode))}`');
     });
 
-    it('3.1-#33: $ref path param resolves to the named contract type and is formatted in the URL template', () => {
+    it('3.1-#33: $ref path param resolves to the named contract type and is serialized in the URL template', () => {
       const { contracts, client } = generateClientFromYaml(SCHEMA_TYPED_PATH_PARAMS_SPEC('3.1.0'));
 
       // The named type must be emitted into the contracts file…
       expect(contracts).toContain('export type PetId = string;');
       // …and the method signature must reference the named type, not the inlined translation.
-      expect(client).toContain('petId: PetId');
+      expect(client).toContain('petId: PetId | string');
       expect(client).not.toContain('petId: string');
-      expect(client).toContain('`/pets/${encodeURIComponent(__formatPathParam(petId))}`');
+      expect(client).toContain('`/pets/${encodeURIComponent(String(petId))}`');
     });
   });
 
