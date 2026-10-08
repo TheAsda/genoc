@@ -203,7 +203,7 @@ describe('typed path params (spec #71 T1 tracer)', () => {
   });
 
   // Review-fix scenarios: nullable path params, a param literally named
-  // `formatPathParam`, and non-primitive $ref params (formatter-boundary
+  // `formatPathParam`, and non-primitive $ref params (inline-serialization
   // fallback to `string`).
 
   const NULLABLE_PARAM_SPEC = (version: '3.0.3' | '3.1.0'): string => `
@@ -273,7 +273,7 @@ describe('typed path params (spec #71 T1 tracer)', () => {
     expect(client).not.toContain('__formatPathParam');
   });
 
-  it('falls back to `string` for a $ref to an object schema (formatter boundary)', () => {
+  it('falls back to `string` for a $ref to an object schema (no defined string form)', () => {
     for (const version of ['3.0.3', '3.1.0'] as const) {
       const analyzed = analyzeYaml(OBJECT_REF_PARAM_SPEC(version));
       expect(analyzed.operations[0]?.pathParams[0]?.finishedType, version).toBe('string');

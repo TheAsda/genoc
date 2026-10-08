@@ -32,7 +32,9 @@ Path parameters are typed from their schema: `type: integer`/`type: number`
 becomes `number | string`, `type: boolean` becomes `boolean | string`, an enum
 becomes a union of its literals widened by `string` (which TypeScript collapses
 to plain `string`), and a `$ref` resolves to the named contract type widened by
-`string`. A `type: string` parameter stays a plain `string`.
+`string` — except a `$ref` to an object or array schema, which has no defined
+string form and therefore stays a plain `string`. A `type: string` parameter
+stays a plain `string`.
 
 Every path parameter also accepts a plain `string`. That is the escape hatch
 when `String()` would not produce the wire form your API expects: pre-format

@@ -71,14 +71,18 @@ function indentJsDocBlock(jsDoc: string): string[] {
   return jsDoc.split('\n').map((line) => `${INDENT_UNIT}${line}`);
 }
 
-const FORMATTER_ACCEPTED_MEMBER =
+/** Schema used for parameters declared without a `schema` (typed as `string`). */
+function defaultedParamSchema(param: AnalyzedParameter): SchemaObject {
+  return param.schema ?? { type: 'string' };
+}
+
+const STRING_SERIALIZABLE_MEMBER =
   /^(string|number|boolean|null|true|false|'[^']*'|-?\d+(?:\.\d+)?)$/;
 
 /**
- * Whether a finished path-param type can cross the `formatPathParam` formatter
- * boundary: every union member must be a primitive the declared
- * `(string | number | boolean | null)` parameter accepts, or a string/number
- * literal assignable to it (literal unions like `'fast' | 'slow'` are kept).
+ * Whether a finished path-param type can be serialized inline with `String()`:
+ * every union member must be a primitive with a defined string form, or a
+ * string/number literal (literal unions like `'fast' | 'slow'` are kept).
  * Named component types count when their own mapped definition resolves
  * (transitively, cycle-safe) to such members — so `$ref` path params to
  * primitive aliases keep their named type. Anything else — objects, arrays,
@@ -86,18 +90,18 @@ const FORMATTER_ACCEPTED_MEMBER =
  * pre-typed-path-params behavior), because there is no defined string
  * serialization for such values.
  */
-function isFormatterCompatibleType(
+function isInlineSerializableType(
   tsType: string,
   namedMappedTypes: ReadonlyMap<string, string>,
   seen: ReadonlySet<string> = new Set()
 ): boolean {
   return tsType.split('|').every((member) => {
     const token = member.trim();
-    if (FORMATTER_ACCEPTED_MEMBER.test(token)) return true;
+    if (STRING_SERIALIZABLE_MEMBER.test(token)) return true;
     const namedDefinition = namedMappedTypes.get(token);
     if (namedDefinition === undefined || seen.has(token)) return false;
     const nextSeen = new Set(seen).add(token);
-    return isFormatterCompatibleType(namedDefinition, namedMappedTypes, nextSeen);
+    return isInlineSerializableType(namedDefinition, namedMappedTypes, nextSeen);
   });
 }
 
@@ -123,7 +127,7 @@ function buildParamPropertyJsDoc(param: AnalyzedParameter, schema: SchemaObject)
 function buildParamTypeBody(params: AnalyzedParameter[], mapper: SchemaMapper): string {
   const lines: string[] = [];
   for (const param of params) {
-    const paramSchema = param.schema ?? { type: 'string' };
+    const paramSchema = defaultedParamSchema(param);
     const result = mapper.mapSchema(paramSchema);
     const optional = param.required ? '' : '?';
     const key = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(param.name) ? param.name : `"${param.name}"`;
@@ -469,13 +473,13 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
       const raw = param.rawSchema;
       if (raw !== undefined && '$ref' in raw) {
         const result = mapper.mapSchema(raw);
-        if (isFormatterCompatibleType(result.tsType, namedMappedTypes)) {
+        if (isInlineSerializableType(result.tsType, namedMappedTypes)) {
           param.finishedType = result.tsType;
           for (const name of result.imports) {
             pathParamTypeNames.add(name);
           }
         } else {
-          // Formatter-boundary constraint: a `$ref` to an object/array
+          // Inline-serialization constraint: a `$ref` to an object/array
           // schema (or any non-primitive named type) has no defined string
           // form, so the parameter falls back to `string` and the named
           // type is not imported into the client file.
@@ -483,10 +487,10 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
         }
         continue;
       }
-      const schema = param.schema ?? { type: 'string' };
+      const schema = defaultedParamSchema(param);
       const tracerSchema = schema.format === undefined ? schema : { ...schema, format: undefined };
       const mapped = mapper.mapSchema(tracerSchema).tsType;
-      param.finishedType = isFormatterCompatibleType(mapped, namedMappedTypes) ? mapped : 'string';
+      param.finishedType = isInlineSerializableType(mapped, namedMappedTypes) ? mapped : 'string';
     }
     if (pathParamTypeNames.size > 0) {
       op.pathParamTypeNames = [...pathParamTypeNames];
