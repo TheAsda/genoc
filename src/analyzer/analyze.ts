@@ -71,6 +71,36 @@ function indentJsDocBlock(jsDoc: string): string[] {
   return jsDoc.split('\n').map((line) => `${INDENT_UNIT}${line}`);
 }
 
+const FORMATTER_ACCEPTED_MEMBER =
+  /^(string|number|boolean|null|true|false|'[^']*'|-?\d+(?:\.\d+)?)$/;
+
+/**
+ * Whether a finished path-param type can cross the `formatPathParam` formatter
+ * boundary: every union member must be a primitive the declared
+ * `(string | number | boolean | null)` parameter accepts, or a string/number
+ * literal assignable to it (literal unions like `'fast' | 'slow'` are kept).
+ * Named component types count when their own mapped definition resolves
+ * (transitively, cycle-safe) to such members — so `$ref` path params to
+ * primitive aliases keep their named type. Anything else — objects, arrays,
+ * named non-primitive `$ref` types — falls back to a `string` signature (the
+ * pre-typed-path-params behavior), because there is no defined string
+ * serialization for such values.
+ */
+function isFormatterCompatibleType(
+  tsType: string,
+  namedMappedTypes: ReadonlyMap<string, string>,
+  seen: ReadonlySet<string> = new Set()
+): boolean {
+  return tsType.split('|').every((member) => {
+    const token = member.trim();
+    if (FORMATTER_ACCEPTED_MEMBER.test(token)) return true;
+    const namedDefinition = namedMappedTypes.get(token);
+    if (namedDefinition === undefined || seen.has(token)) return false;
+    const nextSeen = new Set(seen).add(token);
+    return isFormatterCompatibleType(namedDefinition, namedMappedTypes, nextSeen);
+  });
+}
+
 /**
  * Build the JSDoc block for a query/header parameter property using the
  * pinned parameter merge rule: parameter-level description / deprecated /
@@ -376,10 +406,15 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
   // Section 1: Schema types
   const schemaEntries: ContractEntry[] = [];
 
+  // Mapped definition text per renamed component name — lets the path-param
+  // formatter-compatibility check resolve named types to their primitives.
+  const namedMappedTypes = new Map<string, string>();
+
   if (doc.components?.schemas) {
     for (const [name, schema] of Object.entries(doc.components.schemas)) {
       const renamedName = renameMap.get(name) ?? sanitizeTypeName(name);
       const result = mapper.mapSchema(schema, renamedName);
+      namedMappedTypes.set(renamedName, result.tsType);
       const resolved = resolver.resolve<SchemaObject>(schema as SchemaObject | ReferenceObject);
 
       const definition = `export type ${renamedName} = ${result.tsType};`;
@@ -434,15 +469,24 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
       const raw = param.rawSchema;
       if (raw !== undefined && '$ref' in raw) {
         const result = mapper.mapSchema(raw);
-        param.finishedType = result.tsType;
-        for (const name of result.imports) {
-          pathParamTypeNames.add(name);
+        if (isFormatterCompatibleType(result.tsType, namedMappedTypes)) {
+          param.finishedType = result.tsType;
+          for (const name of result.imports) {
+            pathParamTypeNames.add(name);
+          }
+        } else {
+          // Formatter-boundary constraint: a `$ref` to an object/array
+          // schema (or any non-primitive named type) has no defined string
+          // form, so the parameter falls back to `string` and the named
+          // type is not imported into the client file.
+          param.finishedType = 'string';
         }
         continue;
       }
       const schema = param.schema ?? { type: 'string' };
       const tracerSchema = schema.format === undefined ? schema : { ...schema, format: undefined };
-      param.finishedType = mapper.mapSchema(tracerSchema).tsType;
+      const mapped = mapper.mapSchema(tracerSchema).tsType;
+      param.finishedType = isFormatterCompatibleType(mapped, namedMappedTypes) ? mapped : 'string';
     }
     if (pathParamTypeNames.size > 0) {
       op.pathParamTypeNames = [...pathParamTypeNames];

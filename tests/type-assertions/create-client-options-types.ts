@@ -33,8 +33,11 @@ type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to `String`.
+   *
+   * The union includes `null` because a nullable path parameter maps to a
+   * `T | null` signature; the default `String` renders `null` as `"null"`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 type FormatPathParam = NonNullable<CreateClientOptions['formatPathParam']>;
@@ -56,8 +59,8 @@ const _customClient = createClient(requester, {
   formatPathParam: (value) => {
     // The override's parameter is contextually typed to the formatter's
     // parameter union — it is not `any`.
-    expectTypeOf(value).toEqualTypeOf<string | number | boolean>();
-    return value.toString();
+    expectTypeOf(value).toEqualTypeOf<string | number | boolean | null>();
+    return String(value);
   },
 });
 
@@ -65,6 +68,6 @@ const _customClient = createClient(requester, {
 // Returning `number` does not satisfy the `(…) => string` formatter surface.
 declare const returnsNumberRejected: Accepts<
   FormatPathParam,
-  (value: string | number | boolean) => number
+  (value: string | number | boolean | null) => number
 >;
 const _returnsNumberRejected: false = returnsNumberRejected;

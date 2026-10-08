@@ -33,7 +33,7 @@ function buildClientMethodBody(op: FinishedOperation): string {
   for (const param of op.pathParams) {
     urlTemplate = urlTemplate.replace(
       `{${param.name}}`,
-      `\${encodeURIComponent(formatPathParam(${param.name}))}`
+      `\${encodeURIComponent(__formatPathParam(${param.name}))}`
     );
   }
 
@@ -203,12 +203,18 @@ function buildClientFile(
   lines.push('  /**');
   lines.push('   * Formats one path parameter value to its string form before URL-encoding');
   lines.push('   * and interpolation. Defaults to `String`.');
+  lines.push('   *');
+  lines.push('   * The union includes `null` because a nullable path parameter maps to a');
+  lines.push('   * `T | null` signature; the default `String` renders `null` as `"null"`.');
   lines.push('   */');
-  lines.push('  formatPathParam?: (value: string | number | boolean) => string;');
+  lines.push('  formatPathParam?: (value: string | number | boolean | null) => string;');
   lines.push('};');
   lines.push('');
   lines.push('export function createClient(requester: Requester, options?: CreateClientOptions) {');
-  lines.push('  const formatPathParam = options?.formatPathParam ?? String;');
+  // Double-underscore prefix: a path parameter could legally be named
+  // `formatPathParam` (shadows the local), so the internal binding must be
+  // collision-safe against every generated method parameter.
+  lines.push('  const __formatPathParam = options?.formatPathParam ?? String;');
   lines.push('  return {');
 
   for (let i = 0; i < operations.length; i++) {

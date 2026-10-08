@@ -34,12 +34,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * List
@@ -123,12 +126,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * OK
@@ -352,12 +358,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Created
@@ -427,12 +436,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Updated
@@ -442,7 +454,7 @@ export function createClient(requester: Requester, options?: CreateClientOptions
     putItemsById: decorateWithErrors<(id: string, body: PutItemsIdBody) => Promise<void>, never>(
       async (id: string, body: PutItemsIdBody): Promise<void> => {
         try {
-          const result = await requester<void>("PUT", \`/items/\${encodeURIComponent(formatPathParam(id))}\`, { body });
+          const result = await requester<void>("PUT", \`/items/\${encodeURIComponent(__formatPathParam(id))}\`, { body });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -502,12 +514,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Patched
@@ -517,7 +532,7 @@ export function createClient(requester: Requester, options?: CreateClientOptions
     patchItemsById: decorateWithErrors<(id: string, body: PatchItemsIdBody) => Promise<void>, never>(
       async (id: string, body: PatchItemsIdBody): Promise<void> => {
         try {
-          const result = await requester<void>("PATCH", \`/items/\${encodeURIComponent(formatPathParam(id))}\`, { body });
+          const result = await requester<void>("PATCH", \`/items/\${encodeURIComponent(__formatPathParam(id))}\`, { body });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -572,12 +587,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Deleted
@@ -585,7 +603,7 @@ export function createClient(requester: Requester, options?: CreateClientOptions
     deleteItemsById: decorateWithErrors<(id: string) => Promise<void>, never>(
       async (id: string): Promise<void> => {
         try {
-          const result = await requester<void>("DELETE", \`/items/\${encodeURIComponent(formatPathParam(id))}\`, {});
+          const result = await requester<void>("DELETE", \`/items/\${encodeURIComponent(__formatPathParam(id))}\`, {});
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -640,12 +658,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * CORS
@@ -708,12 +729,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Headers
@@ -776,12 +800,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Debug
@@ -844,12 +871,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * OK
@@ -912,12 +942,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * OK
@@ -983,12 +1016,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * OK
@@ -1073,12 +1109,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Retrieve all items from the catalog
@@ -1143,12 +1182,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Legacy items endpoint
@@ -1220,12 +1262,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Fetches the complete catalog
@@ -1290,12 +1335,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Get items
@@ -1362,12 +1410,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Get items
@@ -1435,12 +1486,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Old endpoint
@@ -1525,12 +1579,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * OK

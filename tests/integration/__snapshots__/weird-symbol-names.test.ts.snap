@@ -17,12 +17,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * List user settings
@@ -32,7 +35,7 @@ export function createClient(requester: Requester, options?: CreateClientOptions
     getApiV12UserSettingsByIdListAll: decorateWithErrors<(id: string) => Promise<GetApiV12UserSettingsIdListAllResponse>, never>(
       async (id: string): Promise<GetApiV12UserSettingsIdListAllResponse> => {
         try {
-          const result = await requester<GetApiV12UserSettingsIdListAllResponse>("GET", \`/api/v1.2/user-settings/\${encodeURIComponent(formatPathParam(id))}/list~all\`, {});
+          const result = await requester<GetApiV12UserSettingsIdListAllResponse>("GET", \`/api/v1.2/user-settings/\${encodeURIComponent(__formatPathParam(id))}/list~all\`, {});
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }

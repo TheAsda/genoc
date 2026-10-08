@@ -285,14 +285,14 @@ describe('OpenAPI 3.0 — Parameters (3.0-#33-#40)', () => {
 
       expect(client).toContain('flag: boolean');
       expect(client).not.toContain('flag: string');
-      expect(client).toContain('`/flags/${encodeURIComponent(formatPathParam(flag))}`');
+      expect(client).toContain('`/flags/${encodeURIComponent(__formatPathParam(flag))}`');
     });
 
     it('3.0-#35: enum path param is typed as a union of literals and formatted in the URL template', () => {
       const { client } = generateClientFromYaml(SCHEMA_TYPED_PATH_PARAMS_SPEC('3.0.3'));
 
       expect(client).toContain("mode: 'fast' | 'slow'");
-      expect(client).toContain('`/jobs/${encodeURIComponent(formatPathParam(mode))}`');
+      expect(client).toContain('`/jobs/${encodeURIComponent(__formatPathParam(mode))}`');
     });
 
     it('3.0-#35: $ref path param resolves to the named contract type and is formatted in the URL template', () => {
@@ -303,7 +303,7 @@ describe('OpenAPI 3.0 — Parameters (3.0-#33-#40)', () => {
       // …and the method signature must reference the named type, not the inlined translation.
       expect(client).toContain('petId: PetId');
       expect(client).not.toContain('petId: string');
-      expect(client).toContain('`/pets/${encodeURIComponent(formatPathParam(petId))}`');
+      expect(client).toContain('`/pets/${encodeURIComponent(__formatPathParam(petId))}`');
     });
   });
 });

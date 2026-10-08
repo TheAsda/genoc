@@ -39,8 +39,11 @@ type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to `String`.
+   *
+   * The union includes `null` because a nullable path parameter maps to a
+   * `T | null` signature; the default `String` renders `null` as `"null"`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 ```
 
@@ -50,8 +53,9 @@ Every path parameter value passes through `formatPathParam` before it is
 URL-encoded and interpolated into the request path:
 
 ```typescript
-// Inside a generated method:
-const path = `/pets/${encodeURIComponent(formatPathParam(id))}`;
+// Inside a generated method (the formatter binding is emitted as
+// `__formatPathParam` so it can never be shadowed by a parameter):
+const path = `/pets/${encodeURIComponent(__formatPathParam(id))}`;
 ```
 
 The formatter receives the raw, schema-typed value — not a string. Path

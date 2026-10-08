@@ -39,6 +39,24 @@ paths:
           schema: { type: string }
       responses:
         "200": { description: OK }
+  /nullable/{id}:
+    get:
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: [integer, 'null'] }
+      responses:
+        "200": { description: OK }
+  /echo/{formatPathParam}:
+    get:
+      parameters:
+        - name: formatPathParam
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: OK }
 `;
 
 interface CapturedCall {
@@ -161,5 +179,33 @@ describe('path-param execution seam (spec #71 T3)', () => {
     await client.getFilesByName('docs/a b ü?x=1#f');
 
     expect(calls).toEqual([{ method: 'GET', path: '/files/docs%2Fa%20b%20%C3%BC%3Fx%3D1%23f' }]);
+  });
+
+  it('a null path param goes through the formatter (String(null) renders the "null" segment)', async () => {
+    const calls: CapturedCall[] = [];
+    const client = createClient(makeCapturingRequester(calls));
+
+    await client.getNullableById(null);
+
+    expect(calls).toEqual([{ method: 'GET', path: '/nullable/null' }]);
+  });
+
+  it('a path param named formatPathParam is still formatted (no local shadowing)', async () => {
+    // If the emitted formatter local were named `formatPathParam`, the
+    // generated body would resolve that name to the parameter itself and
+    // invoking the client would throw (calling a string) instead of
+    // formatting — so a formatted URL proves the collision-safe rename.
+    const defaultCalls: CapturedCall[] = [];
+    const customCalls: CapturedCall[] = [];
+    const defaultClient = createClient(makeCapturingRequester(defaultCalls));
+    const customClient = createClient(makeCapturingRequester(customCalls), {
+      formatPathParam: (value: string | number | boolean | null) => 'FMT',
+    });
+
+    await defaultClient.getEchoByFormatPathParam('a b');
+    await customClient.getEchoByFormatPathParam('a b');
+
+    expect(defaultCalls).toEqual([{ method: 'GET', path: '/echo/a%20b' }]);
+    expect(customCalls).toEqual([{ method: 'GET', path: '/echo/FMT' }]);
   });
 });

@@ -98,7 +98,7 @@ describe('typed path params (spec #71 T1 tracer)', () => {
     `;
     const { client } = generateFromYaml(spec);
     expect(client).toContain('userId: string');
-    expect(client).toContain('encodeURIComponent(formatPathParam(userId))');
+    expect(client).toContain('encodeURIComponent(__formatPathParam(userId))');
   });
 
   it('derives the finished path-param type in the analyzer, not the generator', () => {
@@ -160,7 +160,7 @@ describe('typed path params (spec #71 T1 tracer)', () => {
     for (const version of ['3.0.3', '3.1.0'] as const) {
       const { client } = generateFromYaml(T2_BOOLEAN_SPEC(version));
       expect(client, version).toContain('flag: boolean');
-      expect(client, version).toContain('`/flags/${encodeURIComponent(formatPathParam(flag))}`');
+      expect(client, version).toContain('`/flags/${encodeURIComponent(__formatPathParam(flag))}`');
     }
   });
 
@@ -168,7 +168,7 @@ describe('typed path params (spec #71 T1 tracer)', () => {
     for (const version of ['3.0.3', '3.1.0'] as const) {
       const { client } = generateFromYaml(T2_ENUM_SPEC(version));
       expect(client, version).toContain("mode: 'fast' | 'slow'");
-      expect(client, version).toContain('`/jobs/${encodeURIComponent(formatPathParam(mode))}`');
+      expect(client, version).toContain('`/jobs/${encodeURIComponent(__formatPathParam(mode))}`');
     }
   });
 
@@ -182,7 +182,7 @@ describe('typed path params (spec #71 T1 tracer)', () => {
       });
       expect(contracts, version).toContain('export type PetId = string;');
       expect(client, version).toContain('petId: PetId');
-      expect(client, version).toContain('`/pets/${encodeURIComponent(formatPathParam(petId))}`');
+      expect(client, version).toContain('`/pets/${encodeURIComponent(__formatPathParam(petId))}`');
     }
   });
 
@@ -197,10 +197,99 @@ describe('typed path params (spec #71 T1 tracer)', () => {
     }
   });
 
+  // Review fixes: nullable path params (options union must accept null),
+  // `formatPathParam` identifier shadowing, and non-primitive $ref params
+  // (formatter-boundary fallback to `string`).
+
+  const NULLABLE_PARAM_SPEC = (version: '3.0.3' | '3.1.0'): string => `
+    openapi: "${version}"
+    info: { title: Test, version: "1.0.0" }
+    paths:
+      /pets/{id}:
+        get:
+          parameters:
+            - name: id
+              in: path
+              required: true
+              schema: ${version === '3.1.0' ? "{ type: [integer, 'null'] }" : '{ type: integer, nullable: true }'}
+          responses:
+            "200": { description: OK }
+  `;
+
+  const SHADOWING_PARAM_SPEC = `
+    openapi: "3.1.0"
+    info: { title: Test, version: "1.0.0" }
+    paths:
+      /echo/{formatPathParam}:
+        get:
+          parameters:
+            - name: formatPathParam
+              in: path
+              required: true
+              schema: { type: string }
+          responses:
+            "200": { description: OK }
+  `;
+
+  const OBJECT_REF_PARAM_SPEC = (version: '3.0.3' | '3.1.0'): string => `
+    openapi: "${version}"
+    info: { title: Test, version: "1.0.0" }
+    components:
+      schemas:
+        Pet:
+          type: object
+          properties:
+            name: { type: string }
+    paths:
+      /pets/{petId}:
+        get:
+          parameters:
+            - name: petId
+              in: path
+              required: true
+              schema: { $ref: '#/components/schemas/Pet' }
+          responses:
+            "200": { description: OK }
+  `;
+
+  it('types a nullable path param as `number | null` in both dialects', () => {
+    for (const version of ['3.0.3', '3.1.0'] as const) {
+      const analyzed = analyzeYaml(NULLABLE_PARAM_SPEC(version));
+      expect(analyzed.operations[0]?.pathParams[0]?.finishedType, version).toBe('number | null');
+      const { client } = generateFromYaml(NULLABLE_PARAM_SPEC(version));
+      expect(client, version).toContain('id: number | null');
+    }
+  });
+
+  it('keeps the formatter local collision-safe against a path param named formatPathParam', () => {
+    const { client } = generateFromYaml(SHADOWING_PARAM_SPEC);
+    expect(client).toContain('const __formatPathParam = options?.formatPathParam ?? String;');
+    expect(client).toContain('`/echo/${encodeURIComponent(__formatPathParam(formatPathParam))}`');
+  });
+
+  it('falls back to `string` for a $ref to an object schema (formatter boundary)', () => {
+    for (const version of ['3.0.3', '3.1.0'] as const) {
+      const analyzed = analyzeYaml(OBJECT_REF_PARAM_SPEC(version));
+      expect(analyzed.operations[0]?.pathParams[0]?.finishedType, version).toBe('string');
+      const { contracts, client } = generateOutput(analyzed, {
+        input: 'test.yaml',
+        outputDir: '/tmp/test',
+      });
+      expect(client, version).toContain('petId: string');
+      // The named object type stays in contracts but never reaches the client
+      // file (no signature reference, no `import type`).
+      expect(contracts, version).toMatch(/export type Pet = \{/);
+      expect(client, version).not.toMatch(/\bPet\b/);
+      expect(client, version).toContain('`/pets/${encodeURIComponent(__formatPathParam(petId))}`');
+    }
+  });
+
   it('declares CreateClientOptions with formatPathParam in the generated client file', () => {
     const { client } = generateFromYaml(INT_PATH_PARAM_SPEC);
     expect(client).toContain('export type CreateClientOptions = {');
-    expect(client).toContain('formatPathParam?: (value: string | number | boolean) => string;');
+    expect(client).toContain(
+      'formatPathParam?: (value: string | number | boolean | null) => string;'
+    );
   });
 
   it('gives createClient an optional second parameter and defaults the formatter to String', () => {
@@ -208,12 +297,12 @@ describe('typed path params (spec #71 T1 tracer)', () => {
     expect(client).toContain(
       'export function createClient(requester: Requester, options?: CreateClientOptions) {'
     );
-    expect(client).toContain('const formatPathParam = options?.formatPathParam ?? String;');
+    expect(client).toContain('const __formatPathParam = options?.formatPathParam ?? String;');
   });
 
   it('routes path param interpolation through the formatter before encodeURIComponent', () => {
     const { client } = generateFromYaml(INT_PATH_PARAM_SPEC);
-    expect(client).toContain('`/pets/${encodeURIComponent(formatPathParam(id))}`');
+    expect(client).toContain('`/pets/${encodeURIComponent(__formatPathParam(id))}`');
     expect(client).not.toContain('encodeURIComponent(id)');
   });
 
@@ -227,6 +316,10 @@ describe('typed path params (spec #71 T1 tracer)', () => {
       components:
         schemas:
           PetId: { type: string }
+          Pet:
+            type: object
+            properties:
+              name: { type: string }
       paths:
         /pets/{id}:
           get:
@@ -262,6 +355,33 @@ describe('typed path params (spec #71 T1 tracer)', () => {
                 schema: { $ref: '#/components/schemas/PetId' }
             responses:
               "200": { description: OK }
+        /nullable/{id}:
+          get:
+            parameters:
+              - name: id
+                in: path
+                required: true
+                schema: { type: [integer, 'null'] }
+            responses:
+              "200": { description: OK }
+        /echo/{formatPathParam}:
+          get:
+            parameters:
+              - name: formatPathParam
+                in: path
+                required: true
+                schema: { type: string }
+            responses:
+              "200": { description: OK }
+        /shelters/{resident}:
+          get:
+            parameters:
+              - name: resident
+                in: path
+                required: true
+                schema: { $ref: '#/components/schemas/Pet' }
+            responses:
+              "200": { description: OK }
     `;
 
     beforeAll(() => {
@@ -285,9 +405,11 @@ describe('typed path params (spec #71 T1 tracer)', () => {
           ``,
           // Default formatter: String stays assignable.
           `export const defaultClient = createClient(requester);`,
-          `// Custom formatter receives the raw typed value.`,
+          `// Custom formatter receives the raw typed value. A nullable path`,
+          `// param puts null in the union: comparing against null only`,
+          `// type-checks because the options union includes it.`,
           `export const customClient = createClient(requester, {`,
-          `  formatPathParam: (value) => value.toString(),`,
+          `  formatPathParam: (value) => (value === null ? 'none' : value.toString()),`,
           `});`,
           ``,
           `export async function getPet(id: number): Promise<void> {`,
@@ -295,6 +417,10 @@ describe('typed path params (spec #71 T1 tracer)', () => {
           `  await customClient.getPetsById(id);`,
           `  await customClient.deleteUsersByUserId('u-1');`,
           `  await customClient.getJobsByModeByPetId('fast', 'p-1');`,
+          `  await defaultClient.getNullableById(null);`,
+          `  await customClient.getNullableById(null);`,
+          `  await customClient.getEchoByFormatPathParam('raw value');`,
+          `  await customClient.getSheltersByResident('resident-1');`,
           `}`,
           ``,
         ].join('\n')
@@ -313,6 +439,11 @@ describe('typed path params (spec #71 T1 tracer)', () => {
       expect(generated).toContain('userId: string');
       expect(generated).toContain("mode: 'fast' | 'slow'");
       expect(generated).toContain('petId: PetId');
+      expect(generated).toContain('id: number | null');
+      expect(generated).toContain('formatPathParam: string');
+      // Non-primitive $ref path param falls back to `string`.
+      expect(generated).toContain('resident: string');
+      expect(generated).not.toMatch(/\bresident: Pet\b/);
       expectFilesCompile([join(outDir, 'usage.ts')]);
     });
   });

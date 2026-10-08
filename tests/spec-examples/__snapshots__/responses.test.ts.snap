@@ -62,12 +62,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * User found
@@ -75,7 +78,7 @@ export function createClient(requester: Requester, options?: CreateClientOptions
     getUsersByUserId: decorateWithErrors<(userId: string) => Promise<GetUsersUserIdResponse>, never>(
       async (userId: string): Promise<GetUsersUserIdResponse> => {
         try {
-          const result = await requester<GetUsersUserIdResponse>("GET", \`/users/\${encodeURIComponent(formatPathParam(userId))}\`, {});
+          const result = await requester<GetUsersUserIdResponse>("GET", \`/users/\${encodeURIComponent(__formatPathParam(userId))}\`, {});
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -113,12 +116,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Cache cleared
@@ -207,12 +213,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Pong
@@ -296,12 +305,15 @@ export type CreateClientOptions = {
   /**
    * Formats one path parameter value to its string form before URL-encoding
    * and interpolation. Defaults to \`String\`.
+   *
+   * The union includes \`null\` because a nullable path parameter maps to a
+   * \`T | null\` signature; the default \`String\` renders \`null\` as \`"null"\`.
    */
-  formatPathParam?: (value: string | number | boolean) => string;
+  formatPathParam?: (value: string | number | boolean | null) => string;
 };
 
 export function createClient(requester: Requester, options?: CreateClientOptions) {
-  const formatPathParam = options?.formatPathParam ?? String;
+  const __formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Order details
@@ -309,7 +321,7 @@ export function createClient(requester: Requester, options?: CreateClientOptions
     getOrdersByOrderId: decorateWithErrors<(orderId: string) => Promise<GetOrdersOrderIdResponse>, GetOrdersOrderIdErrors>(
       async (orderId: string): Promise<GetOrdersOrderIdResponse> => {
         try {
-          const result = await requester<GetOrdersOrderIdResponse>("GET", \`/orders/\${encodeURIComponent(formatPathParam(orderId))}\`, {});
+          const result = await requester<GetOrdersOrderIdResponse>("GET", \`/orders/\${encodeURIComponent(__formatPathParam(orderId))}\`, {});
           if (result instanceof ErrorResponse) {
             if (result.status === 400) throw new ApiError(400, result.data as GetOrdersOrderIdError400, result.message ?? \`Request failed with status 400\`);
             if (result.status === 404) throw new ApiError(404, result.data as GetOrdersOrderIdError404, result.message ?? \`Request failed with status 404\`);
