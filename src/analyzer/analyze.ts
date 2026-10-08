@@ -421,14 +421,31 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
   const operations: FinishedOperation[] = [];
   for (const op of analyzedOperations) {
     // Path params render as flat method arguments, so each carries its
-    // finished signature type: the mapper maps the resolved schema (or the
-    // string fallback) with `format` stripped — in this tracer path params
-    // are typed by their base primitive and format brands don't flow into
-    // method signatures (richer path-param typing is follow-up scope).
+    // finished signature type. A raw `$ref` schema maps to the named contract
+    // type (the same raw-schema travel pattern as request bodies and
+    // responses — the contracts renderer emits the named type from the
+    // component table); the mapper's import facts feed the client file's
+    // `import type` list. Inline schemas map the resolved schema with
+    // `format` stripped: path params are typed by their base primitive
+    // (boolean, number, literal unions) and format brands don't flow into
+    // signatures.
+    const pathParamTypeNames = new Set<string>();
     for (const param of op.pathParams) {
+      const raw = param.rawSchema;
+      if (raw !== undefined && '$ref' in raw) {
+        const result = mapper.mapSchema(raw);
+        param.finishedType = result.tsType;
+        for (const name of result.imports) {
+          pathParamTypeNames.add(name);
+        }
+        continue;
+      }
       const schema = param.schema ?? { type: 'string' };
       const tracerSchema = schema.format === undefined ? schema : { ...schema, format: undefined };
       param.finishedType = mapper.mapSchema(tracerSchema).tsType;
+    }
+    if (pathParamTypeNames.size > 0) {
+      op.pathParamTypeNames = [...pathParamTypeNames];
     }
     operations.push({
       ...op,

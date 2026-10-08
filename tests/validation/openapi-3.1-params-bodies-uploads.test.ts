@@ -1,4 +1,5 @@
-// Feature coverage: 3.1-#33 (path parameters), 3.1-#34 (query parameters),
+// Feature coverage: 3.1-#33 (path parameters — schema-driven typing:
+// boolean, enum unions, $ref named types; spec #71 T2), 3.1-#34 (query parameters),
 // 3.1-#35 (header parameters), 3.1-#36 (cookie parameters),
 // 3.1-#37 (required/optional), 3.1-#38 (style), 3.1-#39 (explode),
 // 3.1-#40 (allowEmptyValue), 3.1-#41 (deprecated param),
@@ -63,6 +64,72 @@ describe('OpenAPI 3.1 — Parameters (3.1-#33-#42)', () => {
     expect(client).toMatchSnapshot();
     // Path params do NOT generate a Query type
     expect(contracts).not.toContain('Query =');
+  });
+
+  // spec #71 T2: schema-driven path-param typing — boolean, enum unions and
+  // $ref named types, each serialized through `formatPathParam`.
+  describe('3.1-#33: path-param schema typing (boolean, enum, $ref) — spec #71 T2', () => {
+    const SCHEMA_TYPED_PATH_PARAMS_SPEC = (version: '3.0.3' | '3.1.0'): string => `
+      openapi: "${version}"
+      info: { title: Test, version: "1.0.0" }
+      components:
+        schemas:
+          PetId: { type: string }
+      paths:
+        /flags/{flag}:
+          get:
+            parameters:
+              - name: flag
+                in: path
+                required: true
+                schema: { type: boolean }
+            responses:
+              "200": { description: OK }
+        /jobs/{mode}:
+          get:
+            parameters:
+              - name: mode
+                in: path
+                required: true
+                schema: { type: string, enum: [fast, slow] }
+            responses:
+              "200": { description: OK }
+        /pets/{petId}:
+          get:
+            parameters:
+              - name: petId
+                in: path
+                required: true
+                schema: { $ref: '#/components/schemas/PetId' }
+            responses:
+              "200": { description: OK }
+    `;
+
+    it('3.1-#33: boolean path param is typed `boolean` and formatted in the URL template', () => {
+      const { client } = generateClientFromYaml(SCHEMA_TYPED_PATH_PARAMS_SPEC('3.1.0'));
+
+      expect(client).toContain('flag: boolean');
+      expect(client).not.toContain('flag: string');
+      expect(client).toContain('`/flags/${encodeURIComponent(formatPathParam(flag))}`');
+    });
+
+    it('3.1-#33: enum path param is typed as a union of literals and formatted in the URL template', () => {
+      const { client } = generateClientFromYaml(SCHEMA_TYPED_PATH_PARAMS_SPEC('3.1.0'));
+
+      expect(client).toContain("mode: 'fast' | 'slow'");
+      expect(client).toContain('`/jobs/${encodeURIComponent(formatPathParam(mode))}`');
+    });
+
+    it('3.1-#33: $ref path param resolves to the named contract type and is formatted in the URL template', () => {
+      const { contracts, client } = generateClientFromYaml(SCHEMA_TYPED_PATH_PARAMS_SPEC('3.1.0'));
+
+      // The named type must be emitted into the contracts file…
+      expect(contracts).toContain('export type PetId = string;');
+      // …and the method signature must reference the named type, not the inlined translation.
+      expect(client).toContain('petId: PetId');
+      expect(client).not.toContain('petId: string');
+      expect(client).toContain('`/pets/${encodeURIComponent(formatPathParam(petId))}`');
+    });
   });
 
   // 3.1-#34: query parameters — Tier 1
