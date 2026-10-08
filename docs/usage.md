@@ -26,6 +26,56 @@ type Requester = <TResponse>(
 ) => Promise<TResponse | StreamResponse | ErrorResponse>;
 ```
 
+## Client options (`createClient`)
+
+`createClient` accepts an optional second argument with per-client options:
+
+```typescript
+const client = createClient(requester, options);
+```
+
+```typescript
+type CreateClientOptions = {
+  /**
+   * Formats one path parameter value to its string form before URL-encoding
+   * and interpolation. Defaults to `String`.
+   */
+  formatPathParam?: (value: string | number | boolean) => string;
+};
+```
+
+### `formatPathParam`
+
+Every path parameter value passes through `formatPathParam` before it is
+URL-encoded and interpolated into the request path:
+
+```typescript
+// Inside a generated method:
+const path = `/pets/${encodeURIComponent(formatPathParam(id))}`;
+```
+
+The formatter receives the raw, schema-typed value — not a string. Path
+parameters are typed from their schema: `type: integer` becomes `number`,
+`type: boolean` becomes `boolean`, an enum becomes a union of its literals,
+and a `$ref` becomes the named contract type.
+
+The default formatter is `String`, which produces the right wire form for most
+specs. Override it when `String()` would not — for example, booleans
+serialized as `1`/`0`, numeric ids that need padding, or lowercase enums:
+
+```typescript
+const client = createClient(requester, {
+  formatPathParam: (value) => {
+    if (typeof value === 'boolean') return value ? '1' : '0';
+    return String(value);
+  },
+});
+```
+
+Options apply per client: each `createClient(requester, options)` call returns
+an independent client, so a formatter configured for one client never affects
+other clients.
+
 ## Shared runtime (`genoc/runtime`)
 
 Generated clients import their response and error classes from `genoc/runtime`
