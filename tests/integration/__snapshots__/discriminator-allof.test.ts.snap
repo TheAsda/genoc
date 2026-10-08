@@ -44,7 +44,7 @@ export function createClient(requester: Requester) {
     getPetsById: decorateWithErrors<(id: string) => Promise<GetPetsIdResponse>, never>(
       async (id: string): Promise<GetPetsIdResponse> => {
         try {
-          const result = await requester<GetPetsIdResponse>("GET", \`/pets/\${encodeURIComponent(id)}\`, {});
+          const result = await requester<GetPetsIdResponse>("GET", \`/pets/\${encodeURIComponent(String(id))}\`, {});
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }

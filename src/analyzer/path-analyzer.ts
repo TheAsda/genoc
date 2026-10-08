@@ -18,9 +18,21 @@ export interface AnalyzedParameter {
   required: boolean;
   /** Resolved param schema — analyzer-internal translation input for `analyze()`; renderers must not read it. */
   schema: SchemaObject | undefined;
+  /**
+   * Raw (possibly `$ref`) param schema — analyzer-internal translation input
+   * for `analyze()`; renderers must not read it. Kept beside the resolved
+   * schema so `$ref` sites translate to the named contract type (the same
+   * raw-schema travel pattern as request bodies and responses).
+   */
+  rawSchema: SchemaObject | ReferenceObject | undefined;
   description?: string;
   deprecated?: boolean;
   example?: unknown;
+  /**
+   * Finished (real-mapper) TS type text for the method signature — set by
+   * `analyze()` for path params, the only params rendered as flat args.
+   */
+  finishedType?: string;
 }
 
 export interface AnalyzedRequestBody {
@@ -73,6 +85,12 @@ export interface AnalyzedOperation {
   queryParams: AnalyzedParameter[];
   headerParams: AnalyzedParameter[];
   cookieParams: AnalyzedParameter[];
+  /**
+   * Named contract types referenced by path-param finished types (`$ref`
+   * path params). Set by `analyze()` from the mapper's import facts; drives
+   * the client file's `import type` list for method signatures.
+   */
+  pathParamTypeNames?: string[];
   requestBody: AnalyzedRequestBody | undefined;
   responses: AnalyzedResponse[];
 }
@@ -120,6 +138,7 @@ function analyzeParameter(param: ParameterObject, resolver: RefResolver): Analyz
     in: param.in,
     required: param.required ?? param.in === 'path',
     schema,
+    rawSchema: param.schema,
     description: param.description,
     deprecated: param.deprecated,
     example: param.example,

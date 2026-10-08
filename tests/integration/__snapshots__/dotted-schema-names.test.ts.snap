@@ -45,7 +45,7 @@ export function createClient(requester: Requester) {
     getUsersByUserIdAddress: decorateWithErrors<(userId: string) => Promise<GetUsersUserIdAddressResponse>, GetUsersUserIdAddressErrors>(
       async (userId: string): Promise<GetUsersUserIdAddressResponse> => {
         try {
-          const result = await requester<GetUsersUserIdAddressResponse>("GET", \`/users/\${encodeURIComponent(userId)}/address\`, {});
+          const result = await requester<GetUsersUserIdAddressResponse>("GET", \`/users/\${encodeURIComponent(String(userId))}/address\`, {});
           if (result instanceof ErrorResponse) {
             if (result.status === 404) throw new ApiError(404, result.data as GetUsersUserIdAddressError404, result.message ?? \`Request failed with status 404\`);
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);

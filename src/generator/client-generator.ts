@@ -31,7 +31,10 @@ function buildClientMethodBody(op: FinishedOperation): string {
 
   let urlTemplate = op.path;
   for (const param of op.pathParams) {
-    urlTemplate = urlTemplate.replace(`{${param.name}}`, `\${encodeURIComponent(${param.name})}`);
+    urlTemplate = urlTemplate.replace(
+      `{${param.name}}`,
+      `\${encodeURIComponent(String(${param.name}))}`
+    );
   }
 
   const urlExpr = `\`${urlTemplate}\``;

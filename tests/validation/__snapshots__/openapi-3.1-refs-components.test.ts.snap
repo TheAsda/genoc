@@ -343,7 +343,7 @@ export function createClient(requester: Requester) {
     getItemsById: decorateWithErrors<(id: string) => Promise<GetItemsIdResponse>, never>(
       async (id: string): Promise<GetItemsIdResponse> => {
         try {
-          const result = await requester<GetItemsIdResponse>("GET", \`/items/\${encodeURIComponent(id)}\`, {});
+          const result = await requester<GetItemsIdResponse>("GET", \`/items/\${encodeURIComponent(String(id))}\`, {});
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -632,7 +632,7 @@ export function createClient(requester: Requester) {
     getUsersByUserId: decorateWithErrors<(userId: string) => Promise<void>, never>(
       async (userId: string): Promise<void> => {
         try {
-          const result = await requester<void>("GET", \`/users/\${encodeURIComponent(userId)}\`, {});
+          const result = await requester<void>("GET", \`/users/\${encodeURIComponent(String(userId))}\`, {});
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }

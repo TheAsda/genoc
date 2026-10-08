@@ -2070,7 +2070,7 @@ export function createClient(requester: Requester) {
     getPathById: decorateWithErrors<(id: string) => Promise<GetPathIdResponse>, never>(
       async (id: string): Promise<GetPathIdResponse> => {
         try {
-          const result = await requester<GetPathIdResponse>("GET", \`/path/\${encodeURIComponent(id)}\`, {});
+          const result = await requester<GetPathIdResponse>("GET", \`/path/\${encodeURIComponent(String(id))}\`, {});
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -2698,7 +2698,7 @@ export function createClient(requester: Requester) {
     getUsersByUserIdPostsByPostId: decorateWithErrors<(userId: string, postId: string, query?: GetUsersUserIdPostsPostIdQuery) => Promise<GetUsersUserIdPostsPostIdResponse>, GetUsersUserIdPostsPostIdErrors>(
       async (userId: string, postId: string, query?: GetUsersUserIdPostsPostIdQuery): Promise<GetUsersUserIdPostsPostIdResponse> => {
         try {
-          const result = await requester<GetUsersUserIdPostsPostIdResponse>("GET", \`/users/\${encodeURIComponent(userId)}/posts/\${encodeURIComponent(postId)}\`, { query });
+          const result = await requester<GetUsersUserIdPostsPostIdResponse>("GET", \`/users/\${encodeURIComponent(String(userId))}/posts/\${encodeURIComponent(String(postId))}\`, { query });
           if (result instanceof ErrorResponse) {
             if (result.status === 404) throw new ApiError(404, result.data as GetUsersUserIdPostsPostIdError404, result.message ?? \`Request failed with status 404\`);
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
@@ -4821,7 +4821,7 @@ export function createClient(requester: Requester) {
     getPathById: decorateWithErrors<(id: string) => Promise<GetPathIdResponse>, never>(
       async (id: string): Promise<GetPathIdResponse> => {
         try {
-          const result = await requester<GetPathIdResponse>("GET", \`/path/\${encodeURIComponent(id)}\`, {});
+          const result = await requester<GetPathIdResponse>("GET", \`/path/\${encodeURIComponent(String(id))}\`, {});
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -5449,7 +5449,7 @@ export function createClient(requester: Requester) {
     getUsersByUserIdPostsByPostId: decorateWithErrors<(userId: string, postId: string, query?: GetUsersUserIdPostsPostIdQuery) => Promise<GetUsersUserIdPostsPostIdResponse>, GetUsersUserIdPostsPostIdErrors>(
       async (userId: string, postId: string, query?: GetUsersUserIdPostsPostIdQuery): Promise<GetUsersUserIdPostsPostIdResponse> => {
         try {
-          const result = await requester<GetUsersUserIdPostsPostIdResponse>("GET", \`/users/\${encodeURIComponent(userId)}/posts/\${encodeURIComponent(postId)}\`, { query });
+          const result = await requester<GetUsersUserIdPostsPostIdResponse>("GET", \`/users/\${encodeURIComponent(String(userId))}/posts/\${encodeURIComponent(String(postId))}\`, { query });
           if (result instanceof ErrorResponse) {
             if (result.status === 404) throw new ApiError(404, result.data as GetUsersUserIdPostsPostIdError404, result.message ?? \`Request failed with status 404\`);
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);

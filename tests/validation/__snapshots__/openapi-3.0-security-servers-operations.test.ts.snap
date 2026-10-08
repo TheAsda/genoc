@@ -394,7 +394,7 @@ export function createClient(requester: Requester) {
     putItemsById: decorateWithErrors<(id: string, body: PutItemsIdBody) => Promise<void>, never>(
       async (id: string, body: PutItemsIdBody): Promise<void> => {
         try {
-          const result = await requester<void>("PUT", \`/items/\${encodeURIComponent(id)}\`, { body });
+          const result = await requester<void>("PUT", \`/items/\${encodeURIComponent(String(id))}\`, { body });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -457,7 +457,7 @@ export function createClient(requester: Requester) {
     patchItemsById: decorateWithErrors<(id: string, body: PatchItemsIdBody) => Promise<void>, never>(
       async (id: string, body: PatchItemsIdBody): Promise<void> => {
         try {
-          const result = await requester<void>("PATCH", \`/items/\${encodeURIComponent(id)}\`, { body });
+          const result = await requester<void>("PATCH", \`/items/\${encodeURIComponent(String(id))}\`, { body });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -513,7 +513,7 @@ export function createClient(requester: Requester) {
     deleteItemsById: decorateWithErrors<(id: string) => Promise<void>, never>(
       async (id: string): Promise<void> => {
         try {
-          const result = await requester<void>("DELETE", \`/items/\${encodeURIComponent(id)}\`, {});
+          const result = await requester<void>("DELETE", \`/items/\${encodeURIComponent(String(id))}\`, {});
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -1295,7 +1295,7 @@ export function createClient(requester: Requester) {
     getUsersByUserIdPostsByPostId: decorateWithErrors<(userId: string, postId: string) => Promise<GetUsersUserIdPostsPostIdResponse>, never>(
       async (userId: string, postId: string): Promise<GetUsersUserIdPostsPostIdResponse> => {
         try {
-          const result = await requester<GetUsersUserIdPostsPostIdResponse>("GET", \`/users/\${encodeURIComponent(userId)}/posts/\${encodeURIComponent(postId)}\`, {});
+          const result = await requester<GetUsersUserIdPostsPostIdResponse>("GET", \`/users/\${encodeURIComponent(String(userId))}/posts/\${encodeURIComponent(String(postId))}\`, {});
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }

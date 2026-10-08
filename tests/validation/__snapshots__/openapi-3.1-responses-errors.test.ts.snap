@@ -529,7 +529,7 @@ export function createClient(requester: Requester) {
     deleteUsersByUserId: decorateWithErrors<(userId: string) => Promise<void>, DeleteUsersUserIdErrors>(
       async (userId: string): Promise<void> => {
         try {
-          const result = await requester<void>("DELETE", \`/users/\${encodeURIComponent(userId)}\`, {});
+          const result = await requester<void>("DELETE", \`/users/\${encodeURIComponent(String(userId))}\`, {});
           if (result instanceof ErrorResponse) {
             if (result.status === 400) throw new ApiError(400, result.data as DeleteUsersUserIdError400, result.message ?? \`Request failed with status 400\`);
             if (result.status === 404) throw new ApiError(404, result.data as DeleteUsersUserIdError404, result.message ?? \`Request failed with status 404\`);
@@ -872,7 +872,7 @@ export function createClient(requester: Requester) {
     getOrdersByOrderId: decorateWithErrors<(orderId: string) => Promise<GetOrdersOrderIdResponse>, GetOrdersOrderIdErrors>(
       async (orderId: string): Promise<GetOrdersOrderIdResponse> => {
         try {
-          const result = await requester<GetOrdersOrderIdResponse>("GET", \`/orders/\${encodeURIComponent(orderId)}\`, {});
+          const result = await requester<GetOrdersOrderIdResponse>("GET", \`/orders/\${encodeURIComponent(String(orderId))}\`, {});
           if (result instanceof ErrorResponse) {
             if (result.status === 400) throw new ApiError(400, result.data as GetOrdersOrderIdError400, result.message ?? \`Request failed with status 400\`);
             if (result.status === 404) throw new ApiError(404, result.data as GetOrdersOrderIdError404, result.message ?? \`Request failed with status 404\`);
@@ -1057,7 +1057,7 @@ export function createClient(requester: Requester) {
     getExportByFormat: decorateWithErrors<(format: string) => Promise<GetExportFormatResponse>, GetExportFormatErrors>(
       async (format: string): Promise<GetExportFormatResponse> => {
         try {
-          const result = await requester<GetExportFormatResponse>("GET", \`/export/\${encodeURIComponent(format)}\`, { expectStream: true });
+          const result = await requester<GetExportFormatResponse>("GET", \`/export/\${encodeURIComponent(String(format))}\`, { expectStream: true });
           if (result instanceof ErrorResponse) {
             if (result.status === 400) throw new ApiError(400, result.data as GetExportFormatError400, result.message ?? \`Request failed with status 400\`);
             if (result.status === 404) throw new ApiError(404, result.data as GetExportFormatError404, result.message ?? \`Request failed with status 404\`);
@@ -1257,7 +1257,7 @@ export function createClient(requester: Requester) {
     getOrdersByOrderId: decorateWithErrors<(orderId: string) => Promise<GetOrdersOrderIdResponse>, GetOrdersOrderIdErrors>(
       async (orderId: string): Promise<GetOrdersOrderIdResponse> => {
         try {
-          const result = await requester<GetOrdersOrderIdResponse>("GET", \`/orders/\${encodeURIComponent(orderId)}\`, {});
+          const result = await requester<GetOrdersOrderIdResponse>("GET", \`/orders/\${encodeURIComponent(String(orderId))}\`, {});
           if (result instanceof ErrorResponse) {
             if (result.status === 400) throw new ApiError(400, result.data as GetOrdersOrderIdError400, result.message ?? \`Request failed with status 400\`);
             if (result.status === 404) throw new ApiError(404, result.data as GetOrdersOrderIdError404, result.message ?? \`Request failed with status 404\`);
@@ -1581,7 +1581,7 @@ export function createClient(requester: Requester) {
     getDownloadByFileId: decorateWithErrors<(fileId: string) => Promise<GetDownloadFileIdResponse>, never>(
       async (fileId: string): Promise<GetDownloadFileIdResponse> => {
         try {
-          const result = await requester<GetDownloadFileIdResponse>("GET", \`/download/\${encodeURIComponent(fileId)}\`, { expectStream: true });
+          const result = await requester<GetDownloadFileIdResponse>("GET", \`/download/\${encodeURIComponent(String(fileId))}\`, { expectStream: true });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -1638,7 +1638,7 @@ export function createClient(requester: Requester) {
     getAvatarByUserId: decorateWithErrors<(userId: string) => Promise<GetAvatarUserIdResponse>, never>(
       async (userId: string): Promise<GetAvatarUserIdResponse> => {
         try {
-          const result = await requester<GetAvatarUserIdResponse>("GET", \`/avatar/\${encodeURIComponent(userId)}\`, { expectStream: true });
+          const result = await requester<GetAvatarUserIdResponse>("GET", \`/avatar/\${encodeURIComponent(String(userId))}\`, { expectStream: true });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }

@@ -1822,7 +1822,7 @@ export function createClient(requester: Requester) {
     getPathById: decorateWithErrors<(id: string) => Promise<GetPathIdResponse>, never>(
       async (id: string): Promise<GetPathIdResponse> => {
         try {
-          const result = await requester<GetPathIdResponse>("GET", \`/path/\${encodeURIComponent(id)}\`, {});
+          const result = await requester<GetPathIdResponse>("GET", \`/path/\${encodeURIComponent(String(id))}\`, {});
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -4117,7 +4117,7 @@ export function createClient(requester: Requester) {
     getPathById: decorateWithErrors<(id: string) => Promise<GetPathIdResponse>, never>(
       async (id: string): Promise<GetPathIdResponse> => {
         try {
-          const result = await requester<GetPathIdResponse>("GET", \`/path/\${encodeURIComponent(id)}\`, {});
+          const result = await requester<GetPathIdResponse>("GET", \`/path/\${encodeURIComponent(String(id))}\`, {});
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }

@@ -42,7 +42,7 @@ export function createClient(requester: Requester) {
     putUsersByUserId: decorateWithErrors<(userId: string, body: PutUsersUserIdBody) => Promise<void>, never>(
       async (userId: string, body: PutUsersUserIdBody): Promise<void> => {
         try {
-          const result = await requester<void>("PUT", \`/users/\${encodeURIComponent(userId)}\`, { body });
+          const result = await requester<void>("PUT", \`/users/\${encodeURIComponent(String(userId))}\`, { body });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }

@@ -1,4 +1,5 @@
-// Feature coverage: 3.0-#33 (header parameters), 3.0-#34 (cookie parameters),
+// Feature coverage: 3.0-#33 (header parameters — plus schema-driven path-param
+// typing: boolean, enum unions, $ref named types; spec #71 T2), 3.0-#34 (cookie parameters),
 // 3.0-#35 (required/optional), 3.0-#36 (style), 3.0-#37 (explode),
 // 3.0-#38 (allowEmptyValue), 3.0-#39 (deprecated param),
 // 3.0-#40 (description param), 3.0-#41 (application/json),
@@ -238,6 +239,72 @@ describe('OpenAPI 3.0 — Parameters (3.0-#33-#40)', () => {
     expect(client).toMatchSnapshot();
     expect(contracts).toContain(`  /** The search query string */
   q?: string;`);
+  });
+
+  // spec #71 T2: schema-driven path-param typing — boolean, enum unions and
+  // $ref named types, each serialized inline with `String()`.
+  describe('3.0-#33-#35: path-param schema typing (boolean, enum, $ref) — spec #71 T2', () => {
+    const SCHEMA_TYPED_PATH_PARAMS_SPEC = (version: '3.0.3' | '3.1.0'): string => `
+      openapi: "${version}"
+      info: { title: Test, version: "1.0.0" }
+      components:
+        schemas:
+          PetId: { type: string }
+      paths:
+        /flags/{flag}:
+          get:
+            parameters:
+              - name: flag
+                in: path
+                required: true
+                schema: { type: boolean }
+            responses:
+              "200": { description: OK }
+        /jobs/{mode}:
+          get:
+            parameters:
+              - name: mode
+                in: path
+                required: true
+                schema: { type: string, enum: [fast, slow] }
+            responses:
+              "200": { description: OK }
+        /pets/{petId}:
+          get:
+            parameters:
+              - name: petId
+                in: path
+                required: true
+                schema: { $ref: '#/components/schemas/PetId' }
+            responses:
+              "200": { description: OK }
+    `;
+
+    it('3.0-#35: boolean path param is typed `boolean | string` and serialized in the URL template', () => {
+      const { client } = generateClientFromYaml(SCHEMA_TYPED_PATH_PARAMS_SPEC('3.0.3'));
+
+      expect(client).toContain('flag: boolean | string');
+      expect(client).not.toContain('flag: string');
+      expect(client).toContain('`/flags/${encodeURIComponent(String(flag))}`');
+    });
+
+    it('3.0-#35: enum path param is emitted widened to `string` and serialized in the URL template', () => {
+      const { client } = generateClientFromYaml(SCHEMA_TYPED_PATH_PARAMS_SPEC('3.0.3'));
+
+      expect(client).toContain("mode: 'fast' | 'slow' | string");
+      expect(client).toContain('`/jobs/${encodeURIComponent(String(mode))}`');
+    });
+
+    it('3.0-#35: $ref path param resolves to the named contract type and is serialized in the URL template', () => {
+      const { contracts, client } = generateClientFromYaml(SCHEMA_TYPED_PATH_PARAMS_SPEC('3.0.3'));
+
+      // The named type must be emitted into the contracts file…
+      expect(contracts).toContain('export type PetId = string;');
+      // …and the method signature must reference the named type, not the inlined translation.
+      expect(client).toContain('petId: PetId | string');
+      expect(client).not.toContain('petId: string');
+      expect(client).toContain('`/pets/${encodeURIComponent(String(petId))}`');
+    });
   });
 });
 

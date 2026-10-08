@@ -13,3 +13,7 @@ package-lock.json
 # QA scratch dirs (plan QA scenarios write generated outputs here; oxlint respects .gitignore)
 .tmp-qa/
 .tmp-bug/
+
+# Agent tooling state
+.pi/
+.serena/

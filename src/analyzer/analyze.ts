@@ -71,6 +71,40 @@ function indentJsDocBlock(jsDoc: string): string[] {
   return jsDoc.split('\n').map((line) => `${INDENT_UNIT}${line}`);
 }
 
+/** Schema used for parameters declared without a `schema` (typed as `string`). */
+function defaultedParamSchema(param: AnalyzedParameter): SchemaObject {
+  return param.schema ?? { type: 'string' };
+}
+
+const STRING_SERIALIZABLE_MEMBER =
+  /^(string|number|boolean|null|true|false|'[^']*'|-?\d+(?:\.\d+)?)$/;
+
+/**
+ * Whether a finished path-param type can be serialized inline with `String()`:
+ * every union member must be a primitive with a defined string form, or a
+ * string/number literal (literal unions like `'fast' | 'slow'` are kept).
+ * Named component types count when their own mapped definition resolves
+ * (transitively, cycle-safe) to such members — so `$ref` path params to
+ * primitive aliases keep their named type. Anything else — objects, arrays,
+ * named non-primitive `$ref` types — falls back to a `string` signature (the
+ * pre-typed-path-params behavior), because there is no defined string
+ * serialization for such values.
+ */
+function isInlineSerializableType(
+  tsType: string,
+  namedMappedTypes: ReadonlyMap<string, string>,
+  seen: ReadonlySet<string> = new Set()
+): boolean {
+  return tsType.split('|').every((member) => {
+    const token = member.trim();
+    if (STRING_SERIALIZABLE_MEMBER.test(token)) return true;
+    const namedDefinition = namedMappedTypes.get(token);
+    if (namedDefinition === undefined || seen.has(token)) return false;
+    const nextSeen = new Set(seen).add(token);
+    return isInlineSerializableType(namedDefinition, namedMappedTypes, nextSeen);
+  });
+}
+
 /**
  * Build the JSDoc block for a query/header parameter property using the
  * pinned parameter merge rule: parameter-level description / deprecated /
@@ -93,7 +127,7 @@ function buildParamPropertyJsDoc(param: AnalyzedParameter, schema: SchemaObject)
 function buildParamTypeBody(params: AnalyzedParameter[], mapper: SchemaMapper): string {
   const lines: string[] = [];
   for (const param of params) {
-    const paramSchema = param.schema ?? { type: 'string' };
+    const paramSchema = defaultedParamSchema(param);
     const result = mapper.mapSchema(paramSchema);
     const optional = param.required ? '' : '?';
     const key = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(param.name) ? param.name : `"${param.name}"`;
@@ -376,10 +410,15 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
   // Section 1: Schema types
   const schemaEntries: ContractEntry[] = [];
 
+  // Mapped definition text per renamed component name — lets the path-param
+  // inline-serializability check resolve named types to their primitives.
+  const namedMappedTypes = new Map<string, string>();
+
   if (doc.components?.schemas) {
     for (const [name, schema] of Object.entries(doc.components.schemas)) {
       const renamedName = renameMap.get(name) ?? sanitizeTypeName(name);
       const result = mapper.mapSchema(schema, renamedName);
+      namedMappedTypes.set(renamedName, result.tsType);
       const resolved = resolver.resolve<SchemaObject>(schema as SchemaObject | ReferenceObject);
 
       const definition = `export type ${renamedName} = ${result.tsType};`;
@@ -420,6 +459,42 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
   );
   const operations: FinishedOperation[] = [];
   for (const op of analyzedOperations) {
+    // Path params render as flat method arguments, so each carries its
+    // finished signature type. A raw `$ref` schema maps to the named contract
+    // type (the same raw-schema travel pattern as request bodies and
+    // responses — the contracts renderer emits the named type from the
+    // component table); the mapper's import facts feed the client file's
+    // `import type` list. Inline schemas map the resolved schema with
+    // `format` stripped: path params are typed by their base primitive
+    // (boolean, number, literal unions) and format brands don't flow into
+    // signatures.
+    const pathParamTypeNames = new Set<string>();
+    for (const param of op.pathParams) {
+      const raw = param.rawSchema;
+      if (raw !== undefined && '$ref' in raw) {
+        const result = mapper.mapSchema(raw);
+        if (isInlineSerializableType(result.tsType, namedMappedTypes)) {
+          param.finishedType = result.tsType;
+          for (const name of result.imports) {
+            pathParamTypeNames.add(name);
+          }
+        } else {
+          // Inline-serialization constraint: a `$ref` to an object/array
+          // schema (or any non-primitive named type) has no defined string
+          // form, so the parameter falls back to `string` and the named
+          // type is not imported into the client file.
+          param.finishedType = 'string';
+        }
+        continue;
+      }
+      const schema = defaultedParamSchema(param);
+      const tracerSchema = schema.format === undefined ? schema : { ...schema, format: undefined };
+      const mapped = mapper.mapSchema(tracerSchema).tsType;
+      param.finishedType = isInlineSerializableType(mapped, namedMappedTypes) ? mapped : 'string';
+    }
+    if (pathParamTypeNames.size > 0) {
+      op.pathParamTypeNames = [...pathParamTypeNames];
+    }
     operations.push({
       ...op,
       contractsLines: [] as string[],

@@ -26,6 +26,34 @@ type Requester = <TResponse>(
 ) => Promise<TResponse | StreamResponse | ErrorResponse>;
 ```
 
+## Path parameters
+
+Path parameters are typed from their schema: `type: integer`/`type: number`
+becomes `number | string`, `type: boolean` becomes `boolean | string`, an enum
+becomes a union of its literals widened by `string` (which TypeScript collapses
+to plain `string`), and a `$ref` resolves to the named contract type widened by
+`string` — except a `$ref` to an object or array schema, which has no defined
+string form and therefore stays a plain `string`. A `type: string` parameter
+stays a plain `string`.
+
+Every path parameter also accepts a plain `string`. That is the escape hatch
+when `String()` would not produce the wire form your API expects: pre-format
+the value on your side and pass a string.
+
+```typescript
+// `{id}` is `{ type: integer }` → `number | string`
+await client.getPetsById(42);
+// Zero-padded ids: format on your side, pass a plain string.
+await client.getPetsById(String(7).padStart(4, '0'));
+```
+
+Typed values are serialized inline with `String()` and then URL-encoded:
+
+```typescript
+// Inside a generated method:
+const path = `/pets/${encodeURIComponent(String(id))}`;
+```
+
 ## Shared runtime (`genoc/runtime`)
 
 Generated clients import their response and error classes from `genoc/runtime`

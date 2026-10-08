@@ -63,7 +63,7 @@ export function createClient(requester: Requester) {
     getUsersByUserId: decorateWithErrors<(userId: string) => Promise<GetUsersUserIdResponse>, never>(
       async (userId: string): Promise<GetUsersUserIdResponse> => {
         try {
-          const result = await requester<GetUsersUserIdResponse>("GET", \`/users/\${encodeURIComponent(userId)}\`, {});
+          const result = await requester<GetUsersUserIdResponse>("GET", \`/users/\${encodeURIComponent(String(userId))}\`, {});
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -261,7 +261,7 @@ export function createClient(requester: Requester) {
     getOrdersByOrderId: decorateWithErrors<(orderId: string) => Promise<GetOrdersOrderIdResponse>, GetOrdersOrderIdErrors>(
       async (orderId: string): Promise<GetOrdersOrderIdResponse> => {
         try {
-          const result = await requester<GetOrdersOrderIdResponse>("GET", \`/orders/\${encodeURIComponent(orderId)}\`, {});
+          const result = await requester<GetOrdersOrderIdResponse>("GET", \`/orders/\${encodeURIComponent(String(orderId))}\`, {});
           if (result instanceof ErrorResponse) {
             if (result.status === 400) throw new ApiError(400, result.data as GetOrdersOrderIdError400, result.message ?? \`Request failed with status 400\`);
             if (result.status === 404) throw new ApiError(404, result.data as GetOrdersOrderIdError404, result.message ?? \`Request failed with status 404\`);

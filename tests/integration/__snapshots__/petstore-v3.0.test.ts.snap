@@ -79,7 +79,7 @@ export function createClient(requester: Requester) {
     getPetsByPetId: decorateWithErrors<(petId: string) => Promise<GetPetsPetIdResponse>, GetPetsPetIdErrors>(
       async (petId: string): Promise<GetPetsPetIdResponse> => {
         try {
-          const result = await requester<GetPetsPetIdResponse>("GET", \`/pets/\${encodeURIComponent(petId)}\`, {});
+          const result = await requester<GetPetsPetIdResponse>("GET", \`/pets/\${encodeURIComponent(String(petId))}\`, {});
           if (result instanceof ErrorResponse) {
             if (result.status === 404) throw new ApiError(404, result.data as GetPetsPetIdError404, result.message ?? \`Request failed with status 404\`);
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
@@ -106,7 +106,7 @@ export function createClient(requester: Requester) {
     deletePetsByPetId: decorateWithErrors<(petId: string) => Promise<void>, DeletePetsPetIdErrors>(
       async (petId: string): Promise<void> => {
         try {
-          const result = await requester<void>("DELETE", \`/pets/\${encodeURIComponent(petId)}\`, {});
+          const result = await requester<void>("DELETE", \`/pets/\${encodeURIComponent(String(petId))}\`, {});
           if (result instanceof ErrorResponse) {
             if (result.status === 404) throw new ApiError(404, result.data as DeletePetsPetIdError404, result.message ?? \`Request failed with status 404\`);
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
