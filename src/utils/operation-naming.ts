@@ -196,6 +196,11 @@ export function clientImportedNames(op: AnalyzedOperation): string[] {
   if (emissions.headers !== undefined) names.push(emissions.headers);
   if (emissions.body !== undefined) names.push(emissions.body);
 
+  // `$ref` path params reference named contract types directly in the method
+  // signature, so the client file must import them (fact collected by
+  // `analyze()` from the mapper's import list).
+  if (op.pathParamTypeNames !== undefined) names.push(...op.pathParamTypeNames);
+
   if (emissions.response !== undefined) {
     const successType = getSuccessType(op);
     if (successType !== 'void' && successType !== 'unknown' && /^[A-Z]/.test(successType)) {
