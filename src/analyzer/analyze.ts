@@ -411,7 +411,7 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
   const schemaEntries: ContractEntry[] = [];
 
   // Mapped definition text per renamed component name — lets the path-param
-  // formatter-compatibility check resolve named types to their primitives.
+  // inline-serializability check resolve named types to their primitives.
   const namedMappedTypes = new Map<string, string>();
 
   if (doc.components?.schemas) {

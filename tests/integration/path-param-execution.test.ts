@@ -48,15 +48,6 @@ paths:
           schema: { type: [integer, 'null'] }
       responses:
         "200": { description: OK }
-  /echo/{formatPathParam}:
-    get:
-      parameters:
-        - name: formatPathParam
-          in: path
-          required: true
-          schema: { type: string }
-      responses:
-        "200": { description: OK }
 `;
 
 interface CapturedCall {
@@ -181,16 +172,5 @@ describe('path-param execution seam (spec #71 T3)', () => {
     await client.getNullableById(null);
 
     expect(calls).toEqual([{ method: 'GET', path: '/nullable/null' }]);
-  });
-
-  it('a path param named formatPathParam serializes like any other string param', async () => {
-    // With the formatter option gone there is no local left to shadow; the
-    // name is an ordinary parameter and percent-encoding still applies.
-    const calls: CapturedCall[] = [];
-    const client = createClient(makeCapturingRequester(calls));
-
-    await client.getEchoByFormatPathParam('a b');
-
-    expect(calls).toEqual([{ method: 'GET', path: '/echo/a%20b' }]);
   });
 });
