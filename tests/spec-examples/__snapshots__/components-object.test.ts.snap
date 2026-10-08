@@ -43,7 +43,19 @@ import type { Requester } from 'genoc/runtime';
 export { isDefinedError } from 'genoc/runtime';
 export type { Requester } from 'genoc/runtime';
 
-export function createClient(requester: Requester) {
+/**
+ * Options for \`createClient\`.
+ */
+export type CreateClientOptions = {
+  /**
+   * Formats one path parameter value to its string form before URL-encoding
+   * and interpolation. Defaults to \`String\`.
+   */
+  formatPathParam?: (value: string | number | boolean) => string;
+};
+
+export function createClient(requester: Requester, options?: CreateClientOptions) {
+  const formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Health check

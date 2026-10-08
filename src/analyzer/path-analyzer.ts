@@ -21,6 +21,11 @@ export interface AnalyzedParameter {
   description?: string;
   deprecated?: boolean;
   example?: unknown;
+  /**
+   * Finished (real-mapper) TS type text for the method signature — set by
+   * `analyze()` for path params, the only params rendered as flat args.
+   */
+  finishedType?: string;
 }
 
 export interface AnalyzedRequestBody {

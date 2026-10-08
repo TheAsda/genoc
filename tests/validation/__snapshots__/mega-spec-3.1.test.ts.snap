@@ -693,7 +693,19 @@ import type { Requester } from 'genoc/runtime';
 export { isDefinedError } from 'genoc/runtime';
 export type { Requester } from 'genoc/runtime';
 
-export function createClient(requester: Requester) {
+/**
+ * Options for \`createClient\`.
+ */
+export type CreateClientOptions = {
+  /**
+   * Formats one path parameter value to its string form before URL-encoding
+   * and interpolation. Defaults to \`String\`.
+   */
+  formatPathParam?: (value: string | number | boolean) => string;
+};
+
+export function createClient(requester: Requester, options?: CreateClientOptions) {
+  const formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Get string type
@@ -1822,7 +1834,7 @@ export function createClient(requester: Requester) {
     getPathById: decorateWithErrors<(id: string) => Promise<GetPathIdResponse>, never>(
       async (id: string): Promise<GetPathIdResponse> => {
         try {
-          const result = await requester<GetPathIdResponse>("GET", \`/path/\${encodeURIComponent(id)}\`, {});
+          const result = await requester<GetPathIdResponse>("GET", \`/path/\${encodeURIComponent(formatPathParam(id))}\`, {});
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -2988,7 +3000,19 @@ import type { Requester } from 'genoc/runtime';
 export { isDefinedError } from 'genoc/runtime';
 export type { Requester } from 'genoc/runtime';
 
-export function createClient(requester: Requester) {
+/**
+ * Options for \`createClient\`.
+ */
+export type CreateClientOptions = {
+  /**
+   * Formats one path parameter value to its string form before URL-encoding
+   * and interpolation. Defaults to \`String\`.
+   */
+  formatPathParam?: (value: string | number | boolean) => string;
+};
+
+export function createClient(requester: Requester, options?: CreateClientOptions) {
+  const formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Get string type
@@ -4117,7 +4141,7 @@ export function createClient(requester: Requester) {
     getPathById: decorateWithErrors<(id: string) => Promise<GetPathIdResponse>, never>(
       async (id: string): Promise<GetPathIdResponse> => {
         try {
-          const result = await requester<GetPathIdResponse>("GET", \`/path/\${encodeURIComponent(id)}\`, {});
+          const result = await requester<GetPathIdResponse>("GET", \`/path/\${encodeURIComponent(formatPathParam(id))}\`, {});
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }

@@ -10,7 +10,19 @@ import type { Requester } from 'genoc/runtime';
 export { isDefinedError } from 'genoc/runtime';
 export type { Requester } from 'genoc/runtime';
 
-export function createClient(requester: Requester) {
+/**
+ * Options for \`createClient\`.
+ */
+export type CreateClientOptions = {
+  /**
+   * Formats one path parameter value to its string form before URL-encoding
+   * and interpolation. Defaults to \`String\`.
+   */
+  formatPathParam?: (value: string | number | boolean) => string;
+};
+
+export function createClient(requester: Requester, options?: CreateClientOptions) {
+  const formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Get all pets
@@ -44,7 +56,7 @@ export function createClient(requester: Requester) {
     getPetsById: decorateWithErrors<(id: string) => Promise<GetPetsIdResponse>, never>(
       async (id: string): Promise<GetPetsIdResponse> => {
         try {
-          const result = await requester<GetPetsIdResponse>("GET", \`/pets/\${encodeURIComponent(id)}\`, {});
+          const result = await requester<GetPetsIdResponse>("GET", \`/pets/\${encodeURIComponent(formatPathParam(id))}\`, {});
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }

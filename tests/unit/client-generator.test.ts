@@ -1223,7 +1223,9 @@ describe('renderClient — renderer units (hand-built model)', () => {
       }),
       { input: 't', outputDir: '/tmp/t' }
     );
-    expect(client).toContain('export function createClient(requester: Requester) {');
+    expect(client).toContain(
+      'export function createClient(requester: Requester, options?: CreateClientOptions) {'
+    );
     expect(client).toContain('getThings: decorateWithErrors');
     expect(client).toContain('requester<GetThingsResponse>("GET", `/things`, {})');
   });

@@ -10,7 +10,19 @@ import type { Requester } from 'genoc/runtime';
 export { isDefinedError } from 'genoc/runtime';
 export type { Requester } from 'genoc/runtime';
 
-export function createClient(requester: Requester) {
+/**
+ * Options for \`createClient\`.
+ */
+export type CreateClientOptions = {
+  /**
+   * Formats one path parameter value to its string form before URL-encoding
+   * and interpolation. Defaults to \`String\`.
+   */
+  formatPathParam?: (value: string | number | boolean) => string;
+};
+
+export function createClient(requester: Requester, options?: CreateClientOptions) {
+  const formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * Download a spreadsheet export
@@ -20,7 +32,7 @@ export function createClient(requester: Requester) {
     getFilesById: decorateWithErrors<(id: string) => Promise<GetFilesIdResponse>, GetFilesIdErrors>(
       async (id: string): Promise<GetFilesIdResponse> => {
         try {
-          const result = await requester<GetFilesIdResponse>("GET", \`/files/\${encodeURIComponent(id)}\`, { expectStream: true });
+          const result = await requester<GetFilesIdResponse>("GET", \`/files/\${encodeURIComponent(formatPathParam(id))}\`, { expectStream: true });
           if (result instanceof ErrorResponse) {
             if (result.status === 404) throw new ApiError(404, result.data as GetFilesIdError404, result.message ?? \`Request failed with status 404\`);
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
@@ -47,7 +59,7 @@ export function createClient(requester: Requester) {
     postFilesById: decorateWithErrors<(id: string, body: PostFilesIdBody) => Promise<void>, never>(
       async (id: string, body: PostFilesIdBody): Promise<void> => {
         try {
-          const result = await requester<void>("POST", \`/files/\${encodeURIComponent(id)}\`, { body });
+          const result = await requester<void>("POST", \`/files/\${encodeURIComponent(formatPathParam(id))}\`, { body });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }

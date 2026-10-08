@@ -10,7 +10,19 @@ import type { Requester } from 'genoc/runtime';
 export { isDefinedError } from 'genoc/runtime';
 export type { Requester } from 'genoc/runtime';
 
-export function createClient(requester: Requester) {
+/**
+ * Options for \`createClient\`.
+ */
+export type CreateClientOptions = {
+  /**
+   * Formats one path parameter value to its string form before URL-encoding
+   * and interpolation. Defaults to \`String\`.
+   */
+  formatPathParam?: (value: string | number | boolean) => string;
+};
+
+export function createClient(requester: Requester, options?: CreateClientOptions) {
+  const formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * List user settings
@@ -20,7 +32,7 @@ export function createClient(requester: Requester) {
     getApiV12UserSettingsByIdListAll: decorateWithErrors<(id: string) => Promise<GetApiV12UserSettingsIdListAllResponse>, never>(
       async (id: string): Promise<GetApiV12UserSettingsIdListAllResponse> => {
         try {
-          const result = await requester<GetApiV12UserSettingsIdListAllResponse>("GET", \`/api/v1.2/user-settings/\${encodeURIComponent(id)}/list~all\`, {});
+          const result = await requester<GetApiV12UserSettingsIdListAllResponse>("GET", \`/api/v1.2/user-settings/\${encodeURIComponent(formatPathParam(id))}/list~all\`, {});
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }

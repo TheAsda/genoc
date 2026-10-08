@@ -420,6 +420,16 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
   );
   const operations: FinishedOperation[] = [];
   for (const op of analyzedOperations) {
+    // Path params render as flat method arguments, so each carries its
+    // finished signature type: the mapper maps the resolved schema (or the
+    // string fallback) with `format` stripped — in this tracer path params
+    // are typed by their base primitive and format brands don't flow into
+    // method signatures (richer path-param typing is follow-up scope).
+    for (const param of op.pathParams) {
+      const schema = param.schema ?? { type: 'string' };
+      const tracerSchema = schema.format === undefined ? schema : { ...schema, format: undefined };
+      param.finishedType = mapper.mapSchema(tracerSchema).tsType;
+    }
     operations.push({
       ...op,
       contractsLines: [] as string[],

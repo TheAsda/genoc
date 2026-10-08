@@ -32,7 +32,9 @@ function buildParameters(op: AnalyzedOperation): string {
   const specs: ParamSpec[] = [];
 
   for (const param of op.pathParams) {
-    specs.push({ name: param.name, type: 'string', isOptional: false });
+    // Finished signature type text arrives from the analyzer's translation
+    // layer; `?? 'string'` only guards hand-built `AnalyzedOperation` inputs.
+    specs.push({ name: param.name, type: param.finishedType ?? 'string', isOptional: false });
   }
 
   if (emissions.query !== undefined) {

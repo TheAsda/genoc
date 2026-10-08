@@ -10,7 +10,19 @@ import type { Requester } from 'genoc/runtime';
 export { isDefinedError } from 'genoc/runtime';
 export type { Requester } from 'genoc/runtime';
 
-export function createClient(requester: Requester) {
+/**
+ * Options for \`createClient\`.
+ */
+export type CreateClientOptions = {
+  /**
+   * Formats one path parameter value to its string form before URL-encoding
+   * and interpolation. Defaults to \`String\`.
+   */
+  formatPathParam?: (value: string | number | boolean) => string;
+};
+
+export function createClient(requester: Requester, options?: CreateClientOptions) {
+  const formatPathParam = options?.formatPathParam ?? String;
   return {
     /**
      * List all products
@@ -72,7 +84,7 @@ export function createClient(requester: Requester) {
     getProductsByProductId: decorateWithErrors<(productId: string, headers?: GetProductsProductIdHeaders) => Promise<GetProductsProductIdResponse>, GetProductsProductIdErrors>(
       async (productId: string, headers?: GetProductsProductIdHeaders): Promise<GetProductsProductIdResponse> => {
         try {
-          const result = await requester<GetProductsProductIdResponse>("GET", \`/products/\${encodeURIComponent(productId)}\`, { headers });
+          const result = await requester<GetProductsProductIdResponse>("GET", \`/products/\${encodeURIComponent(formatPathParam(productId))}\`, { headers });
           if (result instanceof ErrorResponse) {
             if (result.status === 404) throw new ApiError(404, result.data as GetProductsProductIdError404, result.message ?? \`Request failed with status 404\`);
             throw new DefaultApiError(result.status, result.data as GetProductsProductIdDefaultError, result.message ?? \`Request failed with status \${result.status}\`);
@@ -97,7 +109,7 @@ export function createClient(requester: Requester) {
     deleteProductsByProductId: decorateWithErrors<(productId: string) => Promise<void>, DeleteProductsProductIdErrors>(
       async (productId: string): Promise<void> => {
         try {
-          const result = await requester<void>("DELETE", \`/products/\${encodeURIComponent(productId)}\`, {});
+          const result = await requester<void>("DELETE", \`/products/\${encodeURIComponent(formatPathParam(productId))}\`, {});
           if (result instanceof ErrorResponse) {
             if (result.status === 404) throw new ApiError(404, result.data as DeleteProductsProductIdError404, result.message ?? \`Request failed with status 404\`);
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
