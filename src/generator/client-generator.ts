@@ -31,7 +31,10 @@ function buildClientMethodBody(op: FinishedOperation): string {
 
   let urlTemplate = op.path;
   for (const param of op.pathParams) {
-    urlTemplate = urlTemplate.replace(`{${param.name}}`, `\${encodeURIComponent(${param.name})}`);
+    urlTemplate = urlTemplate.replace(
+      `{${param.name}}`,
+      `\${encodeURIComponent(formatPathParam(${param.name}))}`
+    );
   }
 
   const urlExpr = `\`${urlTemplate}\``;
@@ -193,7 +196,19 @@ function buildClientFile(
 
   lines.push('');
 
-  lines.push('export function createClient(requester: Requester) {');
+  lines.push('/**');
+  lines.push(' * Options for `createClient`.');
+  lines.push(' */');
+  lines.push('export type CreateClientOptions = {');
+  lines.push('  /**');
+  lines.push('   * Formats one path parameter value to its string form before URL-encoding');
+  lines.push('   * and interpolation. Defaults to `String`.');
+  lines.push('   */');
+  lines.push('  formatPathParam?: (value: string | number | boolean) => string;');
+  lines.push('};');
+  lines.push('');
+  lines.push('export function createClient(requester: Requester, options?: CreateClientOptions) {');
+  lines.push('  const formatPathParam = options?.formatPathParam ?? String;');
   lines.push('  return {');
 
   for (let i = 0; i < operations.length; i++) {

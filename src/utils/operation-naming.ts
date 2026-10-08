@@ -34,6 +34,7 @@ export const CLIENT_SURFACE_NAMES = [
   'decorateWithErrors',
   'ApiClient',
   'createClient',
+  'CreateClientOptions',
 ] as const;
 
 /**
