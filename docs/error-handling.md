@@ -7,11 +7,12 @@ project.
 
 - **`ApiError<TStatus, TData>`**: error for a specific status code defined in the spec
 - **`UnspecifiedApiError`**: error for a status code not defined in the spec
+- **`DefaultApiError<TData>`**: error for a status code covered by the operation's declared `default` response - extends `ApiError<number, TData>`; catch it with `instanceof` (`isDefinedError` does not narrow to it)
 - **`RequesterFailError`**: wraps unexpected failures in your `Requester`
 - **`isDefinedError(err, client.method)`**: type guard that narrows to the method's defined error union
 
 ```typescript
-import { UnspecifiedApiError, RequesterFailError } from './contracts.js';
+import { DefaultApiError, UnspecifiedApiError, RequesterFailError } from './contracts.js';
 import { isDefinedError } from 'genoc/runtime';
 
 try {
@@ -26,6 +27,10 @@ try {
 
   if (error instanceof UnspecifiedApiError) {
     console.error('Unexpected status:', error.status, error.data);
+  }
+
+  if (error instanceof DefaultApiError) {
+    console.error('Default response error:', error.status, error.data);
   }
 
   if (error instanceof RequesterFailError) {

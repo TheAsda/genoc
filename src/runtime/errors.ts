@@ -28,14 +28,9 @@ export class UnspecifiedApiError extends ApiError<number, unknown> {
 }
 
 /** Error thrown for operations that declare a `default` response. */
-export class DefaultApiError<TData> extends Error {
-  readonly status: number;
-  readonly data: TData;
-
+export class DefaultApiError<TData> extends ApiError<number, TData> {
   constructor(status: number, data: TData, message: string) {
-    super(message);
-    this.status = status;
-    this.data = data;
+    super(status, data, message);
     this.name = 'DefaultApiError';
   }
 }
