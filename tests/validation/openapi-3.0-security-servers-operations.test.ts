@@ -18,8 +18,11 @@
  * feature enumeration. Total: 31 features.
  *
  * Security Schemes (Tier 2): Type definitions are generated in the contracts
- * file but no auth enforcement code is produced in the client. Tests verify
- * correct type definitions, no crash, and no client-side security enforcement.
+ * file; effective security requirements are passed to the requester via the
+ * `security` option (scheme metadata, OR of ANDs) — auth itself is applied
+ * by the user-supplied Requester, never by the generated client. Tests
+ * verify correct type definitions, correct metadata emission, and no
+ * client-side security enforcement.
  *
  * Servers (Tier 1): Server variable types generated as TypeScript interfaces.
  *
@@ -329,7 +332,7 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
   });
 
   // 3.0-#94: security requirements — Tier 2
-  it('3.0-#94: security requirements do not crash generation', () => {
+  it('3.0-#94: security requirements pass scheme metadata to the requester', () => {
     const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
@@ -354,11 +357,15 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
     expect(client).toBeTruthy();
     expect(contracts).toMatchSnapshot();
     expect(client).toMatchSnapshot();
-    // Client does not enforce security
-    expect(client).not.toContain('BearerAuth');
-    // No security-related headers or auth middleware in client
+    // Client passes the effective requirement to the requester via `security`
+    expect(client).toContain(
+      'const bearerAuthScheme = { type: "http", scheme: "bearer" } as const;'
+    );
+    expect(client).toContain(
+      'security: [[{ schemeName: "BearerAuth", scopes: [], scheme: bearerAuthScheme }]]'
+    );
+    // But the client itself never applies auth — no headers or middleware
     expect(client).not.toContain('Authorization');
-    expect(client).not.toContain('security');
   });
 
   // Combined: multiple security schemes generate SecuritySchemes union
@@ -1071,5 +1078,152 @@ describe('OpenAPI 3.0 — Operation Metadata (3.0-#108-#113)', () => {
 
     expect(contracts).toMatchSnapshot();
     expect(client).toMatchSnapshot();
+  });
+});
+
+// ── Security requirements → requester metadata (issue #17) ─────────────────
+
+describe('OpenAPI 3.0 — Security requirements passed to the requester', () => {
+  function securitySpec(docSecurity: string, pathsYaml: string): string {
+    return `
+openapi: "3.0.0"
+info: { title: Test, version: "1.0.0" }
+${docSecurity}components:
+  securitySchemes:
+    BearerAuth: { type: http, scheme: bearer }
+    ApiKeyAuth: { type: apiKey, name: X-Api-Key, in: header }
+    OAuth:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://example.com/token
+          scopes:
+            admin:read: read admin data
+paths:
+${pathsYaml}
+`;
+  }
+
+  it('emits OR of AND alternatives with scopes and scheme consts', () => {
+    const { client } = generateClientFromYaml(
+      securitySpec(
+        '',
+        `  /admin:
+    get:
+      security:
+        - OAuth: [admin:read]
+          ApiKeyAuth: []
+        - BearerAuth: []
+      responses:
+        "200": { description: OK }`
+      )
+    );
+
+    expect(client).toContain(
+      'security: [[{ schemeName: "OAuth", scopes: ["admin:read"], scheme: oAuthScheme }, { schemeName: "ApiKeyAuth", scopes: [], scheme: apiKeyAuthScheme }], [{ schemeName: "BearerAuth", scopes: [], scheme: bearerAuthScheme }]]'
+    );
+    expect(client).toContain(
+      'const oAuthScheme = { type: "oauth2", flows: { clientCredentials: { tokenUrl: "https://example.com/token", scopes: { "admin:read": "read admin data" } } } } as const;'
+    );
+  });
+
+  it('omits the security option for public operations overriding global security', () => {
+    const { client } = generateClientFromYaml(
+      securitySpec(
+        `security:
+  - BearerAuth: []
+`,
+        `  /health:
+    get:
+      security: []
+      responses:
+        "200": { description: OK }`
+      )
+    );
+
+    expect(client).toContain('requester<void>("GET", `/health`, {})');
+    expect(client).not.toContain('security:');
+  });
+
+  it('renders the {} anonymous alternative as an empty requirement', () => {
+    const { client } = generateClientFromYaml(
+      securitySpec(
+        '',
+        `  /maybe:
+    get:
+      security:
+        - {}
+        - BearerAuth: []
+      responses:
+        "200": { description: OK }`
+      )
+    );
+
+    expect(client).toContain(
+      'security: [[], [{ schemeName: "BearerAuth", scopes: [], scheme: bearerAuthScheme }]]'
+    );
+  });
+
+  it('inherits document-level security when the operation declares none', () => {
+    const { client } = generateClientFromYaml(
+      securitySpec(
+        `security:
+  - ApiKeyAuth: []
+`,
+        `  /items:
+    get:
+      responses:
+        "200": { description: OK }`
+      )
+    );
+
+    expect(client).toContain(
+      'security: [[{ schemeName: "ApiKeyAuth", scopes: [], scheme: apiKeyAuthScheme }]]'
+    );
+  });
+
+  it('does not emit consts for schemes no operation uses', () => {
+    const { client } = generateClientFromYaml(
+      securitySpec(
+        '',
+        `  /items:
+    get:
+      security:
+        - BearerAuth: []
+      responses:
+        "200": { description: OK }`
+      )
+    );
+
+    expect(client).toContain('const bearerAuthScheme =');
+    expect(client).not.toContain('const apiKeyAuthScheme =');
+    expect(client).not.toContain('const oAuthScheme =');
+  });
+
+  it('documents the effective requirements in the method JSDoc', () => {
+    const { client } = generateClientFromYaml(
+      securitySpec(
+        '',
+        `  /admin:
+    get:
+      summary: Admin data
+      security:
+        - OAuth: [admin:read]
+          ApiKeyAuth: []
+        - BearerAuth: []
+      responses:
+        "200": { description: OK }
+  /maybe:
+    get:
+      security:
+        - {}
+        - BearerAuth: []
+      responses:
+        "200": { description: OK }`
+      )
+    );
+
+    expect(client).toContain(' * @security (OAuth[admin:read] AND ApiKeyAuth) OR BearerAuth');
+    expect(client).toContain(' * @security anonymous OR BearerAuth');
   });
 });

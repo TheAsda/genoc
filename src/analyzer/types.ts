@@ -22,12 +22,30 @@ export interface TypeDeclaration {
  * and the description-only JSDoc block ('' when absent).
  */
 export interface SecuritySchemeTypeDeclaration {
+  /** Spec key under `components.securitySchemes` — the requirement lookup name. */
+  schemeName: string;
   /** Emitted `{Name}Auth` type name (sanitized, numbered on collision). */
   name: string;
   /** Rendered object type text — the `securitySchemeToTsType` output. */
   tsType: string;
   /** Description JSDoc block; '' when the scheme carries no description. */
   jsDoc: string;
+  /**
+   * Client-file const identifier holding the full scheme literal. Inline
+   * `scheme:` values in method bodies reference it — one const per scheme
+   * caps oauth2-flows bloat at a single site.
+   */
+  constName: string;
+  /** `{ … } as const` — the scheme object as a value expression. */
+  constExpression: string;
+}
+
+/** One scheme invocation inside an effective security requirement. */
+export interface AnalyzedSecurityCall {
+  /** Scheme name as declared in `components.securitySchemes` (spec key). */
+  schemeName: string;
+  /** Requested scopes/roles; empty for non-oauth2/openIdConnect schemes. */
+  scopes: string[];
 }
 
 /**
@@ -87,6 +105,14 @@ export interface FinishedOperation extends AnalyzedOperation {
    * emission). Sole fact source for the client generator's FormData appends.
    */
   fileUploadProperties?: FileUploadPropertyFact[];
+  /**
+   * Effective security requirements (operation override ?? document default
+   * ?? none): an OR-list of AND-lists. Each call names its scheme by spec
+   * key; the client generator resolves it to a `securitySchemeTypes` const.
+   * `[]` = public operation (explicitly or by absence). An empty AND-list is
+   * the spec's `{}` — "anonymous access acceptable" alternative.
+   */
+  securityRequirements: AnalyzedSecurityCall[][];
 }
 
 /**

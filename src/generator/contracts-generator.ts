@@ -7,6 +7,11 @@ import { RUNTIME_CLASS_NAMES } from '../utils/operation-naming.js';
  * Generated code re-uses the genoc runtime as the single source of truth
  * for class identity, so `instanceof` checks work across module boundaries.
  */
+/** Escape a raw string for use inside a single-quoted type literal. */
+function escapeSingleQuoted(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
 function buildRuntimeReexport(runtimeImportPath: string): string[] {
   return [
     '',
@@ -63,6 +68,15 @@ export function renderContracts(
       lines.push('');
       lines.push(`export type ${entry.name} = ${entry.tsType};`);
     }
+
+    const nameMembers = analyzed.securitySchemeTypes
+      .map((entry) => `'${escapeSingleQuoted(entry.schemeName)}'`)
+      .join(' | ');
+    lines.push('');
+    lines.push(
+      '/** Names of the security schemes declared in `components.securitySchemes` (spec keys). */'
+    );
+    lines.push(`export type SecuritySchemeName = ${nameMembers};`);
 
     if (analyzed.securitySchemeTypes.length > 1) {
       const unionMembers = analyzed.securitySchemeTypes.map((entry) => entry.name).join(' | ');

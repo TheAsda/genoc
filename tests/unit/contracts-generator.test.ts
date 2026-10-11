@@ -2080,24 +2080,49 @@ describe('renderContracts — renderer units (hand-built model)', () => {
     expect(output.indexOf('export type User')).toBeLessThan(output.indexOf('export type Admin'));
   });
 
-  it('renders security scheme entries and the union only when more than one exists', () => {
+  it('renders security scheme entries, the name union, and the type union only when more than one type exists', () => {
     const one = renderContracts(
       createAnalyzedSpec({
-        securitySchemeTypes: [{ name: 'ApiKeyAuth', tsType: '{ type: "apiKey" }', jsDoc: '' }],
+        securitySchemeTypes: [
+          {
+            schemeName: 'ApiKey',
+            name: 'ApiKeyAuth',
+            tsType: '{ type: "apiKey" }',
+            jsDoc: '',
+            constName: 'apiKeyScheme',
+            constExpression: '{ type: "apiKey" } as const',
+          },
+        ],
       })
     );
     expect(one).toContain('export type ApiKeyAuth = { type: "apiKey" };');
+    expect(one).toContain("export type SecuritySchemeName = 'ApiKey';");
     expect(one).not.toContain('SecuritySchemes');
 
     const two = renderContracts(
       createAnalyzedSpec({
         securitySchemeTypes: [
-          { name: 'ApiKeyAuth', tsType: '{ type: "apiKey" }', jsDoc: '' },
-          { name: 'BearerAuth', tsType: '{ type: "http" }', jsDoc: '/** Bearer */' },
+          {
+            schemeName: 'ApiKey',
+            name: 'ApiKeyAuth',
+            tsType: '{ type: "apiKey" }',
+            jsDoc: '',
+            constName: 'apiKeyScheme',
+            constExpression: '{ type: "apiKey" } as const',
+          },
+          {
+            schemeName: 'Bearer',
+            name: 'BearerAuth',
+            tsType: '{ type: "http" }',
+            jsDoc: '/** Bearer */',
+            constName: 'bearerScheme',
+            constExpression: '{ type: "http" } as const',
+          },
         ],
       })
     );
     expect(two).toContain('\n\n/** Bearer */\n\nexport type BearerAuth = { type: "http" };');
+    expect(two).toContain("export type SecuritySchemeName = 'ApiKey' | 'Bearer';");
     expect(two).toContain('export type SecuritySchemes = ApiKeyAuth | BearerAuth;');
   });
 

@@ -948,6 +948,9 @@ export type BearerAuthAuth = { type: "http"; scheme: "bearer"; bearerFormat: "JW
 
 export type ApiKeyQueryAuth = { type: "apiKey"; name: "api_key"; in: "query" };
 
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'BearerAuth' | 'ApiKeyQuery';
+
 export type SecuritySchemes = BearerAuthAuth | ApiKeyQueryAuth;
 
 /** Secure data */
@@ -963,15 +966,23 @@ import type { Requester } from 'genoc/runtime';
 export { isDefinedError } from 'genoc/runtime';
 export type { Requester } from 'genoc/runtime';
 
+/**
+ * Security schemes (from \`components.securitySchemes\`) referenced by operations below.
+ * Passed to the requester via the \`security\` option — auth decisions stay in user land.
+ */
+const bearerAuthScheme = { type: "http", scheme: "bearer", bearerFormat: "JWT" } as const;
+
 export function createClient(requester: Requester) {
   return {
     /**
      * Secure data
+     *
+     * @security BearerAuth
      */
     getSecure: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
-          const result = await requester<void>("GET", \`/secure\`, {});
+          const result = await requester<void>("GET", \`/secure\`, { security: [[{ schemeName: "BearerAuth", scopes: [], scheme: bearerAuthScheme }]] });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -1007,6 +1018,9 @@ export {
 } from 'genoc/runtime';
 
 export type OAuth2Auth = { type: "oauth2"; flows: { authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } } } };
+
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'OAuth2';
 
 /** OK */
 export type GetDataResponse = void;"

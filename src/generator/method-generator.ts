@@ -1,5 +1,13 @@
 import type { AnalyzedOperation } from '../analyzer/path-analyzer.js';
+import type { AnalyzedSecurityCall, FinishedOperation } from '../analyzer/types.js';
 import type { GeneratedMethod } from '../types/client.js';
+
+/**
+ * Method rendering input: an analyzed operation plus the finished security
+ * facts when available (`analyze()` output; bare `AnalyzedOperation`s from
+ * path analysis render without the `@security` tag).
+ */
+type MethodOperation = AnalyzedOperation & Partial<Pick<FinishedOperation, 'securityRequirements'>>;
 import { sanitizeJsDocText } from '../utils/generator-helpers.js';
 import { getSuccessType, operationEmissions } from '../utils/operation-naming.js';
 
@@ -69,7 +77,7 @@ function buildParameters(op: AnalyzedOperation): string {
   return renderParams(specs);
 }
 
-function buildJsDoc(op: AnalyzedOperation): string {
+function buildJsDoc(op: MethodOperation): string {
   const lines: string[] = [];
 
   if (op.summary) {
@@ -113,6 +121,14 @@ function buildJsDoc(op: AnalyzedOperation): string {
     lines.push(` * @param body — request body`);
   }
 
+  const securitySummary = renderSecuritySummary(op.securityRequirements);
+  if (securitySummary !== undefined) {
+    if (lines.length > 0) {
+      lines.push(' *');
+    }
+    lines.push(` * @security ${securitySummary}`);
+  }
+
   if (op.tags && op.tags.length > 0) {
     if (lines.length > 0) {
       lines.push(' *');
@@ -148,12 +164,36 @@ function buildJsDoc(op: AnalyzedOperation): string {
 }
 
 /**
+ * Render the `@security` tag text: OR-joined alternatives, AND-joined schemes
+ * within one alternative (parenthesized), scopes as `name[scope, …]`. An
+ * empty alternative is the spec's `{}` — rendered as `anonymous`. Returns
+ * `undefined` for public operations (no tag emitted).
+ */
+function renderSecuritySummary(
+  requirements: AnalyzedSecurityCall[][] | undefined
+): string | undefined {
+  if (requirements === undefined || requirements.length === 0) {
+    return undefined;
+  }
+  const alternatives = requirements.map((requirement) => {
+    const calls = requirement.map((call) =>
+      call.scopes.length > 0 ? `${call.schemeName}[${call.scopes.join(', ')}]` : call.schemeName
+    );
+    if (calls.length === 0) {
+      return 'anonymous';
+    }
+    return calls.length > 1 ? `(${calls.join(' AND ')})` : (calls[0] ?? '');
+  });
+  return alternatives.join(' OR ');
+}
+
+/**
  * Generate a client method from an analyzed OpenAPI operation.
  *
  * @param op - The analyzed operation
  * @returns Generated method with name, JSDoc, and signature
  */
-export function generateMethod(op: AnalyzedOperation): GeneratedMethod {
+export function generateMethod(op: MethodOperation): GeneratedMethod {
   const params = buildParameters(op);
   const successType = getSuccessType(op);
   const jsDoc = buildJsDoc(op);

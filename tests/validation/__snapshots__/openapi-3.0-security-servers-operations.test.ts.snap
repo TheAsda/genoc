@@ -1334,6 +1334,9 @@ export {
 
 export type ApiKeyQueryAuth = { type: "apiKey"; description: "API key passed as query parameter"; name: "api_key"; in: "query" };
 
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'ApiKeyQuery';
+
 /** OK */
 export type GetItemsResponse = void;"
 `;
@@ -1391,6 +1394,9 @@ export {
 } from 'genoc/runtime';
 
 export type OAuthWithRefreshAuth = { type: "oauth2"; flows: { authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; refreshUrl: "https://example.com/refresh"; scopes: { "read": "Read access" } } } };
+
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'OAuthWithRefresh';
 
 /** OK */
 export type GetItemsResponse = void;"
@@ -1452,6 +1458,9 @@ export type ApiKeyHeaderAuth = { type: "apiKey"; name: "X-API-Key"; in: "header"
 
 export type BearerAuthAuth = { type: "http"; scheme: "bearer" };
 
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'ApiKeyHeader' | 'BearerAuth';
+
 export type SecuritySchemes = ApiKeyHeaderAuth | BearerAuthAuth;
 
 /** OK */
@@ -1512,6 +1521,9 @@ export {
 
 export type OnlyAuthAuth = { type: "http"; scheme: "basic" };
 
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'OnlyAuth';
+
 /** OK */
 export type GetItemsResponse = void;"
 `;
@@ -1569,6 +1581,9 @@ export {
 } from 'genoc/runtime';
 
 export type ApiKeyHeaderAuth = { type: "apiKey"; name: "X-API-Key"; in: "header" };
+
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'ApiKeyHeader';
 
 /** OK */
 export type GetItemsResponse = void;"
@@ -1628,6 +1643,9 @@ export {
 
 export type SessionCookieAuth = { type: "apiKey"; name: "session"; in: "cookie" };
 
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'SessionCookie';
+
 /** OK */
 export type GetItemsResponse = void;"
 `;
@@ -1685,6 +1703,9 @@ export {
 } from 'genoc/runtime';
 
 export type BasicAuthAuth = { type: "http"; scheme: "basic" };
+
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'BasicAuth';
 
 /** OK */
 export type GetItemsResponse = void;"
@@ -1744,6 +1765,9 @@ export {
 
 export type BearerAuthAuth = { type: "http"; scheme: "bearer"; bearerFormat: "JWT" };
 
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'BearerAuth';
+
 /** OK */
 export type GetItemsResponse = void;"
 `;
@@ -1801,6 +1825,9 @@ export {
 } from 'genoc/runtime';
 
 export type DigestAuthAuth = { type: "http"; scheme: "digest" };
+
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'DigestAuth';
 
 /** OK */
 export type GetItemsResponse = void;"
@@ -1860,6 +1887,9 @@ export {
 
 export type OAuth2ImplicitAuth = { type: "oauth2"; flows: { implicit: { authorizationUrl: "https://example.com/auth"; scopes: { "read:items": "Read items"; "write:items": "Write items" } } } };
 
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'OAuth2Implicit';
+
 /** OK */
 export type GetItemsResponse = void;"
 `;
@@ -1917,6 +1947,9 @@ export {
 } from 'genoc/runtime';
 
 export type FullOAuthAuth = { type: "oauth2"; flows: { implicit: { authorizationUrl: "https://example.com/auth"; scopes: { "read": "Read access" } }; password: { tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } }; clientCredentials: { tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } }; authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } } } };
+
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'FullOAuth';
 
 /** OK */
 export type GetItemsResponse = void;"
@@ -1976,6 +2009,9 @@ export {
 
 export type OAuth2PasswordAuth = { type: "oauth2"; flows: { password: { tokenUrl: "https://example.com/token"; scopes: { "read:items": "Read items" } } } };
 
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'OAuth2Password';
+
 /** OK */
 export type GetItemsResponse = void;"
 `;
@@ -2033,6 +2069,9 @@ export {
 } from 'genoc/runtime';
 
 export type OAuth2ClientAuth = { type: "oauth2"; flows: { clientCredentials: { tokenUrl: "https://example.com/token"; scopes: { "read:items": "Read items" } } } };
+
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'OAuth2Client';
 
 /** OK */
 export type GetItemsResponse = void;"
@@ -2092,6 +2131,9 @@ export {
 
 export type OAuth2AuthCodeAuth = { type: "oauth2"; flows: { authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; scopes: { "read:items": "Read items" } } } };
 
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'OAuth2AuthCode';
+
 /** OK */
 export type GetItemsResponse = void;"
 `;
@@ -2150,6 +2192,9 @@ export {
 
 export type OidcAuthAuth = { type: "openIdConnect"; openIdConnectUrl: "https://example.com/.well-known/openid-configuration" };
 
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'OidcAuth';
+
 /** OK */
 export type GetItemsResponse = void;"
 `;
@@ -2193,7 +2238,7 @@ export function createClient(requester: Requester) {
 export type ApiClient = ReturnType<typeof createClient>;"
 `;
 
-exports[`OpenAPI 3.0 — Security Schemes (3.0-#83-#94) > 3.0-#94: security requirements do not crash generation 1`] = `
+exports[`OpenAPI 3.0 — Security Schemes (3.0-#83-#94) > 3.0-#94: security requirements pass scheme metadata to the requester 1`] = `
 "// Auto-generated by genoc from OpenAPI 3.0.0 spec. DO NOT EDIT.
 
 import { ApiError, StreamResponse } from 'genoc/runtime';
@@ -2208,11 +2253,14 @@ export {
 
 export type BearerAuthAuth = { type: "http"; scheme: "bearer" };
 
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'BearerAuth';
+
 /** OK */
 export type GetItemsResponse = void;"
 `;
 
-exports[`OpenAPI 3.0 — Security Schemes (3.0-#83-#94) > 3.0-#94: security requirements do not crash generation 2`] = `
+exports[`OpenAPI 3.0 — Security Schemes (3.0-#83-#94) > 3.0-#94: security requirements pass scheme metadata to the requester 2`] = `
 "// Auto-generated by genoc from OpenAPI 3.0.0 spec. DO NOT EDIT.
 import { ApiError, UnspecifiedApiError, ErrorResponse, StreamResponse, RequesterFailError } from './contracts.js';
 import { decorateWithErrors } from 'genoc/runtime';
@@ -2221,15 +2269,23 @@ import type { Requester } from 'genoc/runtime';
 export { isDefinedError } from 'genoc/runtime';
 export type { Requester } from 'genoc/runtime';
 
+/**
+ * Security schemes (from \`components.securitySchemes\`) referenced by operations below.
+ * Passed to the requester via the \`security\` option — auth decisions stay in user land.
+ */
+const bearerAuthScheme = { type: "http", scheme: "bearer" } as const;
+
 export function createClient(requester: Requester) {
   return {
     /**
      * OK
+     *
+     * @security BearerAuth
      */
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
-          const result = await requester<void>("GET", \`/items\`, {});
+          const result = await requester<void>("GET", \`/items\`, { security: [[{ schemeName: "BearerAuth", scopes: [], scheme: bearerAuthScheme }]] });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }

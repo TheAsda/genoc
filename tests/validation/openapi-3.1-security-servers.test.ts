@@ -12,11 +12,15 @@
  * Tests every feature from the "Security Schemes" (3.1-#85-#96) and "Servers"
  * (3.1-#97-#101) sections of the feature enumeration.
  *
- * Security Schemes: Type definitions are generated in the contracts file but
- * no auth enforcement code is produced in the client. Tests verify:
+ * Security Schemes: Type definitions are generated in the contracts file;
+ * effective security requirements are passed to the requester via the
+ * `security` option (scheme metadata, OR of ANDs) — auth itself is applied
+ * by the user-supplied Requester, never by the generated client. Tests
+ * verify:
  * - Correct type definitions appear in contracts output
+ * - Correct scheme metadata (`security` option) appears in client output
  * - No crash with any scheme type
- * - Client file does not reference security scheme types for auth enforcement
+ * - Client file contains no client-side auth enforcement
  *
  * Servers: Server variable types are generated as TypeScript interfaces in
  * the contracts file. Tests verify correct type generation for variables,
@@ -311,7 +315,7 @@ describe('OpenAPI 3.1 — Security Schemes (3.1-#85-#96)', () => {
   });
 
   // 3.1-#96: security requirements — Tier 2
-  it('3.1-#96: security requirements do not crash generation', () => {
+  it('3.1-#96: security requirements pass scheme metadata to the requester', () => {
     const { contracts, client } = generateClientFromYaml(`
       openapi: "3.1.0"
       info: { title: Test, version: "1.0.0" }
@@ -333,11 +337,15 @@ describe('OpenAPI 3.1 — Security Schemes (3.1-#85-#96)', () => {
 
     expect(contracts).toMatchSnapshot();
     expect(client).toMatchSnapshot();
-    // Client does not enforce security
-    expect(client).not.toContain('BearerAuth');
-    // No security-related headers or auth middleware in client
+    // Client passes the effective requirement to the requester via `security`
+    expect(client).toContain(
+      'const bearerAuthScheme = { type: "http", scheme: "bearer" } as const;'
+    );
+    expect(client).toContain(
+      'security: [[{ schemeName: "BearerAuth", scopes: [], scheme: bearerAuthScheme }]]'
+    );
+    // But the client itself never applies auth — no headers or middleware
     expect(client).not.toContain('Authorization');
-    expect(client).not.toContain('security');
   });
 
   it('3.1-#85-#96: multiple security schemes generate SecuritySchemes union type', () => {
@@ -619,5 +627,56 @@ describe('OpenAPI 3.1 — Servers (3.1-#97-#101)', () => {
 
     expect(contracts).toMatchSnapshot();
     expect(client).toMatchSnapshot();
+  });
+});
+
+// ── 3.1-specific security metadata (issue #17) ─────────────────────────────
+
+describe('OpenAPI 3.1 — version-specific security metadata', () => {
+  it('passes mutualTLS scheme metadata through to the requester', () => {
+    const { client } = generateClientFromYaml(`
+      openapi: "3.1.0"
+      info: { title: Test, version: "1.0.0" }
+      components:
+        securitySchemes:
+          mtls:
+            type: mutualTLS
+      paths:
+        /secure:
+          get:
+            security:
+              - mtls: []
+            responses:
+              "200": { description: OK }
+    `);
+
+    expect(client).toContain(
+      'security: [[{ schemeName: "mtls", scopes: [], scheme: mtlsScheme }]]'
+    );
+    expect(client).toContain('const mtlsScheme = { type: "mutualTLS" } as const;');
+  });
+
+  it('allows role-name scopes on non-oauth2 schemes (3.1 rule) and passes them through', () => {
+    const { client } = generateClientFromYaml(`
+      openapi: "3.1.0"
+      info: { title: Test, version: "1.0.0" }
+      components:
+        securitySchemes:
+          bearer:
+            type: http
+            scheme: bearer
+      paths:
+        /admin:
+          get:
+            security:
+              - bearer: [admin]
+            responses:
+              "200": { description: OK }
+    `);
+
+    expect(client).toContain(
+      'security: [[{ schemeName: "bearer", scopes: ["admin"], scheme: bearerScheme }]]'
+    );
+    expect(client).toContain(' * @security bearer[admin]');
   });
 });

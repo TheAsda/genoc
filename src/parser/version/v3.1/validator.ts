@@ -1,3 +1,4 @@
+import { validateSecurity } from '../validate-security.js';
 import type { ValidationResult } from '../validate.js';
 
 /**
@@ -14,6 +15,8 @@ import type { ValidationResult } from '../validate.js';
  * - Accepts `type` as array, `$schema`, `$id`, `$comment`, `const`, `examples`, and `$ref` siblings
  *   (all legal in 3.1 via JSON Schema 2020-12)
  * - Accepts schema-level `example` (deprecated in 3.1 but still legal)
+ * - Validates `components.securitySchemes` and `security` requirements (shared rules;
+ *   `mutualTLS` accepted, non-empty scopes for non-oauth2/openIdConnect schemes allowed as role names)
  */
 export function validateSpec31(spec: unknown): ValidationResult {
   const errors: string[] = [];
@@ -71,6 +74,8 @@ export function validateSpec31(spec: unknown): ValidationResult {
       }
     }
   }
+
+  validateSecurity(s, '3.1', errors);
 
   return {
     valid: errors.length === 0,
