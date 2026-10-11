@@ -1,4 +1,4 @@
-import { ApiError, UnspecifiedApiError } from './errors.js';
+import { ApiError, DefaultApiError, UnspecifiedApiError } from './errors.js';
 
 /**
  * Attaches the `__definedErrors` metadata property to a client method.
@@ -20,14 +20,16 @@ export function decorateWithErrors<T, E>(
 
 /**
  * Type guard that narrows a caught error to a method's defined error union.
- * Returns false for `UnspecifiedApiError` (status not declared in the spec)
- * and for anything that is not an `ApiError`.
+ * Returns false for `UnspecifiedApiError` (status not declared in the spec),
+ * for `DefaultApiError` (declared `default` response - not part of the
+ * per-status error union), and for anything that is not an `ApiError`.
  */
 export function isDefinedError<E extends ApiError<number, unknown>>(
   err: unknown,
   _fn: { __definedErrors: E }
 ): err is E {
   if (err instanceof UnspecifiedApiError) return false;
+  if (err instanceof DefaultApiError) return false;
   if (!(err instanceof ApiError)) return false;
   return true;
 }
