@@ -1218,6 +1218,7 @@ describe('renderClient — renderer units (hand-built model)', () => {
             ],
             contractsLines: ['export type GetThingsResponse = string;'],
             fileUploadProperties: undefined,
+            securityRequirements: [],
           },
         ],
       }),

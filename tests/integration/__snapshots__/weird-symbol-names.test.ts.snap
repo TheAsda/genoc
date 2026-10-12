@@ -135,9 +135,12 @@ export type WeIrd = {
   ok?: boolean;
 };
 
-export type BearerAuthAuth = { type: "http"; scheme: "bearer" };
+export type BearerAuthAuth = { type: 'http'; scheme: 'bearer' };
 
-export type BearerAuthAuth2 = { type: "http"; scheme: "bearer" };
+export type BearerAuthAuth2 = { type: 'http'; scheme: 'bearer' };
+
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'bearer.auth' | 'bearerAuth';
 
 export type SecuritySchemes = BearerAuthAuth | BearerAuthAuth2;
 

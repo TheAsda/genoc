@@ -4,6 +4,7 @@ import type {
   OpenAPIDocument,
   ReferenceObject,
   SchemaObject,
+  SecurityRequirementObject,
   SecuritySchemeObject,
   ServerObject,
   ServerVariableObject,
@@ -16,10 +17,12 @@ import {
   toPascalCase,
 } from '../utils/generator-helpers.js';
 import { operationEmissions, RESERVED_TYPE_NAMES } from '../utils/operation-naming.js';
+import { escapeStringLiteral } from '../utils/string.js';
 import { buildDiscriminatorRegistry, renameAwareTypeName } from './discriminator-registry.js';
 import { analyzePathsDetailed, type AnalyzedParameter } from './path-analyzer.js';
 import { SchemaMapper } from './schema-mapper.js';
 import type {
+  AnalyzedSecurityCall,
   AnalyzedSpec,
   AnalyzeOptions,
   BrandedTypeDeclaration,
@@ -192,46 +195,66 @@ function topologicalSort(entries: ContractEntry[], allNames: Set<string>): Contr
   return sorted;
 }
 
-function securitySchemeToTsType(scheme: SecuritySchemeObject): string {
-  const parts: string[] = [`type: "${scheme.type}"`];
+/**
+ * Build the `key: "value"` fragments of a security scheme object — shared by
+ * the contracts TYPE renderer (`'; '` separator) and the client CONST value
+ * renderer (`', '` separator).
+ */
+function schemeParts(scheme: SecuritySchemeObject, separator: string): string[] {
+  const parts: string[] = [`type: '${escapeStringLiteral(scheme.type)}'`];
 
   if (scheme.description) {
-    parts.push(`description: "${scheme.description}"`);
+    parts.push(`description: '${escapeStringLiteral(scheme.description)}'`);
   }
 
   if (scheme.type === 'apiKey') {
-    if (scheme.name) parts.push(`name: "${scheme.name}"`);
-    if (scheme.in) parts.push(`in: "${scheme.in}"`);
+    if (scheme.name) parts.push(`name: '${escapeStringLiteral(scheme.name)}'`);
+    if (scheme.in) parts.push(`in: '${escapeStringLiteral(scheme.in)}'`);
   }
 
   if (scheme.type === 'http') {
-    if (scheme.scheme) parts.push(`scheme: "${scheme.scheme}"`);
-    if (scheme.bearerFormat) parts.push(`bearerFormat: "${scheme.bearerFormat}"`);
+    if (scheme.scheme) parts.push(`scheme: '${escapeStringLiteral(scheme.scheme)}'`);
+    if (scheme.bearerFormat) {
+      parts.push(`bearerFormat: '${escapeStringLiteral(scheme.bearerFormat)}'`);
+    }
   }
 
   if (scheme.type === 'oauth2' && scheme.flows) {
     const flowParts: string[] = [];
     const flows = scheme.flows;
     if (flows.implicit) {
-      flowParts.push(`implicit: ${oAuth2FlowToTs(flows.implicit, true)}`);
+      flowParts.push(`implicit: ${oAuth2FlowToTs(flows.implicit, true, separator)}`);
     }
     if (flows.password) {
-      flowParts.push(`password: ${oAuth2FlowToTs(flows.password, false)}`);
+      flowParts.push(`password: ${oAuth2FlowToTs(flows.password, false, separator)}`);
     }
     if (flows.clientCredentials) {
-      flowParts.push(`clientCredentials: ${oAuth2FlowToTs(flows.clientCredentials, false)}`);
+      flowParts.push(
+        `clientCredentials: ${oAuth2FlowToTs(flows.clientCredentials, false, separator)}`
+      );
     }
     if (flows.authorizationCode) {
-      flowParts.push(`authorizationCode: ${oAuth2FlowToTs(flows.authorizationCode, true)}`);
+      flowParts.push(
+        `authorizationCode: ${oAuth2FlowToTs(flows.authorizationCode, true, separator)}`
+      );
     }
-    parts.push(`flows: { ${flowParts.join('; ')} }`);
+    parts.push(`flows: { ${flowParts.join(separator)} }`);
   }
 
   if (scheme.type === 'openIdConnect' && scheme.openIdConnectUrl) {
-    parts.push(`openIdConnectUrl: "${scheme.openIdConnectUrl}"`);
+    parts.push(`openIdConnectUrl: '${escapeStringLiteral(scheme.openIdConnectUrl)}'`);
   }
 
-  return `{ ${parts.join('; ')} }`;
+  return parts;
+}
+
+function securitySchemeToTsType(scheme: SecuritySchemeObject): string {
+  return `{ ${schemeParts(scheme, '; ').join('; ')} }`;
+}
+
+/** The scheme object as a value expression — client-file consts (`as const`). */
+function securitySchemeConstExpression(scheme: SecuritySchemeObject): string {
+  return `{ ${schemeParts(scheme, ', ').join(', ')} } as const`;
 }
 
 function oAuth2FlowToTs(
@@ -241,32 +264,35 @@ function oAuth2FlowToTs(
     refreshUrl?: string;
     scopes: Record<string, string>;
   },
-  hasAuthUrl: boolean
+  hasAuthUrl: boolean,
+  separator: string
 ): string {
   const entries: string[] = [];
   if (hasAuthUrl && flow.authorizationUrl) {
-    entries.push(`authorizationUrl: "${flow.authorizationUrl}"`);
+    entries.push(`authorizationUrl: '${escapeStringLiteral(flow.authorizationUrl)}'`);
   }
   if (flow.tokenUrl) {
-    entries.push(`tokenUrl: "${flow.tokenUrl}"`);
+    entries.push(`tokenUrl: '${escapeStringLiteral(flow.tokenUrl)}'`);
   }
   if (flow.refreshUrl) {
-    entries.push(`refreshUrl: "${flow.refreshUrl}"`);
+    entries.push(`refreshUrl: '${escapeStringLiteral(flow.refreshUrl)}'`);
   }
   const scopeEntries = Object.entries(flow.scopes)
-    .map(([k, v]) => `"${k}": "${v}"`)
-    .join('; ');
+    .map(([k, v]) => `'${escapeStringLiteral(k)}': '${escapeStringLiteral(v)}'`)
+    .join(separator);
   entries.push(`scopes: { ${scopeEntries} }`);
-  return `{ ${entries.join('; ')} }`;
+  return `{ ${entries.join(separator)} }`;
 }
 
 /**
  * Translate `components.securitySchemes` into finished `{Name}Auth` type
  * declarations: sanitize + PascalCase the key, number collisions, render the
- * object type text and the description JSDoc. Spec key order preserved.
+ * object type text, the client-file const, and the description JSDoc. Spec
+ * key order preserved; `$ref` entries resolved through the resolver.
  */
 function analyzeSecuritySchemes(
-  securitySchemes: Record<string, SecuritySchemeObject> | undefined
+  securitySchemes: Record<string, SecuritySchemeObject | ReferenceObject> | undefined,
+  resolver: RefResolver
 ): SecuritySchemeTypeDeclaration[] {
   const entries: SecuritySchemeTypeDeclaration[] = [];
   if (!securitySchemes || Object.keys(securitySchemes).length === 0) {
@@ -274,9 +300,13 @@ function analyzeSecuritySchemes(
   }
 
   const usedSecurityTypeNames = new Set<string>();
+  const usedConstNames = new Set<string>();
 
-  for (const [schemeName, scheme] of Object.entries(securitySchemes)) {
-    const baseTypeName = `${sanitizeTypeName(toPascalCase(schemeName))}Auth`;
+  for (const [schemeName, rawScheme] of Object.entries(securitySchemes)) {
+    const scheme = resolver.resolve<SecuritySchemeObject>(rawScheme);
+    const pascal = sanitizeTypeName(toPascalCase(schemeName));
+
+    const baseTypeName = `${pascal}Auth`;
     let typeName = baseTypeName;
     let n = 2;
     while (usedSecurityTypeNames.has(typeName)) {
@@ -284,14 +314,43 @@ function analyzeSecuritySchemes(
       n += 1;
     }
     usedSecurityTypeNames.add(typeName);
+
+    const baseConstName = `${pascal.charAt(0).toLowerCase()}${pascal.slice(1)}Scheme`;
+    let constName = baseConstName;
+    n = 2;
+    while (usedConstNames.has(constName)) {
+      constName = `${baseConstName}${n}`;
+      n += 1;
+    }
+    usedConstNames.add(constName);
+
     entries.push({
+      schemeName,
       name: typeName,
       tsType: securitySchemeToTsType(scheme),
       jsDoc: buildDescriptionJsDoc(scheme.description),
+      constName,
+      constExpression: securitySchemeConstExpression(scheme),
     });
   }
 
   return entries;
+}
+
+/**
+ * Resolve effective `security` requirements into per-call facts: each spec
+ * requirement object becomes one AND-list of `{ schemeName, scopes }` calls,
+ * `{}` becoming the empty (anonymous-access) alternative. Scheme names are
+ * passed through unfiltered; the client generator degrades gracefully if a
+ * name has no scheme (unreachable in practice — validation rejects unknown
+ * names before analysis runs).
+ */
+function analyzeSecurityRequirements(
+  requirements: SecurityRequirementObject[]
+): AnalyzedSecurityCall[][] {
+  return requirements.map((requirement) =>
+    Object.entries(requirement).map(([schemeName, scopes]) => ({ schemeName, scopes }))
+  );
 }
 
 /**
@@ -495,9 +554,12 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
     if (pathParamTypeNames.size > 0) {
       op.pathParamTypeNames = [...pathParamTypeNames];
     }
+    const effectiveSecurity = op.security ?? doc.security;
     operations.push({
       ...op,
       contractsLines: [] as string[],
+      securityRequirements:
+        effectiveSecurity === undefined ? [] : analyzeSecurityRequirements(effectiveSecurity),
     });
   }
 
@@ -658,7 +720,7 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
   // pre-refactor read position at the end of generateContracts.
   const brandedTypes: BrandedTypeDeclaration[] = Array.from(mapper.getBrandedTypes().values());
 
-  const securitySchemeTypes = analyzeSecuritySchemes(doc.components?.securitySchemes);
+  const securitySchemeTypes = analyzeSecuritySchemes(doc.components?.securitySchemes, resolver);
   const serverTypes = analyzeServers(doc.servers);
 
   return {

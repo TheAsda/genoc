@@ -79,7 +79,7 @@ export type OperationObject = {
   requestBody?: RequestBodyObject | ReferenceObject;
   responses: ResponsesObject;
   deprecated?: boolean;
-  security?: unknown[];
+  security?: SecurityRequirementObject[];
   servers?: unknown[];
 };
 
@@ -159,8 +159,10 @@ export type OAuth2FlowsObject = {
   authorizationCode?: OAuth2FlowAuthorizationCode;
 };
 
+export type SecurityRequirementObject = Record<string, string[]>;
+
 export type SecuritySchemeObject = {
-  type: 'apiKey' | 'http' | 'oauth2' | 'openIdConnect';
+  type: 'apiKey' | 'http' | 'oauth2' | 'openIdConnect' | 'mutualTLS';
   description?: string;
   // apiKey specific
   name?: string;
@@ -180,7 +182,7 @@ export type ComponentsObject = {
   parameters?: Record<string, ParameterObject | ReferenceObject>;
   requestBodies?: Record<string, RequestBodyObject | ReferenceObject>;
   headers?: Record<string, unknown>;
-  securitySchemes?: Record<string, SecuritySchemeObject>;
+  securitySchemes?: Record<string, SecuritySchemeObject | ReferenceObject>;
   links?: Record<string, unknown>;
   callbacks?: Record<string, unknown>;
   examples?: Record<string, unknown>;
@@ -192,7 +194,7 @@ export type OpenAPIDocument = {
   servers?: ServerObject[];
   paths?: PathsObject;
   components?: ComponentsObject;
-  security?: unknown[];
+  security?: SecurityRequirementObject[];
   tags?: unknown[];
   externalDocs?: {
     description?: string;

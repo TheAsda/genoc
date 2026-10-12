@@ -10,17 +10,26 @@ import type { Requester } from 'genoc/runtime';
 export { isDefinedError } from 'genoc/runtime';
 export type { Requester } from 'genoc/runtime';
 
+/**
+ * Security schemes (from \`components.securitySchemes\`) referenced by operations below.
+ * Passed to the requester via the \`security\` option — auth decisions stay in user land.
+ */
+const oAuth2ImplicitScheme = { type: 'oauth2', flows: { implicit: { authorizationUrl: 'https://auth.example.com/authorize', scopes: { 'read:products': 'Read products', 'write:products': 'Write products' } } } } as const;
+const oAuth2PasswordScheme = { type: 'oauth2', flows: { password: { tokenUrl: 'https://auth.example.com/token', scopes: { 'read:products': 'Read products' } } } } as const;
+
 export function createClient(requester: Requester) {
   return {
     /**
      * List all products
      *
      * List of products
+     *
+     * @security OAuth2Implicit[read:products]
      */
     getProducts: decorateWithErrors<(query: GetProductsQuery | undefined, headers: GetProductsHeaders) => Promise<GetProductsResponse>, GetProductsErrors>(
       async (query: GetProductsQuery | undefined, headers: GetProductsHeaders): Promise<GetProductsResponse> => {
         try {
-          const result = await requester<GetProductsResponse>("GET", \`/products\`, { query, headers });
+          const result = await requester<GetProductsResponse>("GET", \`/products\`, { query, headers, security: [[{ schemeName: 'OAuth2Implicit', scopes: ['read:products'], scheme: oAuth2ImplicitScheme }]] });
           if (result instanceof ErrorResponse) {
             if (result.status === 400) throw new ApiError(400, result.data as GetProductsError400, result.message ?? \`Request failed with status 400\`);
             throw new DefaultApiError(result.status, result.data as GetProductsDefaultError, result.message ?? \`Request failed with status \${result.status}\`);
@@ -43,11 +52,13 @@ export function createClient(requester: Requester) {
      * Product created
      *
      * @param body — request body
+     *
+     * @security OAuth2Password[write:products]
      */
     postProducts: decorateWithErrors<(body: PostProductsBody, headers?: PostProductsHeaders) => Promise<PostProductsResponse>, PostProductsErrors>(
       async (body: PostProductsBody, headers?: PostProductsHeaders): Promise<PostProductsResponse> => {
         try {
-          const result = await requester<PostProductsResponse>("POST", \`/products\`, { body, headers });
+          const result = await requester<PostProductsResponse>("POST", \`/products\`, { body, headers, security: [[{ schemeName: 'OAuth2Password', scopes: ['write:products'], scheme: oAuth2PasswordScheme }]] });
           if (result instanceof ErrorResponse) {
             if (result.status === 400) throw new ApiError(400, result.data as PostProductsError400, result.message ?? \`Request failed with status 400\`);
             throw new DefaultApiError(result.status, result.data as PostProductsDefaultError, result.message ?? \`Request failed with status \${result.status}\`);
@@ -68,11 +79,13 @@ export function createClient(requester: Requester) {
      * Get product by ID
      *
      * A product
+     *
+     * @security OAuth2Implicit[read:products]
      */
     getProductsByProductId: decorateWithErrors<(productId: string, headers?: GetProductsProductIdHeaders) => Promise<GetProductsProductIdResponse>, GetProductsProductIdErrors>(
       async (productId: string, headers?: GetProductsProductIdHeaders): Promise<GetProductsProductIdResponse> => {
         try {
-          const result = await requester<GetProductsProductIdResponse>("GET", \`/products/\${encodeURIComponent(String(productId))}\`, { headers });
+          const result = await requester<GetProductsProductIdResponse>("GET", \`/products/\${encodeURIComponent(String(productId))}\`, { headers, security: [[{ schemeName: 'OAuth2Implicit', scopes: ['read:products'], scheme: oAuth2ImplicitScheme }]] });
           if (result instanceof ErrorResponse) {
             if (result.status === 404) throw new ApiError(404, result.data as GetProductsProductIdError404, result.message ?? \`Request failed with status 404\`);
             throw new DefaultApiError(result.status, result.data as GetProductsProductIdDefaultError, result.message ?? \`Request failed with status \${result.status}\`);
@@ -93,11 +106,13 @@ export function createClient(requester: Requester) {
      * Delete product by ID
      *
      * Product deleted
+     *
+     * @security OAuth2Implicit[read:products]
      */
     deleteProductsByProductId: decorateWithErrors<(productId: string) => Promise<void>, DeleteProductsProductIdErrors>(
       async (productId: string): Promise<void> => {
         try {
-          const result = await requester<void>("DELETE", \`/products/\${encodeURIComponent(String(productId))}\`, {});
+          const result = await requester<void>("DELETE", \`/products/\${encodeURIComponent(String(productId))}\`, { security: [[{ schemeName: 'OAuth2Implicit', scopes: ['read:products'], scheme: oAuth2ImplicitScheme }]] });
           if (result instanceof ErrorResponse) {
             if (result.status === 404) throw new ApiError(404, result.data as DeleteProductsProductIdError404, result.message ?? \`Request failed with status 404\`);
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
@@ -144,9 +159,12 @@ export type ErrorBody = {
   message: string;
 };
 
-export type OAuth2ImplicitAuth = { type: "oauth2"; flows: { implicit: { authorizationUrl: "https://auth.example.com/authorize"; scopes: { "read:products": "Read products"; "write:products": "Write products" } } } };
+export type OAuth2ImplicitAuth = { type: 'oauth2'; flows: { implicit: { authorizationUrl: 'https://auth.example.com/authorize'; scopes: { 'read:products': 'Read products'; 'write:products': 'Write products' } } } };
 
-export type OAuth2PasswordAuth = { type: "oauth2"; flows: { password: { tokenUrl: "https://auth.example.com/token"; scopes: { "read:products": "Read products" } } } };
+export type OAuth2PasswordAuth = { type: 'oauth2'; flows: { password: { tokenUrl: 'https://auth.example.com/token'; scopes: { 'read:products': 'Read products' } } } };
+
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'OAuth2Implicit' | 'OAuth2Password';
 
 export type SecuritySchemes = OAuth2ImplicitAuth | OAuth2PasswordAuth;
 

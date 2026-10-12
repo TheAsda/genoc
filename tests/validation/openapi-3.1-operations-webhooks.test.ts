@@ -64,7 +64,7 @@ describe('OpenAPI 3.1 — Security Schemes (3.1-#95-#96)', () => {
   });
 
   // 3.1-#96: security requirements — Tier 2
-  it('3.1-#96: security requirements on operations do not generate enforcement code', () => {
+  it('3.1-#96: security requirements pass scheme metadata to the requester without enforcement', () => {
     const { contracts, client } = generateClientFromYaml(`
       openapi: "3.1.0"
       info: { title: Test, version: "1.0.0" }
@@ -85,10 +85,15 @@ describe('OpenAPI 3.1 — Security Schemes (3.1-#95-#96)', () => {
 
     expect(contracts).toMatchSnapshot();
     expect(client).toMatchSnapshot();
-    // But the client method does NOT include any auth/token enforcement
+    // The client passes the scheme to the requester as metadata…
+    expect(client).toContain(
+      "const bearerAuthScheme = { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } as const;"
+    );
+    expect(client).toContain(
+      "security: [[{ schemeName: 'bearerAuth', scopes: [], scheme: bearerAuthScheme }]]"
+    );
+    // …but the method itself never applies auth — no auth headers constructed
     expect(client).not.toContain('Authorization');
-    expect(client).not.toContain('bearer');
-    expect(client).not.toContain('token');
   });
 });
 

@@ -134,20 +134,20 @@ and its support status.
 
 ## Security schemes
 
-| Feature                   | Status       | OpenAPI spec section | Notes                                              |
-| ------------------------- | ------------ | -------------------- | -------------------------------------------------- |
-| apiKey (query)            | ✅ Supported | 4.7.27.1             | Maps to query parameter authentication             |
-| apiKey (header)           | ✅ Supported | 4.7.27.1             | Maps to header authentication                      |
-| apiKey (cookie)           | ✅ Supported | 4.7.27.1             | Maps to cookie authentication                      |
-| http basic                | ✅ Supported | 4.7.27.2             | Maps to Basic authentication header                |
-| http bearer               | ✅ Supported | 4.7.27.2             | Maps to Bearer token authentication                |
-| http digest               | ✅ Supported | 4.7.27.2             | Maps to Digest authentication                      |
-| oauth2 implicit           | ✅ Supported | 4.7.27.3             | Handles OAuth2 implicit flow                       |
-| oauth2 password           | ✅ Supported | 4.7.27.3             | Handles OAuth2 password flow                       |
-| oauth2 client credentials | ✅ Supported | 4.7.27.3             | Handles OAuth2 client credentials flow             |
-| oauth2 authorization code | ✅ Supported | 4.7.27.3             | Handles OAuth2 authorization code flow             |
-| openIdConnect             | ✅ Supported | 4.7.27.4             | Handles OpenID Connect authentication              |
-| security requirements     | ✅ Supported | 4.7.27               | Maps to proper authentication in generated clients |
+| Feature                   | Status       | OpenAPI spec section | Notes                                                                                             |
+| ------------------------- | ------------ | -------------------- | ------------------------------------------------------------------------------------------------- |
+| apiKey (query)            | ✅ Supported | 4.7.27.1             | Typed in contracts; scheme passed to requester via `security`                                     |
+| apiKey (header)           | ✅ Supported | 4.7.27.1             | Typed in contracts; scheme passed to requester via `security`                                     |
+| apiKey (cookie)           | ✅ Supported | 4.7.27.1             | Typed in contracts; scheme passed to requester via `security`                                     |
+| http basic                | ✅ Supported | 4.7.27.1             | Typed in contracts; scheme passed to requester via `security`                                     |
+| http bearer               | ✅ Supported | 4.7.27.1             | Typed in contracts; scheme passed to requester via `security`                                     |
+| http digest               | ✅ Supported | 4.7.27.1             | Typed in contracts; scheme passed to requester via `security`                                     |
+| oauth2 implicit           | ✅ Supported | 4.7.27–29            | Flow metadata included in the scheme object passed to requester                                   |
+| oauth2 password           | ✅ Supported | 4.7.27–29            | Flow metadata included in the scheme object passed to requester                                   |
+| oauth2 client credentials | ✅ Supported | 4.7.27–29            | Flow metadata included in the scheme object passed to requester                                   |
+| oauth2 authorization code | ✅ Supported | 4.7.27–29            | Flow metadata included in the scheme object passed to requester                                   |
+| openIdConnect             | ✅ Supported | 4.7.27.1             | `openIdConnectUrl` included in the scheme object passed to requester                              |
+| security requirements     | ✅ Supported | 4.7.30               | Effective requirements (OR of ANDs) passed per call via `security`; auth applied by the requester |
 
 ## Servers
 

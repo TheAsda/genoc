@@ -49,6 +49,7 @@ export const RESERVED_TYPE_NAMES: ReadonlySet<string> = new Set<string>([
   ...RUNTIME_CLASS_NAMES,
   ...CLIENT_SURFACE_NAMES,
   'FileInput',
+  'SecuritySchemeName',
 ]);
 
 /**

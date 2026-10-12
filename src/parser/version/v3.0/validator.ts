@@ -1,3 +1,4 @@
+import { validateSecurity } from '../validate-security.js';
 import type { ValidationResult } from '../validate.js';
 
 /**
@@ -10,6 +11,8 @@ import type { ValidationResult } from '../validate.js';
  * - Warns about 3.1-only features: `webhooks`, `$schema` in schemas, `type` as array
  * - Accepts `nullable` and `example` (valid in 3.0, not in 3.1)
  * - Errors on `items` as array (3.1-only tuple syntax)
+ * - Validates `components.securitySchemes` and `security` requirements (shared rules;
+ *   non-oauth2/openIdConnect scopes must be empty, `mutualTLS` rejected as 3.1-only)
  */
 export function validateSpec30(spec: unknown): ValidationResult {
   const errors: string[] = [];
@@ -68,6 +71,8 @@ export function validateSpec30(spec: unknown): ValidationResult {
       }
     }
   }
+
+  validateSecurity(s, '3.0', errors);
 
   return {
     valid: errors.length === 0,

@@ -13,3 +13,19 @@ It is the only sanctioned way code outside `src/parser/version/` learns about sp
 What the analyzer module (`src/analyzer/`) produces from one OpenAPI spec: everything generation consumes — operations, component schemas, security schemes, servers, spec version — expressed once, in generation-ready terms.
 
 Generators read the AnalyzedSpec and nothing else. The raw OpenAPI document stays behind the parser/analyzer boundary.
+
+## Security Scheme
+
+One named authentication mechanism, declared in `components.securitySchemes` — the only declaration site in both 3.0 and 3.1 (external-document references are outside the boundary). Typed by `type`: `apiKey`, `http`, `oauth2`, `openIdConnect`, plus `mutualTLS` in 3.1 only.
+
+## Security Requirement
+
+One alternative of what auth an operation needs — the OAS Security Requirement Object: a map of scheme name → scope list where several schemes are conjunctive (all must be satisfied). The `security` field (document or operation level) is a _list_ of requirements with OR semantics. Requirement names resolve against the entry document's components. The scope rule is version-scoped: 3.0 requires the scope array to be empty for non-oauth2/openIdConnect schemes; 3.1 allows role names there. The runtime `SecurityRequirement` type mirrors the single object — a readonly list of conjunctive `SecurityCall`s — not the outer list.
+
+## Optional security
+
+An empty Security Requirement Object (`{}`) inside a `security` list means anonymous access is an acceptable alternative. Not to be confused with an empty `security` list (`[]`), which removes an outer declaration.
+
+## Security override
+
+Operation-level `security` replaces the document-level default wholesale — no merging. A present array (including `[]`) overrides; an absent field inherits; neither present anywhere means anonymous. `security` exists at exactly two levels (document, operation) — never on Path Items.

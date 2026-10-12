@@ -1,5 +1,10 @@
 import type { AnalyzedOperation } from '../analyzer/path-analyzer.js';
-import type { AnalyzedSpec, FinishedOperation } from '../analyzer/types.js';
+import type {
+  AnalyzedSecurityCall,
+  AnalyzedSpec,
+  FinishedOperation,
+  SecuritySchemeTypeDeclaration,
+} from '../analyzer/types.js';
 import type { GeneratorConfig } from '../types/client.js';
 import { DEFAULT_RUNTIME_IMPORT_PATH, makeHeader } from '../utils/generator-helpers.js';
 import {
@@ -9,6 +14,7 @@ import {
   getSuccessType,
   operationEmissions,
 } from '../utils/operation-naming.js';
+import { escapeStringLiteral } from '../utils/string.js';
 import { renderContracts } from './contracts-generator.js';
 import { generateMethod } from './method-generator.js';
 
@@ -25,7 +31,43 @@ function collectImportTypes(operations: AnalyzedOperation[]): string[] {
   return [...types].sort();
 }
 
-function buildClientMethodBody(op: FinishedOperation): string {
+/**
+ * Render the `security` option value for a call: `[[call, …], …]` — an
+ * OR-list of AND-lists, each call naming its scheme and pointing at the
+ * file-level scheme const. Returns `undefined` for public operations (option
+ * omitted) and when any scheme name is missing from the declared schemes
+ * (unreachable post-validation; degrades to omission rather than emitting a
+ * dangling reference).
+ */
+function buildSecurityExpression(
+  requirements: AnalyzedSecurityCall[][],
+  schemeConsts: Map<string, SecuritySchemeTypeDeclaration>
+): string | undefined {
+  if (requirements.length === 0) {
+    return undefined;
+  }
+  const alternatives: string[] = [];
+  for (const requirement of requirements) {
+    const calls: string[] = [];
+    for (const call of requirement) {
+      const scheme = schemeConsts.get(call.schemeName);
+      if (scheme === undefined) {
+        return undefined;
+      }
+      const scopes = call.scopes.map((scope) => `'${escapeStringLiteral(scope)}'`).join(', ');
+      calls.push(
+        `{ schemeName: '${escapeStringLiteral(call.schemeName)}', scopes: [${scopes}], scheme: ${scheme.constName} }`
+      );
+    }
+    alternatives.push(`[${calls.join(', ')}]`);
+  }
+  return `[${alternatives.join(', ')}]`;
+}
+
+function buildClientMethodBody(
+  op: FinishedOperation,
+  schemeConsts: Map<string, SecuritySchemeTypeDeclaration>
+): string {
   const successType = getSuccessType(op);
   const emissions = operationEmissions(op);
 
@@ -93,6 +135,11 @@ function buildClientMethodBody(op: FinishedOperation): string {
   }
   if (op.headerParams.length > 0) {
     opts.push('headers');
+  }
+
+  const securityExpression = buildSecurityExpression(op.securityRequirements, schemeConsts);
+  if (securityExpression !== undefined) {
+    opts.push(`security: ${securityExpression}`);
   }
 
   const lines: string[] = [];
@@ -164,8 +211,29 @@ function buildClientMethodBody(op: FinishedOperation): string {
   return tryCatchLines.join('\n');
 }
 
+/**
+ * Collect the scheme consts actually referenced by some operation's effective
+ * security — spec declaration order preserved. Schemes no operation uses are
+ * not emitted (dead weight in the client file).
+ */
+function collectUsedSchemeConsts(
+  operations: FinishedOperation[],
+  securitySchemeTypes: SecuritySchemeTypeDeclaration[]
+): SecuritySchemeTypeDeclaration[] {
+  const used = new Set<string>();
+  for (const op of operations) {
+    for (const requirement of op.securityRequirements) {
+      for (const call of requirement) {
+        used.add(call.schemeName);
+      }
+    }
+  }
+  return securitySchemeTypes.filter((scheme) => used.has(scheme.schemeName));
+}
+
 function buildClientFile(
   operations: FinishedOperation[],
+  securitySchemeTypes: SecuritySchemeTypeDeclaration[],
   version: string,
   runtimeImportPath: string = DEFAULT_RUNTIME_IMPORT_PATH
 ): string {
@@ -194,6 +262,23 @@ function buildClientFile(
   lines.push(`export { isDefinedError } from '${runtimeImportPath}';`);
   lines.push(`export type { Requester } from '${runtimeImportPath}';`);
 
+  const schemeConsts = new Map(securitySchemeTypes.map((scheme) => [scheme.schemeName, scheme]));
+  const usedSchemes = collectUsedSchemeConsts(operations, securitySchemeTypes);
+  if (usedSchemes.length > 0) {
+    lines.push('');
+    lines.push('/**');
+    lines.push(
+      ' * Security schemes (from `components.securitySchemes`) referenced by operations below.'
+    );
+    lines.push(
+      ' * Passed to the requester via the `security` option — auth decisions stay in user land.'
+    );
+    lines.push(' */');
+    for (const scheme of usedSchemes) {
+      lines.push(`const ${scheme.constName} = ${scheme.constExpression};`);
+    }
+  }
+
   lines.push('');
 
   lines.push('export function createClient(requester: Requester) {');
@@ -211,7 +296,7 @@ function buildClientFile(
       lines.push(indentedJsDoc);
     }
 
-    const body = buildClientMethodBody(op);
+    const body = buildClientMethodBody(op, schemeConsts);
 
     const sig = method.signature;
     const firstParen = sig.indexOf('(');
@@ -275,7 +360,12 @@ export function renderClient(
 ): { client: string; index: string } {
   const runtimeImportPath = config.runtimeImportPath ?? DEFAULT_RUNTIME_IMPORT_PATH;
 
-  const client = buildClientFile(analyzed.operations, analyzed.specVersion, runtimeImportPath);
+  const client = buildClientFile(
+    analyzed.operations,
+    analyzed.securitySchemeTypes,
+    analyzed.specVersion,
+    runtimeImportPath
+  );
 
   const index = buildIndexFile(analyzed.specVersion);
 

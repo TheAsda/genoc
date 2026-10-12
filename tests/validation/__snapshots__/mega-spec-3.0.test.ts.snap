@@ -208,33 +208,36 @@ export type File = string;
 
 export type DiscriminatorSchemaVariant = StringType | NumberType;
 
-export type ApiKeyQueryAuth = { type: "apiKey"; name: "api_key"; in: "query" };
+export type ApiKeyQueryAuth = { type: 'apiKey'; name: 'api_key'; in: 'query' };
 
 /** API key header auth */
 
-export type ApiKeyHeaderAuth = { type: "apiKey"; description: "API key header auth"; name: "X-API-Key"; in: "header" };
+export type ApiKeyHeaderAuth = { type: 'apiKey'; description: 'API key header auth'; name: 'X-API-Key'; in: 'header' };
 
 /** Session token cookie auth */
 
-export type ApiKeyCookieAuth = { type: "apiKey"; description: "Session token cookie auth"; name: "session_token"; in: "cookie" };
+export type ApiKeyCookieAuth = { type: 'apiKey'; description: 'Session token cookie auth'; name: 'session_token'; in: 'cookie' };
 
-export type HttpBasicAuth = { type: "http"; scheme: "basic" };
+export type HttpBasicAuth = { type: 'http'; scheme: 'basic' };
 
 /** Bearer token auth */
 
-export type HttpBearerAuth = { type: "http"; description: "Bearer token auth"; scheme: "bearer" };
+export type HttpBearerAuth = { type: 'http'; description: 'Bearer token auth'; scheme: 'bearer' };
 
-export type HttpDigestAuth = { type: "http"; scheme: "digest" };
+export type HttpDigestAuth = { type: 'http'; scheme: 'digest' };
 
-export type OAuth2ImplicitAuth = { type: "oauth2"; flows: { implicit: { authorizationUrl: "https://example.com/oauth/authorize"; scopes: { "read": "Read access"; "write": "Write access" } } } };
+export type OAuth2ImplicitAuth = { type: 'oauth2'; flows: { implicit: { authorizationUrl: 'https://example.com/oauth/authorize'; scopes: { 'read': 'Read access'; 'write': 'Write access' } } } };
 
-export type OAuth2PasswordAuth = { type: "oauth2"; flows: { password: { tokenUrl: "https://example.com/oauth/token"; scopes: { "read": "Read access"; "write": "Write access" } } } };
+export type OAuth2PasswordAuth = { type: 'oauth2'; flows: { password: { tokenUrl: 'https://example.com/oauth/token'; scopes: { 'read': 'Read access'; 'write': 'Write access' } } } };
 
-export type OAuth2ClientCredentialsAuth = { type: "oauth2"; flows: { clientCredentials: { tokenUrl: "https://example.com/oauth/token"; scopes: { "read": "Read access" } } } };
+export type OAuth2ClientCredentialsAuth = { type: 'oauth2'; flows: { clientCredentials: { tokenUrl: 'https://example.com/oauth/token'; scopes: { 'read': 'Read access' } } } };
 
-export type OAuth2AuthorizationCodeAuth = { type: "oauth2"; flows: { authorizationCode: { authorizationUrl: "https://example.com/oauth/authorize"; tokenUrl: "https://example.com/oauth/token"; scopes: { "read": "Read access"; "write": "Write access" } } } };
+export type OAuth2AuthorizationCodeAuth = { type: 'oauth2'; flows: { authorizationCode: { authorizationUrl: 'https://example.com/oauth/authorize'; tokenUrl: 'https://example.com/oauth/token'; scopes: { 'read': 'Read access'; 'write': 'Write access' } } } };
 
-export type OpenIdConnectAuth = { type: "openIdConnect"; openIdConnectUrl: "https://example.com/.well-known/openid-configuration" };
+export type OpenIdConnectAuth = { type: 'openIdConnect'; openIdConnectUrl: 'https://example.com/.well-known/openid-configuration' };
+
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'ApiKeyQuery' | 'ApiKeyHeader' | 'ApiKeyCookie' | 'HttpBasic' | 'HttpBearer' | 'HttpDigest' | 'OAuth2Implicit' | 'OAuth2Password' | 'OAuth2ClientCredentials' | 'OAuth2AuthorizationCode' | 'OpenIdConnect';
 
 export type SecuritySchemes = ApiKeyQueryAuth | ApiKeyHeaderAuth | ApiKeyCookieAuth | HttpBasicAuth | HttpBearerAuth | HttpDigestAuth | OAuth2ImplicitAuth | OAuth2PasswordAuth | OAuth2ClientCredentialsAuth | OAuth2AuthorizationCodeAuth | OpenIdConnectAuth;
 
@@ -829,6 +832,14 @@ import type { Requester } from 'genoc/runtime';
 export { isDefinedError } from 'genoc/runtime';
 export type { Requester } from 'genoc/runtime';
 
+/**
+ * Security schemes (from \`components.securitySchemes\`) referenced by operations below.
+ * Passed to the requester via the \`security\` option — auth decisions stay in user land.
+ */
+const apiKeyQueryScheme = { type: 'apiKey', name: 'api_key', in: 'query' } as const;
+const apiKeyHeaderScheme = { type: 'apiKey', description: 'API key header auth', name: 'X-API-Key', in: 'header' } as const;
+const oAuth2ImplicitScheme = { type: 'oauth2', flows: { implicit: { authorizationUrl: 'https://example.com/oauth/authorize', scopes: { 'read': 'Read access', 'write': 'Write access' } } } } as const;
+
 export function createClient(requester: Requester) {
   return {
     /**
@@ -2402,12 +2413,14 @@ export function createClient(requester: Requester) {
      *
      * Successful response
      *
+     * @security ApiKeyQuery OR ApiKeyHeader
+     *
      * @category security
      */
     getSecurityTest: decorateWithErrors<() => Promise<GetSecurityTestResponse>, never>(
       async (): Promise<GetSecurityTestResponse> => {
         try {
-          const result = await requester<GetSecurityTestResponse>("GET", \`/security-test\`, {});
+          const result = await requester<GetSecurityTestResponse>("GET", \`/security-test\`, { security: [[{ schemeName: 'ApiKeyQuery', scopes: [], scheme: apiKeyQueryScheme }], [{ schemeName: 'ApiKeyHeader', scopes: [], scheme: apiKeyHeaderScheme }]] });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -2430,12 +2443,14 @@ export function createClient(requester: Requester) {
      *
      * Successful response
      *
+     * @security OAuth2Implicit[read]
+     *
      * @category security
      */
     getOauthTest: decorateWithErrors<() => Promise<GetOauthTestResponse>, never>(
       async (): Promise<GetOauthTestResponse> => {
         try {
-          const result = await requester<GetOauthTestResponse>("GET", \`/oauth-test\`, {});
+          const result = await requester<GetOauthTestResponse>("GET", \`/oauth-test\`, { security: [[{ schemeName: 'OAuth2Implicit', scopes: ['read'], scheme: oAuth2ImplicitScheme }]] });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -2959,33 +2974,36 @@ export type File = string;
 
 export type DiscriminatorSchemaVariant = StringType | NumberType;
 
-export type ApiKeyQueryAuth = { type: "apiKey"; name: "api_key"; in: "query" };
+export type ApiKeyQueryAuth = { type: 'apiKey'; name: 'api_key'; in: 'query' };
 
 /** API key header auth */
 
-export type ApiKeyHeaderAuth = { type: "apiKey"; description: "API key header auth"; name: "X-API-Key"; in: "header" };
+export type ApiKeyHeaderAuth = { type: 'apiKey'; description: 'API key header auth'; name: 'X-API-Key'; in: 'header' };
 
 /** Session token cookie auth */
 
-export type ApiKeyCookieAuth = { type: "apiKey"; description: "Session token cookie auth"; name: "session_token"; in: "cookie" };
+export type ApiKeyCookieAuth = { type: 'apiKey'; description: 'Session token cookie auth'; name: 'session_token'; in: 'cookie' };
 
-export type HttpBasicAuth = { type: "http"; scheme: "basic" };
+export type HttpBasicAuth = { type: 'http'; scheme: 'basic' };
 
 /** Bearer token auth */
 
-export type HttpBearerAuth = { type: "http"; description: "Bearer token auth"; scheme: "bearer" };
+export type HttpBearerAuth = { type: 'http'; description: 'Bearer token auth'; scheme: 'bearer' };
 
-export type HttpDigestAuth = { type: "http"; scheme: "digest" };
+export type HttpDigestAuth = { type: 'http'; scheme: 'digest' };
 
-export type OAuth2ImplicitAuth = { type: "oauth2"; flows: { implicit: { authorizationUrl: "https://example.com/oauth/authorize"; scopes: { "read": "Read access"; "write": "Write access" } } } };
+export type OAuth2ImplicitAuth = { type: 'oauth2'; flows: { implicit: { authorizationUrl: 'https://example.com/oauth/authorize'; scopes: { 'read': 'Read access'; 'write': 'Write access' } } } };
 
-export type OAuth2PasswordAuth = { type: "oauth2"; flows: { password: { tokenUrl: "https://example.com/oauth/token"; scopes: { "read": "Read access"; "write": "Write access" } } } };
+export type OAuth2PasswordAuth = { type: 'oauth2'; flows: { password: { tokenUrl: 'https://example.com/oauth/token'; scopes: { 'read': 'Read access'; 'write': 'Write access' } } } };
 
-export type OAuth2ClientCredentialsAuth = { type: "oauth2"; flows: { clientCredentials: { tokenUrl: "https://example.com/oauth/token"; scopes: { "read": "Read access" } } } };
+export type OAuth2ClientCredentialsAuth = { type: 'oauth2'; flows: { clientCredentials: { tokenUrl: 'https://example.com/oauth/token'; scopes: { 'read': 'Read access' } } } };
 
-export type OAuth2AuthorizationCodeAuth = { type: "oauth2"; flows: { authorizationCode: { authorizationUrl: "https://example.com/oauth/authorize"; tokenUrl: "https://example.com/oauth/token"; scopes: { "read": "Read access"; "write": "Write access" } } } };
+export type OAuth2AuthorizationCodeAuth = { type: 'oauth2'; flows: { authorizationCode: { authorizationUrl: 'https://example.com/oauth/authorize'; tokenUrl: 'https://example.com/oauth/token'; scopes: { 'read': 'Read access'; 'write': 'Write access' } } } };
 
-export type OpenIdConnectAuth = { type: "openIdConnect"; openIdConnectUrl: "https://example.com/.well-known/openid-configuration" };
+export type OpenIdConnectAuth = { type: 'openIdConnect'; openIdConnectUrl: 'https://example.com/.well-known/openid-configuration' };
+
+/** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
+export type SecuritySchemeName = 'ApiKeyQuery' | 'ApiKeyHeader' | 'ApiKeyCookie' | 'HttpBasic' | 'HttpBearer' | 'HttpDigest' | 'OAuth2Implicit' | 'OAuth2Password' | 'OAuth2ClientCredentials' | 'OAuth2AuthorizationCode' | 'OpenIdConnect';
 
 export type SecuritySchemes = ApiKeyQueryAuth | ApiKeyHeaderAuth | ApiKeyCookieAuth | HttpBasicAuth | HttpBearerAuth | HttpDigestAuth | OAuth2ImplicitAuth | OAuth2PasswordAuth | OAuth2ClientCredentialsAuth | OAuth2AuthorizationCodeAuth | OpenIdConnectAuth;
 
@@ -3580,6 +3598,14 @@ import type { Requester } from 'genoc/runtime';
 export { isDefinedError } from 'genoc/runtime';
 export type { Requester } from 'genoc/runtime';
 
+/**
+ * Security schemes (from \`components.securitySchemes\`) referenced by operations below.
+ * Passed to the requester via the \`security\` option — auth decisions stay in user land.
+ */
+const apiKeyQueryScheme = { type: 'apiKey', name: 'api_key', in: 'query' } as const;
+const apiKeyHeaderScheme = { type: 'apiKey', description: 'API key header auth', name: 'X-API-Key', in: 'header' } as const;
+const oAuth2ImplicitScheme = { type: 'oauth2', flows: { implicit: { authorizationUrl: 'https://example.com/oauth/authorize', scopes: { 'read': 'Read access', 'write': 'Write access' } } } } as const;
+
 export function createClient(requester: Requester) {
   return {
     /**
@@ -5153,12 +5179,14 @@ export function createClient(requester: Requester) {
      *
      * Successful response
      *
+     * @security ApiKeyQuery OR ApiKeyHeader
+     *
      * @category security
      */
     getSecurityTest: decorateWithErrors<() => Promise<GetSecurityTestResponse>, never>(
       async (): Promise<GetSecurityTestResponse> => {
         try {
-          const result = await requester<GetSecurityTestResponse>("GET", \`/security-test\`, {});
+          const result = await requester<GetSecurityTestResponse>("GET", \`/security-test\`, { security: [[{ schemeName: 'ApiKeyQuery', scopes: [], scheme: apiKeyQueryScheme }], [{ schemeName: 'ApiKeyHeader', scopes: [], scheme: apiKeyHeaderScheme }]] });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -5181,12 +5209,14 @@ export function createClient(requester: Requester) {
      *
      * Successful response
      *
+     * @security OAuth2Implicit[read]
+     *
      * @category security
      */
     getOauthTest: decorateWithErrors<() => Promise<GetOauthTestResponse>, never>(
       async (): Promise<GetOauthTestResponse> => {
         try {
-          const result = await requester<GetOauthTestResponse>("GET", \`/oauth-test\`, {});
+          const result = await requester<GetOauthTestResponse>("GET", \`/oauth-test\`, { security: [[{ schemeName: 'OAuth2Implicit', scopes: ['read'], scheme: oAuth2ImplicitScheme }]] });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }

@@ -8,4 +8,11 @@
 export { ApiError, UnspecifiedApiError, DefaultApiError, RequesterFailError } from './errors.js';
 export { StreamResponse, ErrorResponse } from './responses.js';
 export { decorateWithErrors, isDefinedError } from './defined-errors.js';
-export type { Requester } from './requester.js';
+export type {
+  Requester,
+  SecurityScheme,
+  SecurityCall,
+  SecurityRequirement,
+  OAuthFlow,
+  OAuthFlows,
+} from './requester.js';

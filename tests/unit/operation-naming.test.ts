@@ -17,7 +17,7 @@ import {
 } from '../../src/utils/operation-naming.js';
 
 describe('RESERVED_TYPE_NAMES membership', () => {
-  it('derives exactly the frozen 12-name set', () => {
+  it('derives exactly the frozen 13-name set', () => {
     const frozenNames = [
       'StreamResponse',
       'ErrorResponse',
@@ -31,12 +31,18 @@ describe('RESERVED_TYPE_NAMES membership', () => {
       'ApiClient',
       'createClient',
       'FileInput',
+      'SecuritySchemeName',
     ].sort();
     expect([...RESERVED_TYPE_NAMES].sort()).toEqual(frozenNames);
   });
 
-  it('is exactly the union of runtime classes, client surface names, and FileInput', () => {
-    const union = new Set<string>([...RUNTIME_CLASS_NAMES, ...CLIENT_SURFACE_NAMES, 'FileInput']);
+  it('is exactly the union of runtime classes, client surface names, FileInput, and SecuritySchemeName', () => {
+    const union = new Set<string>([
+      ...RUNTIME_CLASS_NAMES,
+      ...CLIENT_SURFACE_NAMES,
+      'FileInput',
+      'SecuritySchemeName',
+    ]);
     expect(RESERVED_TYPE_NAMES).toEqual(union);
   });
 

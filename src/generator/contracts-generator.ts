@@ -1,6 +1,7 @@
 import type { AnalyzedSpec } from '../analyzer/types.js';
 import { DEFAULT_RUNTIME_IMPORT_PATH, makeHeader } from '../utils/generator-helpers.js';
 import { RUNTIME_CLASS_NAMES } from '../utils/operation-naming.js';
+import { escapeStringLiteral } from '../utils/string.js';
 
 /**
  * Build the import + re-export block for the shared runtime classes.
@@ -63,6 +64,15 @@ export function renderContracts(
       lines.push('');
       lines.push(`export type ${entry.name} = ${entry.tsType};`);
     }
+
+    const nameMembers = analyzed.securitySchemeTypes
+      .map((entry) => `'${escapeStringLiteral(entry.schemeName)}'`)
+      .join(' | ');
+    lines.push('');
+    lines.push(
+      '/** Names of the security schemes declared in `components.securitySchemes` (spec keys). */'
+    );
+    lines.push(`export type SecuritySchemeName = ${nameMembers};`);
 
     if (analyzed.securitySchemeTypes.length > 1) {
       const unionMembers = analyzed.securitySchemeTypes.map((entry) => entry.name).join(' | ');

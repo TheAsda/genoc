@@ -18,8 +18,11 @@
  * feature enumeration. Total: 31 features.
  *
  * Security Schemes (Tier 2): Type definitions are generated in the contracts
- * file but no auth enforcement code is produced in the client. Tests verify
- * correct type definitions, no crash, and no client-side security enforcement.
+ * file; effective security requirements are passed to the requester via the
+ * `security` option (scheme metadata, OR of ANDs) — auth itself is applied
+ * by the user-supplied Requester, never by the generated client. Tests
+ * verify correct type definitions, correct metadata emission, and no
+ * client-side security enforcement.
  *
  * Servers (Tier 1): Server variable types generated as TypeScript interfaces.
  *
@@ -211,7 +214,7 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
             type: oauth2
             flows:
               implicit:
-                authorizationUrl: "https://example.com/auth"
+                authorizationUrl: 'https://example.com/auth'
                 scopes:
                   "read:items": Read items
                   "write:items": Write items
@@ -238,7 +241,7 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
             type: oauth2
             flows:
               password:
-                tokenUrl: "https://example.com/token"
+                tokenUrl: 'https://example.com/token'
                 scopes:
                   "read:items": Read items
       paths:
@@ -264,7 +267,7 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
             type: oauth2
             flows:
               clientCredentials:
-                tokenUrl: "https://example.com/token"
+                tokenUrl: 'https://example.com/token'
                 scopes:
                   "read:items": Read items
       paths:
@@ -290,8 +293,8 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
             type: oauth2
             flows:
               authorizationCode:
-                authorizationUrl: "https://example.com/auth"
-                tokenUrl: "https://example.com/token"
+                authorizationUrl: 'https://example.com/auth'
+                tokenUrl: 'https://example.com/token'
                 scopes:
                   "read:items": Read items
       paths:
@@ -315,7 +318,7 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
         securitySchemes:
           OidcAuth:
             type: openIdConnect
-            openIdConnectUrl: "https://example.com/.well-known/openid-configuration"
+            openIdConnectUrl: 'https://example.com/.well-known/openid-configuration'
       paths:
         /items:
           get:
@@ -329,7 +332,7 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
   });
 
   // 3.0-#94: security requirements — Tier 2
-  it('3.0-#94: security requirements do not crash generation', () => {
+  it('3.0-#94: security requirements pass scheme metadata to the requester', () => {
     const { contracts, client } = generateClientFromYaml(`
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
@@ -354,11 +357,15 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
     expect(client).toBeTruthy();
     expect(contracts).toMatchSnapshot();
     expect(client).toMatchSnapshot();
-    // Client does not enforce security
-    expect(client).not.toContain('BearerAuth');
-    // No security-related headers or auth middleware in client
+    // Client passes the effective requirement to the requester via `security`
+    expect(client).toContain(
+      "const bearerAuthScheme = { type: 'http', scheme: 'bearer' } as const;"
+    );
+    expect(client).toContain(
+      "security: [[{ schemeName: 'BearerAuth', scopes: [], scheme: bearerAuthScheme }]]"
+    );
+    // But the client itself never applies auth — no headers or middleware
     expect(client).not.toContain('Authorization');
-    expect(client).not.toContain('security');
   });
 
   // Combined: multiple security schemes generate SecuritySchemes union
@@ -418,20 +425,20 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
             type: oauth2
             flows:
               implicit:
-                authorizationUrl: "https://example.com/auth"
+                authorizationUrl: 'https://example.com/auth'
                 scopes:
                   "read": Read access
               password:
-                tokenUrl: "https://example.com/token"
+                tokenUrl: 'https://example.com/token'
                 scopes:
                   "read": Read access
               clientCredentials:
-                tokenUrl: "https://example.com/token"
+                tokenUrl: 'https://example.com/token'
                 scopes:
                   "read": Read access
               authorizationCode:
-                authorizationUrl: "https://example.com/auth"
-                tokenUrl: "https://example.com/token"
+                authorizationUrl: 'https://example.com/auth'
+                tokenUrl: 'https://example.com/token'
                 scopes:
                   "read": Read access
       paths:
@@ -455,9 +462,9 @@ describe('OpenAPI 3.0 — Security Schemes (3.0-#83-#94)', () => {
             type: oauth2
             flows:
               authorizationCode:
-                authorizationUrl: "https://example.com/auth"
-                tokenUrl: "https://example.com/token"
-                refreshUrl: "https://example.com/refresh"
+                authorizationUrl: 'https://example.com/auth'
+                tokenUrl: 'https://example.com/token'
+                refreshUrl: 'https://example.com/refresh'
                 scopes:
                   "read": Read access
       paths:
@@ -481,7 +488,7 @@ describe('OpenAPI 3.0 — Servers (3.0-#95-#99)', () => {
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       servers:
-        - url: "https://api.example.com"
+        - url: 'https://api.example.com'
           description: Production server
       paths:
         /items:
@@ -502,7 +509,7 @@ describe('OpenAPI 3.0 — Servers (3.0-#95-#99)', () => {
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       servers:
-        - url: "https://{env}.api.example.com"
+        - url: 'https://{env}.api.example.com'
           description: Environment-based server
           variables:
             env:
@@ -525,7 +532,7 @@ describe('OpenAPI 3.0 — Servers (3.0-#95-#99)', () => {
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       servers:
-        - url: "https://{env}.api.example.com"
+        - url: 'https://{env}.api.example.com'
           variables:
             env:
               default: production
@@ -550,7 +557,7 @@ describe('OpenAPI 3.0 — Servers (3.0-#95-#99)', () => {
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       servers:
-        - url: "https://{version}.api.example.com"
+        - url: 'https://{version}.api.example.com'
           variables:
             version:
               default: v2
@@ -572,14 +579,14 @@ describe('OpenAPI 3.0 — Servers (3.0-#95-#99)', () => {
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       servers:
-        - url: "https://{env}.api.example.com"
+        - url: 'https://{env}.api.example.com'
           variables:
             env:
               default: production
               enum:
                 - production
                 - staging
-        - url: "https://cdn.example.com/{region}"
+        - url: 'https://cdn.example.com/{region}'
           variables:
             region:
               default: us
@@ -603,9 +610,9 @@ describe('OpenAPI 3.0 — Servers (3.0-#95-#99)', () => {
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       servers:
-        - url: "https://static.example.com"
+        - url: 'https://static.example.com'
           description: Static server with no variables
-        - url: "https://{env}.api.example.com"
+        - url: 'https://{env}.api.example.com'
           variables:
             env:
               default: production
@@ -627,7 +634,7 @@ describe('OpenAPI 3.0 — Servers (3.0-#95-#99)', () => {
       openapi: "3.0.0"
       info: { title: Test, version: "1.0.0" }
       servers:
-        - url: "https://{host}.example.com"
+        - url: 'https://{host}.example.com'
           variables:
             host:
               default: api
@@ -1071,5 +1078,175 @@ describe('OpenAPI 3.0 — Operation Metadata (3.0-#108-#113)', () => {
 
     expect(contracts).toMatchSnapshot();
     expect(client).toMatchSnapshot();
+  });
+});
+
+// ── Security requirements → requester metadata (issue #17) ─────────────────
+
+describe('OpenAPI 3.0 — Security requirements passed to the requester', () => {
+  function securitySpec(docSecurity: string, pathsYaml: string): string {
+    return `
+openapi: "3.0.0"
+info: { title: Test, version: "1.0.0" }
+${docSecurity}components:
+  securitySchemes:
+    BearerAuth: { type: http, scheme: bearer }
+    ApiKeyAuth: { type: apiKey, name: X-Api-Key, in: header }
+    OAuth:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://example.com/token
+          scopes:
+            admin:read: read admin data
+paths:
+${pathsYaml}
+`;
+  }
+
+  it('emits OR of AND alternatives with scopes and scheme consts', () => {
+    const { client } = generateClientFromYaml(
+      securitySpec(
+        '',
+        `  /admin:
+    get:
+      security:
+        - OAuth: [admin:read]
+          ApiKeyAuth: []
+        - BearerAuth: []
+      responses:
+        "200": { description: OK }`
+      )
+    );
+
+    expect(client).toContain(
+      "security: [[{ schemeName: 'OAuth', scopes: ['admin:read'], scheme: oAuthScheme }, { schemeName: 'ApiKeyAuth', scopes: [], scheme: apiKeyAuthScheme }], [{ schemeName: 'BearerAuth', scopes: [], scheme: bearerAuthScheme }]]"
+    );
+    expect(client).toContain(
+      "const oAuthScheme = { type: 'oauth2', flows: { clientCredentials: { tokenUrl: 'https://example.com/token', scopes: { 'admin:read': 'read admin data' } } } } as const;"
+    );
+  });
+
+  it('omits the security option for public operations overriding global security', () => {
+    const { client } = generateClientFromYaml(
+      securitySpec(
+        `security:
+  - BearerAuth: []
+`,
+        `  /health:
+    get:
+      security: []
+      responses:
+        "200": { description: OK }`
+      )
+    );
+
+    expect(client).toContain('requester<void>("GET", `/health`, {})');
+    expect(client).not.toContain('security:');
+  });
+
+  it('renders the {} anonymous alternative as an empty requirement', () => {
+    const { client } = generateClientFromYaml(
+      securitySpec(
+        '',
+        `  /maybe:
+    get:
+      security:
+        - {}
+        - BearerAuth: []
+      responses:
+        "200": { description: OK }`
+      )
+    );
+
+    expect(client).toContain(
+      "security: [[], [{ schemeName: 'BearerAuth', scopes: [], scheme: bearerAuthScheme }]]"
+    );
+  });
+
+  it('inherits document-level security when the operation declares none', () => {
+    const { client } = generateClientFromYaml(
+      securitySpec(
+        `security:
+  - ApiKeyAuth: []
+`,
+        `  /items:
+    get:
+      responses:
+        "200": { description: OK }`
+      )
+    );
+
+    expect(client).toContain(
+      "security: [[{ schemeName: 'ApiKeyAuth', scopes: [], scheme: apiKeyAuthScheme }]]"
+    );
+  });
+
+  it('does not emit consts for schemes no operation uses', () => {
+    const { client } = generateClientFromYaml(
+      securitySpec(
+        '',
+        `  /items:
+    get:
+      security:
+        - BearerAuth: []
+      responses:
+        "200": { description: OK }`
+      )
+    );
+
+    expect(client).toContain('const bearerAuthScheme =');
+    expect(client).not.toContain('const apiKeyAuthScheme =');
+    expect(client).not.toContain('const oAuthScheme =');
+  });
+
+  it('documents the effective requirements in the method JSDoc', () => {
+    const { client } = generateClientFromYaml(
+      securitySpec(
+        '',
+        `  /admin:
+    get:
+      summary: Admin data
+      security:
+        - OAuth: [admin:read]
+          ApiKeyAuth: []
+        - BearerAuth: []
+      responses:
+        "200": { description: OK }
+  /maybe:
+    get:
+      security:
+        - {}
+        - BearerAuth: []
+      responses:
+        "200": { description: OK }`
+      )
+    );
+
+    expect(client).toContain(' * @security (OAuth[admin:read] AND ApiKeyAuth) OR BearerAuth');
+    expect(client).toContain(' * @security anonymous OR BearerAuth');
+  });
+
+  it('escapes spec-derived strings in security literals and JSDoc', () => {
+    const { client, contracts } = generateClientFromYaml(`
+openapi: "3.0.0"
+info: { title: Test, version: "1.0.0" }
+components:
+  securitySchemes:
+    "We'ird\\\\Key":
+      type: http
+      scheme: bearer
+paths:
+  /x:
+    get:
+      security:
+        - "We'ird\\\\Key": []
+      responses:
+        "200": { description: OK }
+`);
+
+    expect(client).toContain("schemeName: 'We\\'ird\\\\Key'");
+    expect(client).toContain(" * @security We'ird\\Key");
+    expect(contracts).toContain("export type SecuritySchemeName = 'We\\'ird\\\\Key';");
   });
 });
