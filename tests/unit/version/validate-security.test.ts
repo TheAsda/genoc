@@ -145,6 +145,28 @@ describe('validateSecurity — securitySchemes entries', () => {
     );
   });
 
+  it('reports malformed percent-encoding as a dangling pointer (no URIError)', () => {
+    const errors = run(
+      baseSpec({
+        components: { securitySchemes: { Key: { $ref: '#/components/securitySchemes/100%' } } },
+      })
+    );
+    expect(errors).toContain(
+      "Security scheme 'Key' $ref '#/components/securitySchemes/100%' does not resolve"
+    );
+  });
+
+  it('treats the root pointer as internal and validates the document root as the target', () => {
+    const errors = run(
+      baseSpec({
+        components: { securitySchemes: { Key: { $ref: '#' } } },
+      })
+    );
+    expect(errors).toContain(
+      "Security scheme 'Key' must have a 'type' field with one of: apiKey, http, oauth2, openIdConnect, got: null"
+    );
+  });
+
   it('rejects a $ref that resolves to a non-scheme object', () => {
     const errors = run(
       baseSpec({

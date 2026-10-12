@@ -85,11 +85,12 @@ export function validateSecurity(
 
 /**
  * Follow a scheme entry to its validation target: a non-`$ref` entry is its
- * own target; an internal `#/…` pointer is walked (JSON Pointer escapes
- * honored, cycles guarded) and chained refs are followed. External refs are
- * returned unresolved (the ref-resolver rejects them later). Returns
- * `undefined` — after pushing an error — when the entry is not an object,
- * the pointer dangles, or a ref cycle is detected.
+ * own target; internal pointers (`#/…` and the root pointer `#`) are walked
+ * (JSON Pointer escapes honored, cycles guarded) and chained refs are
+ * followed. External refs are returned unresolved (the ref-resolver rejects
+ * them later). Returns `undefined` — after pushing an error — when the entry
+ * is not an object, the pointer dangles or carries malformed percent-
+ * encoding, or a ref cycle is detected.
  */
 function resolveSchemeTarget(
   spec: Record<string, unknown>,
@@ -107,7 +108,7 @@ function resolveSchemeTarget(
   if (typeof ref !== 'string') {
     return record;
   }
-  if (!ref.startsWith('#/')) {
+  if (ref !== '#' && !ref.startsWith('#/')) {
     return record; // external document — the ref-resolver's boundary
   }
   if (seenRefs.has(ref)) {
@@ -116,10 +117,20 @@ function resolveSchemeTarget(
   }
   seenRefs.add(ref);
 
-  const segments = ref
-    .slice(2)
-    .split('/')
-    .map((segment) => decodeURIComponent(segment.replace(/~1/g, '/').replace(/~0/g, '~')));
+  let segments: string[];
+  try {
+    const pointerBody = ref === '#' ? '' : ref.slice(2);
+    segments =
+      pointerBody === ''
+        ? []
+        : pointerBody
+            .split('/')
+            .map((s) => decodeURIComponent(s.replace(/~1/g, '/').replace(/~0/g, '~')));
+  } catch {
+    // malformed percent-encoding (e.g. a bare '%') — same story as a dangling pointer
+    errors.push(`Security scheme '${name}' $ref '${ref}' does not resolve`);
+    return undefined;
+  }
   let target: unknown = spec;
   for (const segment of segments) {
     if (
