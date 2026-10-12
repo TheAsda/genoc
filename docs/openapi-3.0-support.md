@@ -142,10 +142,10 @@ and its support status.
 | http basic                | ✅ Supported | 4.7.27.1             | Typed in contracts; scheme passed to requester via `security`                                     |
 | http bearer               | ✅ Supported | 4.7.27.1             | Typed in contracts; scheme passed to requester via `security`                                     |
 | http digest               | ✅ Supported | 4.7.27.1             | Typed in contracts; scheme passed to requester via `security`                                     |
-| oauth2 implicit           | ✅ Supported | 4.7.27.1             | Flow metadata included in the scheme object passed to requester                                   |
-| oauth2 password           | ✅ Supported | 4.7.27.1             | Flow metadata included in the scheme object passed to requester                                   |
-| oauth2 client credentials | ✅ Supported | 4.7.27.1             | Flow metadata included in the scheme object passed to requester                                   |
-| oauth2 authorization code | ✅ Supported | 4.7.27.1             | Flow metadata included in the scheme object passed to requester                                   |
+| oauth2 implicit           | ✅ Supported | 4.7.27–29            | Flow metadata included in the scheme object passed to requester                                   |
+| oauth2 password           | ✅ Supported | 4.7.27–29            | Flow metadata included in the scheme object passed to requester                                   |
+| oauth2 client credentials | ✅ Supported | 4.7.27–29            | Flow metadata included in the scheme object passed to requester                                   |
+| oauth2 authorization code | ✅ Supported | 4.7.27–29            | Flow metadata included in the scheme object passed to requester                                   |
 | openIdConnect             | ✅ Supported | 4.7.27.1             | `openIdConnectUrl` included in the scheme object passed to requester                              |
 | security requirements     | ✅ Supported | 4.7.30               | Effective requirements (OR of ANDs) passed per call via `security`; auth applied by the requester |
 

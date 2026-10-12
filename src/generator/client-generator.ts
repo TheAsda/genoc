@@ -14,6 +14,7 @@ import {
   getSuccessType,
   operationEmissions,
 } from '../utils/operation-naming.js';
+import { escapeStringLiteral } from '../utils/string.js';
 import { renderContracts } from './contracts-generator.js';
 import { generateMethod } from './method-generator.js';
 
@@ -53,9 +54,9 @@ function buildSecurityExpression(
       if (scheme === undefined) {
         return undefined;
       }
-      const scopes = call.scopes.map((scope) => `"${scope}"`).join(', ');
+      const scopes = call.scopes.map((scope) => `'${escapeStringLiteral(scope)}'`).join(', ');
       calls.push(
-        `{ schemeName: "${call.schemeName}", scopes: [${scopes}], scheme: ${scheme.constName} }`
+        `{ schemeName: '${escapeStringLiteral(call.schemeName)}', scopes: [${scopes}], scheme: ${scheme.constName} }`
       );
     }
     alternatives.push(`[${calls.join(', ')}]`);

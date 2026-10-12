@@ -87,10 +87,10 @@ describe('OpenAPI 3.1 — Security Schemes (3.1-#95-#96)', () => {
     expect(client).toMatchSnapshot();
     // The client passes the scheme to the requester as metadata…
     expect(client).toContain(
-      'const bearerAuthScheme = { type: "http", scheme: "bearer", bearerFormat: "JWT" } as const;'
+      "const bearerAuthScheme = { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } as const;"
     );
     expect(client).toContain(
-      'security: [[{ schemeName: "bearerAuth", scopes: [], scheme: bearerAuthScheme }]]'
+      "security: [[{ schemeName: 'bearerAuth', scopes: [], scheme: bearerAuthScheme }]]"
     );
     // …but the method itself never applies auth — no auth headers constructed
     expect(client).not.toContain('Authorization');

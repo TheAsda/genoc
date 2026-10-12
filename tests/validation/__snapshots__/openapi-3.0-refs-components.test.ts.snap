@@ -944,9 +944,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type BearerAuthAuth = { type: "http"; scheme: "bearer"; bearerFormat: "JWT" };
+export type BearerAuthAuth = { type: 'http'; scheme: 'bearer'; bearerFormat: 'JWT' };
 
-export type ApiKeyQueryAuth = { type: "apiKey"; name: "api_key"; in: "query" };
+export type ApiKeyQueryAuth = { type: 'apiKey'; name: 'api_key'; in: 'query' };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'BearerAuth' | 'ApiKeyQuery';
@@ -970,7 +970,7 @@ export type { Requester } from 'genoc/runtime';
  * Security schemes (from \`components.securitySchemes\`) referenced by operations below.
  * Passed to the requester via the \`security\` option — auth decisions stay in user land.
  */
-const bearerAuthScheme = { type: "http", scheme: "bearer", bearerFormat: "JWT" } as const;
+const bearerAuthScheme = { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } as const;
 
 export function createClient(requester: Requester) {
   return {
@@ -982,7 +982,7 @@ export function createClient(requester: Requester) {
     getSecure: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
-          const result = await requester<void>("GET", \`/secure\`, { security: [[{ schemeName: "BearerAuth", scopes: [], scheme: bearerAuthScheme }]] });
+          const result = await requester<void>("GET", \`/secure\`, { security: [[{ schemeName: 'BearerAuth', scopes: [], scheme: bearerAuthScheme }]] });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }
@@ -1017,7 +1017,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type OAuth2Auth = { type: "oauth2"; flows: { authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } } } };
+export type OAuth2Auth = { type: 'oauth2'; flows: { authorizationCode: { authorizationUrl: 'https://example.com/auth'; tokenUrl: 'https://example.com/token'; scopes: { 'read': 'Read access' } } } };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'OAuth2';

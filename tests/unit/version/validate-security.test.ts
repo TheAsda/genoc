@@ -104,10 +104,98 @@ describe('validateSecurity — securitySchemes entries', () => {
     );
   });
 
-  it('validates $ref scheme entries shallowly (no type check)', () => {
+  it('validates internal $ref schemes against the resolved target', () => {
+    const errors = run(
+      baseSpec({
+        components: {
+          schemas: { Pet: { type: 'string' } },
+          securitySchemes: {
+            Key: { $ref: '#/components/securitySchemes/Real' },
+            Real: { type: 'apiKey', name: 'k', in: 'query' },
+          },
+        },
+      })
+    );
+    expect(errors).toEqual([]);
+  });
+
+  it('follows $ref chains to the final target', () => {
+    const errors = run(
+      baseSpec({
+        components: {
+          securitySchemes: {
+            A: { $ref: '#/components/securitySchemes/B' },
+            B: { $ref: '#/components/securitySchemes/C' },
+            C: { type: 'http', scheme: 'bearer' },
+          },
+        },
+      })
+    );
+    expect(errors).toEqual([]);
+  });
+
+  it('reports dangling internal $ref pointers', () => {
     const errors = run(
       baseSpec({
         components: { securitySchemes: { Key: { $ref: '#/components/schemas/Anything' } } },
+      })
+    );
+    expect(errors).toContain(
+      "Security scheme 'Key' $ref '#/components/schemas/Anything' does not resolve"
+    );
+  });
+
+  it('rejects a $ref that resolves to a non-scheme object', () => {
+    const errors = run(
+      baseSpec({
+        components: {
+          schemas: { Pet: { type: 'string' } },
+          securitySchemes: { Key: { $ref: '#/components/schemas/Pet' } },
+        },
+      })
+    );
+    expect(errors).toContain(
+      `Security scheme 'Key' must have a 'type' field with one of: apiKey, http, oauth2, openIdConnect, got: "string"`
+    );
+  });
+
+  it('rejects circular $ref chains', () => {
+    const errors = run(
+      baseSpec({
+        components: {
+          securitySchemes: {
+            A: { $ref: '#/components/securitySchemes/B' },
+            B: { $ref: '#/components/securitySchemes/A' },
+          },
+        },
+      })
+    );
+    expect(errors).toContain(
+      "Security scheme 'A' has a circular $ref chain ('#/components/securitySchemes/B')"
+    );
+  });
+
+  it('applies the 3.0 scope rule through a resolved $ref scheme', () => {
+    const errors = run(
+      baseSpec({
+        components: {
+          securitySchemes: {
+            Key: { $ref: '#/components/securitySchemes/Real' },
+            Real: { type: 'http', scheme: 'bearer' },
+          },
+        },
+        security: [{ Key: ['read'] }],
+      })
+    );
+    expect(errors).toContain(
+      "'security[0].Key' must have an empty scopes array for 'http' schemes in OpenAPI 3.0"
+    );
+  });
+
+  it('validates external $ref schemes shallowly (target document is out of boundary)', () => {
+    const errors = run(
+      baseSpec({
+        components: { securitySchemes: { Key: { $ref: '../auth.yml#/schemes/Key' } } },
       })
     );
     expect(errors).toEqual([]);
@@ -186,6 +274,18 @@ describe('validateSecurity — security requirement lists', () => {
     );
     expect(errors).toContain(
       "'paths./x.get.security[0]' references unknown security scheme 'Ghost' (not declared in components.securitySchemes)"
+    );
+  });
+
+  it("rejects 'security' on a Path Item (invalid placement)", () => {
+    const errors = run(
+      baseSpec({
+        ...withSchemes,
+        paths: { '/x': { security: [{ Bearer: [] }], get: { responses: {} } } },
+      })
+    );
+    expect(errors).toContain(
+      "'paths./x.security' is not allowed: security requirements may be declared at the document and operation levels only"
     );
   });
 });

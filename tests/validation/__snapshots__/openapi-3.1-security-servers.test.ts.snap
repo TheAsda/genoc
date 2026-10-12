@@ -15,7 +15,7 @@ export {
 
 /** API key passed as query parameter */
 
-export type ApiKeyQueryAuth = { type: "apiKey"; description: "API key passed as query parameter"; name: "api_key"; in: "query" };
+export type ApiKeyQueryAuth = { type: 'apiKey'; description: 'API key passed as query parameter'; name: 'api_key'; in: 'query' };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'ApiKeyQuery';
@@ -76,7 +76,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type OAuthWithRefreshAuth = { type: "oauth2"; flows: { authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; refreshUrl: "https://example.com/refresh"; scopes: { "read": "Read access" } } } };
+export type OAuthWithRefreshAuth = { type: 'oauth2'; flows: { authorizationCode: { authorizationUrl: 'https://example.com/auth'; tokenUrl: 'https://example.com/token'; refreshUrl: 'https://example.com/refresh'; scopes: { 'read': 'Read access' } } } };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'OAuthWithRefresh';
@@ -137,9 +137,9 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ApiKeyHeaderAuth = { type: "apiKey"; name: "X-API-Key"; in: "header" };
+export type ApiKeyHeaderAuth = { type: 'apiKey'; name: 'X-API-Key'; in: 'header' };
 
-export type BearerAuthAuth = { type: "http"; scheme: "bearer" };
+export type BearerAuthAuth = { type: 'http'; scheme: 'bearer' };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'ApiKeyHeader' | 'BearerAuth';
@@ -202,7 +202,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type OnlyAuthAuth = { type: "http"; scheme: "basic" };
+export type OnlyAuthAuth = { type: 'http'; scheme: 'basic' };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'OnlyAuth';
@@ -263,7 +263,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type ApiKeyHeaderAuth = { type: "apiKey"; name: "X-API-Key"; in: "header" };
+export type ApiKeyHeaderAuth = { type: 'apiKey'; name: 'X-API-Key'; in: 'header' };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'ApiKeyHeader';
@@ -324,7 +324,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type SessionCookieAuth = { type: "apiKey"; name: "session"; in: "cookie" };
+export type SessionCookieAuth = { type: 'apiKey'; name: 'session'; in: 'cookie' };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'SessionCookie';
@@ -385,7 +385,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type BasicAuthAuth = { type: "http"; scheme: "basic" };
+export type BasicAuthAuth = { type: 'http'; scheme: 'basic' };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'BasicAuth';
@@ -446,7 +446,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type BearerAuthAuth = { type: "http"; scheme: "bearer"; bearerFormat: "JWT" };
+export type BearerAuthAuth = { type: 'http'; scheme: 'bearer'; bearerFormat: 'JWT' };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'BearerAuth';
@@ -507,7 +507,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type DigestAuthAuth = { type: "http"; scheme: "digest" };
+export type DigestAuthAuth = { type: 'http'; scheme: 'digest' };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'DigestAuth';
@@ -568,7 +568,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type OAuth2ImplicitAuth = { type: "oauth2"; flows: { implicit: { authorizationUrl: "https://example.com/auth"; scopes: { "read:items": "Read items"; "write:items": "Write items" } } } };
+export type OAuth2ImplicitAuth = { type: 'oauth2'; flows: { implicit: { authorizationUrl: 'https://example.com/auth'; scopes: { 'read:items': 'Read items'; 'write:items': 'Write items' } } } };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'OAuth2Implicit';
@@ -629,7 +629,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type FullOAuthAuth = { type: "oauth2"; flows: { implicit: { authorizationUrl: "https://example.com/auth"; scopes: { "read": "Read access" } }; password: { tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } }; clientCredentials: { tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } }; authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; scopes: { "read": "Read access" } } } };
+export type FullOAuthAuth = { type: 'oauth2'; flows: { implicit: { authorizationUrl: 'https://example.com/auth'; scopes: { 'read': 'Read access' } }; password: { tokenUrl: 'https://example.com/token'; scopes: { 'read': 'Read access' } }; clientCredentials: { tokenUrl: 'https://example.com/token'; scopes: { 'read': 'Read access' } }; authorizationCode: { authorizationUrl: 'https://example.com/auth'; tokenUrl: 'https://example.com/token'; scopes: { 'read': 'Read access' } } } };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'FullOAuth';
@@ -690,7 +690,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type OAuth2PasswordAuth = { type: "oauth2"; flows: { password: { tokenUrl: "https://example.com/token"; scopes: { "read:items": "Read items" } } } };
+export type OAuth2PasswordAuth = { type: 'oauth2'; flows: { password: { tokenUrl: 'https://example.com/token'; scopes: { 'read:items': 'Read items' } } } };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'OAuth2Password';
@@ -751,7 +751,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type OAuth2ClientAuth = { type: "oauth2"; flows: { clientCredentials: { tokenUrl: "https://example.com/token"; scopes: { "read:items": "Read items" } } } };
+export type OAuth2ClientAuth = { type: 'oauth2'; flows: { clientCredentials: { tokenUrl: 'https://example.com/token'; scopes: { 'read:items': 'Read items' } } } };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'OAuth2Client';
@@ -812,7 +812,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type OAuth2AuthCodeAuth = { type: "oauth2"; flows: { authorizationCode: { authorizationUrl: "https://example.com/auth"; tokenUrl: "https://example.com/token"; scopes: { "read:items": "Read items" } } } };
+export type OAuth2AuthCodeAuth = { type: 'oauth2'; flows: { authorizationCode: { authorizationUrl: 'https://example.com/auth'; tokenUrl: 'https://example.com/token'; scopes: { 'read:items': 'Read items' } } } };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'OAuth2AuthCode';
@@ -873,7 +873,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type OidcAuthAuth = { type: "openIdConnect"; openIdConnectUrl: "https://example.com/.well-known/openid-configuration" };
+export type OidcAuthAuth = { type: 'openIdConnect'; openIdConnectUrl: 'https://example.com/.well-known/openid-configuration' };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'OidcAuth';
@@ -934,7 +934,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type BearerAuthAuth = { type: "http"; scheme: "bearer" };
+export type BearerAuthAuth = { type: 'http'; scheme: 'bearer' };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'BearerAuth';
@@ -956,7 +956,7 @@ export type { Requester } from 'genoc/runtime';
  * Security schemes (from \`components.securitySchemes\`) referenced by operations below.
  * Passed to the requester via the \`security\` option — auth decisions stay in user land.
  */
-const bearerAuthScheme = { type: "http", scheme: "bearer" } as const;
+const bearerAuthScheme = { type: 'http', scheme: 'bearer' } as const;
 
 export function createClient(requester: Requester) {
   return {
@@ -968,7 +968,7 @@ export function createClient(requester: Requester) {
     getItems: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
-          const result = await requester<void>("GET", \`/items\`, { security: [[{ schemeName: "BearerAuth", scopes: [], scheme: bearerAuthScheme }]] });
+          const result = await requester<void>("GET", \`/items\`, { security: [[{ schemeName: 'BearerAuth', scopes: [], scheme: bearerAuthScheme }]] });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }

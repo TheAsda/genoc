@@ -1271,7 +1271,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type OidcAuth = { type: "openIdConnect"; openIdConnectUrl: "https://example.com/.well-known/openid-configuration" };
+export type OidcAuth = { type: 'openIdConnect'; openIdConnectUrl: 'https://example.com/.well-known/openid-configuration' };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'oidc';"
@@ -1290,7 +1290,7 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type BearerAuthAuth = { type: "http"; scheme: "bearer"; bearerFormat: "JWT" };
+export type BearerAuthAuth = { type: 'http'; scheme: 'bearer'; bearerFormat: 'JWT' };
 
 /** Names of the security schemes declared in \`components.securitySchemes\` (spec keys). */
 export type SecuritySchemeName = 'bearerAuth';
@@ -1312,7 +1312,7 @@ export type { Requester } from 'genoc/runtime';
  * Security schemes (from \`components.securitySchemes\`) referenced by operations below.
  * Passed to the requester via the \`security\` option — auth decisions stay in user land.
  */
-const bearerAuthScheme = { type: "http", scheme: "bearer", bearerFormat: "JWT" } as const;
+const bearerAuthScheme = { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } as const;
 
 export function createClient(requester: Requester) {
   return {
@@ -1324,7 +1324,7 @@ export function createClient(requester: Requester) {
     getSecure: decorateWithErrors<() => Promise<void>, never>(
       async (): Promise<void> => {
         try {
-          const result = await requester<void>("GET", \`/secure\`, { security: [[{ schemeName: "bearerAuth", scopes: [], scheme: bearerAuthScheme }]] });
+          const result = await requester<void>("GET", \`/secure\`, { security: [[{ schemeName: 'bearerAuth', scopes: [], scheme: bearerAuthScheme }]] });
           if (result instanceof ErrorResponse) {
             throw new UnspecifiedApiError(result.status, result.data, result.message ?? \`Request failed with status \${result.status}\`);
           }

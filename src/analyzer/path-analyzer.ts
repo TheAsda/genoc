@@ -10,6 +10,7 @@ import type {
   SecurityRequirementObject,
 } from '../types/openapi.js';
 import { isBinaryContentType } from '../utils/generator-helpers.js';
+import { HTTP_METHODS } from '../utils/http-methods.js';
 import { getOperationTypePrefix } from '../utils/operation-naming.js';
 import { getMethodName } from './naming.js';
 
@@ -97,8 +98,6 @@ export interface AnalyzedOperation {
   /** Raw operation-level `security`; `undefined` = inherit the document default. */
   security?: SecurityRequirementObject[];
 }
-
-const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head', 'trace'] as const;
 
 /**
  * Resolve a possibly-$ref-ed schema and check for an exact top-level `format: binary`

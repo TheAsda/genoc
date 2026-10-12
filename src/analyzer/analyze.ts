@@ -17,6 +17,7 @@ import {
   toPascalCase,
 } from '../utils/generator-helpers.js';
 import { operationEmissions, RESERVED_TYPE_NAMES } from '../utils/operation-naming.js';
+import { escapeStringLiteral } from '../utils/string.js';
 import { buildDiscriminatorRegistry, renameAwareTypeName } from './discriminator-registry.js';
 import { analyzePathsDetailed, type AnalyzedParameter } from './path-analyzer.js';
 import { SchemaMapper } from './schema-mapper.js';
@@ -200,20 +201,22 @@ function topologicalSort(entries: ContractEntry[], allNames: Set<string>): Contr
  * renderer (`', '` separator).
  */
 function schemeParts(scheme: SecuritySchemeObject, separator: string): string[] {
-  const parts: string[] = [`type: "${scheme.type}"`];
+  const parts: string[] = [`type: '${escapeStringLiteral(scheme.type)}'`];
 
   if (scheme.description) {
-    parts.push(`description: "${scheme.description}"`);
+    parts.push(`description: '${escapeStringLiteral(scheme.description)}'`);
   }
 
   if (scheme.type === 'apiKey') {
-    if (scheme.name) parts.push(`name: "${scheme.name}"`);
-    if (scheme.in) parts.push(`in: "${scheme.in}"`);
+    if (scheme.name) parts.push(`name: '${escapeStringLiteral(scheme.name)}'`);
+    if (scheme.in) parts.push(`in: '${escapeStringLiteral(scheme.in)}'`);
   }
 
   if (scheme.type === 'http') {
-    if (scheme.scheme) parts.push(`scheme: "${scheme.scheme}"`);
-    if (scheme.bearerFormat) parts.push(`bearerFormat: "${scheme.bearerFormat}"`);
+    if (scheme.scheme) parts.push(`scheme: '${escapeStringLiteral(scheme.scheme)}'`);
+    if (scheme.bearerFormat) {
+      parts.push(`bearerFormat: '${escapeStringLiteral(scheme.bearerFormat)}'`);
+    }
   }
 
   if (scheme.type === 'oauth2' && scheme.flows) {
@@ -239,7 +242,7 @@ function schemeParts(scheme: SecuritySchemeObject, separator: string): string[] 
   }
 
   if (scheme.type === 'openIdConnect' && scheme.openIdConnectUrl) {
-    parts.push(`openIdConnectUrl: "${scheme.openIdConnectUrl}"`);
+    parts.push(`openIdConnectUrl: '${escapeStringLiteral(scheme.openIdConnectUrl)}'`);
   }
 
   return parts;
@@ -266,16 +269,16 @@ function oAuth2FlowToTs(
 ): string {
   const entries: string[] = [];
   if (hasAuthUrl && flow.authorizationUrl) {
-    entries.push(`authorizationUrl: "${flow.authorizationUrl}"`);
+    entries.push(`authorizationUrl: '${escapeStringLiteral(flow.authorizationUrl)}'`);
   }
   if (flow.tokenUrl) {
-    entries.push(`tokenUrl: "${flow.tokenUrl}"`);
+    entries.push(`tokenUrl: '${escapeStringLiteral(flow.tokenUrl)}'`);
   }
   if (flow.refreshUrl) {
-    entries.push(`refreshUrl: "${flow.refreshUrl}"`);
+    entries.push(`refreshUrl: '${escapeStringLiteral(flow.refreshUrl)}'`);
   }
   const scopeEntries = Object.entries(flow.scopes)
-    .map(([k, v]) => `"${k}": "${v}"`)
+    .map(([k, v]) => `'${escapeStringLiteral(k)}': '${escapeStringLiteral(v)}'`)
     .join(separator);
   entries.push(`scopes: { ${scopeEntries} }`);
   return `{ ${entries.join(separator)} }`;
@@ -335,10 +338,12 @@ function analyzeSecuritySchemes(
 }
 
 /**
- * Resolve effective `security` requirements into per-call facts. Scheme names
- * absent from `components.securitySchemes` are dropped — validation rejects
- * those documents before analysis runs. A `{}` requirement maps to an empty
- * AND-list (the anonymous-access alternative).
+ * Resolve effective `security` requirements into per-call facts: each spec
+ * requirement object becomes one AND-list of `{ schemeName, scopes }` calls,
+ * `{}` becoming the empty (anonymous-access) alternative. Scheme names are
+ * passed through unfiltered; the client generator degrades gracefully if a
+ * name has no scheme (unreachable in practice — validation rejects unknown
+ * names before analysis runs).
  */
 function analyzeSecurityRequirements(
   requirements: SecurityRequirementObject[]

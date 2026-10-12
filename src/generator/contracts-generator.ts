@@ -1,17 +1,13 @@
 import type { AnalyzedSpec } from '../analyzer/types.js';
 import { DEFAULT_RUNTIME_IMPORT_PATH, makeHeader } from '../utils/generator-helpers.js';
 import { RUNTIME_CLASS_NAMES } from '../utils/operation-naming.js';
+import { escapeStringLiteral } from '../utils/string.js';
 
 /**
  * Build the import + re-export block for the shared runtime classes.
  * Generated code re-uses the genoc runtime as the single source of truth
  * for class identity, so `instanceof` checks work across module boundaries.
  */
-/** Escape a raw string for use inside a single-quoted type literal. */
-function escapeSingleQuoted(value: string): string {
-  return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-}
-
 function buildRuntimeReexport(runtimeImportPath: string): string[] {
   return [
     '',
@@ -70,7 +66,7 @@ export function renderContracts(
     }
 
     const nameMembers = analyzed.securitySchemeTypes
-      .map((entry) => `'${escapeSingleQuoted(entry.schemeName)}'`)
+      .map((entry) => `'${escapeStringLiteral(entry.schemeName)}'`)
       .join(' | ');
     lines.push('');
     lines.push(

@@ -126,7 +126,7 @@ function buildJsDoc(op: MethodOperation): string {
     if (lines.length > 0) {
       lines.push(' *');
     }
-    lines.push(` * @security ${securitySummary}`);
+    lines.push(` * @security ${sanitizeJsDocText(securitySummary)}`);
   }
 
   if (op.tags && op.tags.length > 0) {

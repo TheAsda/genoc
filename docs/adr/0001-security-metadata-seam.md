@@ -35,6 +35,23 @@ contracts' literal `{Name}Auth` types satisfy by assignability — validation gu
 required fields exist. Satisfying the requirements (or ignoring them) is the requester
 implementer's decision.
 
+Contracts additionally export `SecuritySchemeName` — a union of the spec's `securitySchemes`
+keys — so user-side helpers can parameterize on scheme names without re-declaring them.
+
+Two validation decisions keep the bridge sound and the behavior honest:
+
+- **Invalid security constructs are rejected, never silently ignored.** `security` on a Path
+  Item (which some converters emit) is invalid OpenAPI — erroring beats silently generating a
+  client whose calls lost their auth metadata. The same stance covers unknown scheme
+  names/types and missing required fields.
+- **`$ref` scheme entries are followed during validation** (internal `#/` pointers, cycle
+  guarded), so the "validation ⇒ well-formed payloads" guarantee covers referenced schemes
+  too; external-document refs remain the ref-resolver's boundary.
+
+All spec-derived strings interpolated into generated literals (scheme names, descriptions,
+flow URLs, scope keys/values) are escaped via the shared `escapeStringLiteral`/
+`sanitizeJsDocText` helpers — the same treatment schemas already get.
+
 ## Consequences
 
 - The requester author writes the only security code a human writes by hand (~10 lines for

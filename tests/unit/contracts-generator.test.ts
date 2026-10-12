@@ -2087,15 +2087,15 @@ describe('renderContracts — renderer units (hand-built model)', () => {
           {
             schemeName: 'ApiKey',
             name: 'ApiKeyAuth',
-            tsType: '{ type: "apiKey" }',
+            tsType: "{ type: 'apiKey' }",
             jsDoc: '',
             constName: 'apiKeyScheme',
-            constExpression: '{ type: "apiKey" } as const',
+            constExpression: "{ type: 'apiKey' } as const",
           },
         ],
       })
     );
-    expect(one).toContain('export type ApiKeyAuth = { type: "apiKey" };');
+    expect(one).toContain("export type ApiKeyAuth = { type: 'apiKey' };");
     expect(one).toContain("export type SecuritySchemeName = 'ApiKey';");
     expect(one).not.toContain('SecuritySchemes');
 
@@ -2105,23 +2105,23 @@ describe('renderContracts — renderer units (hand-built model)', () => {
           {
             schemeName: 'ApiKey',
             name: 'ApiKeyAuth',
-            tsType: '{ type: "apiKey" }',
+            tsType: "{ type: 'apiKey' }",
             jsDoc: '',
             constName: 'apiKeyScheme',
-            constExpression: '{ type: "apiKey" } as const',
+            constExpression: "{ type: 'apiKey' } as const",
           },
           {
             schemeName: 'Bearer',
             name: 'BearerAuth',
-            tsType: '{ type: "http" }',
+            tsType: "{ type: 'http' }",
             jsDoc: '/** Bearer */',
             constName: 'bearerScheme',
-            constExpression: '{ type: "http" } as const',
+            constExpression: "{ type: 'http' } as const",
           },
         ],
       })
     );
-    expect(two).toContain('\n\n/** Bearer */\n\nexport type BearerAuth = { type: "http" };');
+    expect(two).toContain("\n\n/** Bearer */\n\nexport type BearerAuth = { type: 'http' };");
     expect(two).toContain("export type SecuritySchemeName = 'ApiKey' | 'Bearer';");
     expect(two).toContain('export type SecuritySchemes = ApiKeyAuth | BearerAuth;');
   });

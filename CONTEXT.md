@@ -20,7 +20,7 @@ One named authentication mechanism, declared in `components.securitySchemes` —
 
 ## Security Requirement
 
-What auth an operation needs: a list of alternatives (satisfying any one authorizes the request); each alternative maps scheme name → scope list, and several schemes inside one alternative are conjunctive (all must be satisfied). Requirement names resolve against the entry document's components. The scope rule is version-scoped: 3.0 requires the scope array to be empty for non-oauth2/openIdConnect schemes; 3.1 allows role names there.
+One alternative of what auth an operation needs — the OAS Security Requirement Object: a map of scheme name → scope list where several schemes are conjunctive (all must be satisfied). The `security` field (document or operation level) is a _list_ of requirements with OR semantics. Requirement names resolve against the entry document's components. The scope rule is version-scoped: 3.0 requires the scope array to be empty for non-oauth2/openIdConnect schemes; 3.1 allows role names there. The runtime `SecurityRequirement` type mirrors the single object — a readonly list of conjunctive `SecurityCall`s — not the outer list.
 
 ## Optional security
 

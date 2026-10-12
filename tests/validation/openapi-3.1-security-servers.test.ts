@@ -196,7 +196,7 @@ describe('OpenAPI 3.1 — Security Schemes (3.1-#85-#96)', () => {
             type: oauth2
             flows:
               implicit:
-                authorizationUrl: "https://example.com/auth"
+                authorizationUrl: 'https://example.com/auth'
                 scopes:
                   "read:items": Read items
                   "write:items": Write items
@@ -223,7 +223,7 @@ describe('OpenAPI 3.1 — Security Schemes (3.1-#85-#96)', () => {
             type: oauth2
             flows:
               password:
-                tokenUrl: "https://example.com/token"
+                tokenUrl: 'https://example.com/token'
                 scopes:
                   "read:items": Read items
       paths:
@@ -235,7 +235,7 @@ describe('OpenAPI 3.1 — Security Schemes (3.1-#85-#96)', () => {
 
     expect(contracts).toMatchSnapshot();
     expect(client).toMatchSnapshot();
-    expect(contracts).not.toContain('authorizationUrl: "https://example.com/token"');
+    expect(contracts).not.toContain("authorizationUrl: 'https://example.com/token'");
     expect(client).not.toContain('OAuth2PasswordAuth');
   });
 
@@ -250,7 +250,7 @@ describe('OpenAPI 3.1 — Security Schemes (3.1-#85-#96)', () => {
             type: oauth2
             flows:
               clientCredentials:
-                tokenUrl: "https://example.com/token"
+                tokenUrl: 'https://example.com/token'
                 scopes:
                   "read:items": Read items
       paths:
@@ -276,8 +276,8 @@ describe('OpenAPI 3.1 — Security Schemes (3.1-#85-#96)', () => {
             type: oauth2
             flows:
               authorizationCode:
-                authorizationUrl: "https://example.com/auth"
-                tokenUrl: "https://example.com/token"
+                authorizationUrl: 'https://example.com/auth'
+                tokenUrl: 'https://example.com/token'
                 scopes:
                   "read:items": Read items
       paths:
@@ -301,7 +301,7 @@ describe('OpenAPI 3.1 — Security Schemes (3.1-#85-#96)', () => {
         securitySchemes:
           OidcAuth:
             type: openIdConnect
-            openIdConnectUrl: "https://example.com/.well-known/openid-configuration"
+            openIdConnectUrl: 'https://example.com/.well-known/openid-configuration'
       paths:
         /items:
           get:
@@ -339,10 +339,10 @@ describe('OpenAPI 3.1 — Security Schemes (3.1-#85-#96)', () => {
     expect(client).toMatchSnapshot();
     // Client passes the effective requirement to the requester via `security`
     expect(client).toContain(
-      'const bearerAuthScheme = { type: "http", scheme: "bearer" } as const;'
+      "const bearerAuthScheme = { type: 'http', scheme: 'bearer' } as const;"
     );
     expect(client).toContain(
-      'security: [[{ schemeName: "BearerAuth", scopes: [], scheme: bearerAuthScheme }]]'
+      "security: [[{ schemeName: 'BearerAuth', scopes: [], scheme: bearerAuthScheme }]]"
     );
     // But the client itself never applies auth — no headers or middleware
     expect(client).not.toContain('Authorization');
@@ -404,20 +404,20 @@ describe('OpenAPI 3.1 — Security Schemes (3.1-#85-#96)', () => {
             type: oauth2
             flows:
               implicit:
-                authorizationUrl: "https://example.com/auth"
+                authorizationUrl: 'https://example.com/auth'
                 scopes:
                   "read": Read access
               password:
-                tokenUrl: "https://example.com/token"
+                tokenUrl: 'https://example.com/token'
                 scopes:
                   "read": Read access
               clientCredentials:
-                tokenUrl: "https://example.com/token"
+                tokenUrl: 'https://example.com/token'
                 scopes:
                   "read": Read access
               authorizationCode:
-                authorizationUrl: "https://example.com/auth"
-                tokenUrl: "https://example.com/token"
+                authorizationUrl: 'https://example.com/auth'
+                tokenUrl: 'https://example.com/token'
                 scopes:
                   "read": Read access
       paths:
@@ -441,9 +441,9 @@ describe('OpenAPI 3.1 — Security Schemes (3.1-#85-#96)', () => {
             type: oauth2
             flows:
               authorizationCode:
-                authorizationUrl: "https://example.com/auth"
-                tokenUrl: "https://example.com/token"
-                refreshUrl: "https://example.com/refresh"
+                authorizationUrl: 'https://example.com/auth'
+                tokenUrl: 'https://example.com/token'
+                refreshUrl: 'https://example.com/refresh'
                 scopes:
                   "read": Read access
       paths:
@@ -467,7 +467,7 @@ describe('OpenAPI 3.1 — Servers (3.1-#97-#101)', () => {
       openapi: "3.1.0"
       info: { title: Test, version: "1.0.0" }
       servers:
-        - url: "https://api.example.com"
+        - url: 'https://api.example.com'
           description: Production server
       paths:
         /items:
@@ -488,7 +488,7 @@ describe('OpenAPI 3.1 — Servers (3.1-#97-#101)', () => {
       openapi: "3.1.0"
       info: { title: Test, version: "1.0.0" }
       servers:
-        - url: "https://{env}.api.example.com"
+        - url: 'https://{env}.api.example.com'
           description: Environment-based server
           variables:
             env:
@@ -511,7 +511,7 @@ describe('OpenAPI 3.1 — Servers (3.1-#97-#101)', () => {
       openapi: "3.1.0"
       info: { title: Test, version: "1.0.0" }
       servers:
-        - url: "https://{env}.api.example.com"
+        - url: 'https://{env}.api.example.com'
           variables:
             env:
               default: production
@@ -536,7 +536,7 @@ describe('OpenAPI 3.1 — Servers (3.1-#97-#101)', () => {
       openapi: "3.1.0"
       info: { title: Test, version: "1.0.0" }
       servers:
-        - url: "https://{version}.api.example.com"
+        - url: 'https://{version}.api.example.com'
           variables:
             version:
               default: v2
@@ -558,14 +558,14 @@ describe('OpenAPI 3.1 — Servers (3.1-#97-#101)', () => {
       openapi: "3.1.0"
       info: { title: Test, version: "1.0.0" }
       servers:
-        - url: "https://{env}.api.example.com"
+        - url: 'https://{env}.api.example.com'
           variables:
             env:
               default: production
               enum:
                 - production
                 - staging
-        - url: "https://cdn.example.com/{region}"
+        - url: 'https://cdn.example.com/{region}'
           variables:
             region:
               default: us
@@ -589,9 +589,9 @@ describe('OpenAPI 3.1 — Servers (3.1-#97-#101)', () => {
       openapi: "3.1.0"
       info: { title: Test, version: "1.0.0" }
       servers:
-        - url: "https://static.example.com"
+        - url: 'https://static.example.com'
           description: Static server with no variables
-        - url: "https://{env}.api.example.com"
+        - url: 'https://{env}.api.example.com'
           variables:
             env:
               default: production
@@ -614,7 +614,7 @@ describe('OpenAPI 3.1 — Servers (3.1-#97-#101)', () => {
       openapi: "3.1.0"
       info: { title: Test, version: "1.0.0" }
       servers:
-        - url: "https://{host}.example.com"
+        - url: 'https://{host}.example.com'
           variables:
             host:
               default: api
@@ -651,9 +651,9 @@ describe('OpenAPI 3.1 — version-specific security metadata', () => {
     `);
 
     expect(client).toContain(
-      'security: [[{ schemeName: "mtls", scopes: [], scheme: mtlsScheme }]]'
+      "security: [[{ schemeName: 'mtls', scopes: [], scheme: mtlsScheme }]]"
     );
-    expect(client).toContain('const mtlsScheme = { type: "mutualTLS" } as const;');
+    expect(client).toContain("const mtlsScheme = { type: 'mutualTLS' } as const;");
   });
 
   it('allows role-name scopes on non-oauth2 schemes (3.1 rule) and passes them through', () => {
@@ -675,7 +675,7 @@ describe('OpenAPI 3.1 — version-specific security metadata', () => {
     `);
 
     expect(client).toContain(
-      'security: [[{ schemeName: "bearer", scopes: ["admin"], scheme: bearerScheme }]]'
+      "security: [[{ schemeName: 'bearer', scopes: ['admin'], scheme: bearerScheme }]]"
     );
     expect(client).toContain(' * @security bearer[admin]');
   });
