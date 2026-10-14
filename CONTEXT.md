@@ -29,3 +29,13 @@ An empty Security Requirement Object (`{}`) inside a `security` list means anony
 ## Security override
 
 Operation-level `security` replaces the document-level default wholesale — no merging. A present array (including `[]`) overrides; an absent field inherits; neither present anywhere means anonymous. `security` exists at exactly two levels (document, operation) — never on Path Items.
+
+## Spec violation
+
+A document that breaks a rule of the OpenAPI standard for the dialect being applied — a required field missing or mistyped, a feature from the other dialect (`nullable` in 3.1, `mutualTLS` in 3.0), `security` on a Path Item. The fault is in the document; the error cites the section of the specification that states the rule.
+
+Not to be confused with an **Unsupported feature**.
+
+## Unsupported feature
+
+A document that is valid OpenAPI but uses something genoc does not handle — Swagger 2.0, OpenAPI 3.2, external-document `$ref`s. The fault is genoc's limitation, not the document's, so the error never cites the OpenAPI specification as the rule being broken.
