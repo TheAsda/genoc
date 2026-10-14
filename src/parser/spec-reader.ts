@@ -10,29 +10,6 @@ import { isUrl } from '../utils/url.js';
 const VALID_EXTENSIONS = ['.json', '.yaml', '.yml'];
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
-function assertSupportedVersion(doc: unknown): asserts doc is OpenAPIDocument {
-  if (
-    typeof doc !== 'object' ||
-    doc === null ||
-    !('openapi' in doc) ||
-    typeof (doc as Record<string, unknown>).openapi !== 'string'
-  ) {
-    throw new Error("Invalid spec: missing or invalid 'openapi' field.");
-  }
-
-  const version = (doc as { openapi: string }).openapi;
-
-  // Check for valid version format
-  if (!version.match(/^\d+\.\d+(\.\d+)?$/)) {
-    throw new Error(`Invalid OpenAPI version format: ${version}`);
-  }
-
-  // Check that major version is 3 (but don't restrict minor versions)
-  if (!version.startsWith('3.')) {
-    throw new Error(`Unsupported OpenAPI version: ${version}. Supported versions: 3.0, 3.1, 3.2`);
-  }
-}
-
 function parseContent(content: string, ext: string): unknown {
   if (ext === '.json') {
     try {
@@ -85,12 +62,11 @@ export async function loadFromFile(filePath: string): Promise<OpenAPIDocument> {
   }
   const doc = parseContent(content, ext);
 
-  if (typeof doc !== 'object' || doc === null) {
-    throw new Error('Failed to parse: spec is not an object.');
-  }
-
-  assertSupportedVersion(doc);
-  return doc;
+  // Version/dialect rules — including whether the parsed root is even an
+  // OpenAPI document — belong to the version module, which resolves the
+  // dialect and links spec violations to the specification. The cast is safe
+  // for the same I/O reason as above: callers validate via resolveVersion.
+  return doc as OpenAPIDocument;
 }
 
 export async function loadFromUrl(url: string, opts?: LoadOptions): Promise<OpenAPIDocument> {
@@ -128,12 +104,9 @@ export async function loadFromUrl(url: string, opts?: LoadOptions): Promise<Open
     }
   }
 
-  if (typeof doc !== 'object' || doc === null) {
-    throw new Error('Failed to parse: spec is not an object.');
-  }
-
-  assertSupportedVersion(doc);
-  return doc;
+  // Version/dialect rules — including document-rootedness — belong to the
+  // version module (see loadFromFile).
+  return doc as OpenAPIDocument;
 }
 
 export async function load(source: string, opts?: LoadOptions): Promise<OpenAPIDocument> {

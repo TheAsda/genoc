@@ -1,5 +1,12 @@
+import { specViolation, type SpecLinkKey } from '../spec-links.js';
 import { validateSecurity } from '../validate-security.js';
 import type { ValidationResult } from '../validate.js';
+
+/**
+ * Every violation in this file belongs to the 3.0 dialect;
+ * bind it once so call sites stay key-and-message only.
+ */
+const violation = (key: SpecLinkKey, message: string): string => specViolation('3.0', key, message);
 
 /**
  * Validate a raw OpenAPI 3.0.x specification.
@@ -18,38 +25,56 @@ export function validateSpec30(spec: unknown): ValidationResult {
   const errors: string[] = [];
 
   if (!spec || typeof spec !== 'object' || Array.isArray(spec)) {
-    errors.push('Document must be an object');
+    errors.push(violation('document-root', 'Document must be an object'));
     return { valid: false, errors };
   }
 
   const s = spec as Record<string, unknown>;
 
   if (!s.openapi || typeof s.openapi !== 'string') {
-    errors.push("OpenAPI specification must have an 'openapi' field with string value");
+    errors.push(
+      violation(
+        'openapi-field',
+        "OpenAPI specification must have an 'openapi' field with string value"
+      )
+    );
   } else if (!s.openapi.startsWith('3.0')) {
-    errors.push(`OpenAPI version must start with '3.0', got: ${s.openapi}`);
+    errors.push(
+      violation('openapi-field', `OpenAPI version must start with '3.0', got: ${s.openapi}`)
+    );
   }
 
   if (!s.info || typeof s.info !== 'object' || Array.isArray(s.info)) {
-    errors.push("OpenAPI specification must have an 'info' field with object value");
+    errors.push(
+      violation('info-object', "OpenAPI specification must have an 'info' field with object value")
+    );
   } else {
     const info = s.info as Record<string, unknown>;
     if (!info.title || typeof info.title !== 'string') {
-      errors.push("Info object must have a 'title' field with string value");
+      errors.push(
+        violation('info-title', "Info object must have a 'title' field with string value")
+      );
     }
     if (!info.version || typeof info.version !== 'string') {
-      errors.push("Info object must have a 'version' field with string value");
+      errors.push(
+        violation('info-version', "Info object must have a 'version' field with string value")
+      );
     }
   }
 
   if (!s.paths || typeof s.paths !== 'object' || Array.isArray(s.paths)) {
-    errors.push("OpenAPI 3.0 specification must have a 'paths' field with object value");
+    errors.push(
+      violation(
+        'paths-object',
+        "OpenAPI 3.0 specification must have a 'paths' field with object value"
+      )
+    );
   }
 
   if (s.paths && typeof s.paths === 'object' && !Array.isArray(s.paths)) {
     for (const [pathKey, pathItem] of Object.entries(s.paths as Record<string, unknown>)) {
       if (!pathItem || typeof pathItem !== 'object' || Array.isArray(pathItem)) {
-        errors.push(`Path item '${pathKey}' must be an object`);
+        errors.push(violation('path-item-object', `Path item '${pathKey}' must be an object`));
       }
     }
   }
@@ -58,12 +83,12 @@ export function validateSpec30(spec: unknown): ValidationResult {
     const components = s.components as Record<string, unknown>;
     if (components.schemas) {
       if (Array.isArray(components.schemas) || typeof components.schemas !== 'object') {
-        errors.push("'components.schemas' must be an object");
+        errors.push(violation('components-schemas', "'components.schemas' must be an object"));
       } else {
         const schemas = components.schemas as Record<string, unknown>;
         for (const [key, schema] of Object.entries(schemas)) {
           if (!schema || typeof schema !== 'object' || Array.isArray(schema)) {
-            errors.push(`Schema '${key}' must be an object`);
+            errors.push(violation('schema-object', `Schema '${key}' must be an object`));
           } else {
             validateSchema30(schema, `components.schemas.${key}`, errors);
           }
@@ -92,16 +117,26 @@ function validateSchema30(schema: unknown, path: string, errors: string[]): void
   const s = schema as Record<string, unknown>;
 
   if (Array.isArray(s.type)) {
-    errors.push(`Schema '${path}' uses 'type' as an array which is a 3.1-only feature`);
+    errors.push(
+      violation(
+        'schema-object',
+        `Schema '${path}' uses 'type' as an array which is a 3.1-only feature`
+      )
+    );
   }
 
   if ('$schema' in s) {
-    errors.push(`Schema '${path}' uses '$schema' which is a 3.1-only feature`);
+    errors.push(
+      violation('schema-object', `Schema '${path}' uses '$schema' which is a 3.1-only feature`)
+    );
   }
 
   if (s.items !== undefined && Array.isArray(s.items)) {
     errors.push(
-      `Schema '${path}' uses 'items' as an array (tuple syntax) which is a 3.1-only feature`
+      violation(
+        'schema-object',
+        `Schema '${path}' uses 'items' as an array (tuple syntax) which is a 3.1-only feature`
+      )
     );
   }
 

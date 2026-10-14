@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 
 import { validateSpec30 } from '../../../src/parser/version/v3.0/validator.js';
+import { expectViolation } from './expect-violation.js';
 
 describe('validateSpec30', () => {
   it('should pass for a valid 3.0 spec', () => {
@@ -29,7 +30,8 @@ describe('validateSpec30', () => {
 
     const result = validateSpec30(spec);
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain(
+    expectViolation(
+      result.errors,
       "OpenAPI 3.0 specification must have a 'paths' field with object value"
     );
   });
@@ -42,7 +44,8 @@ describe('validateSpec30', () => {
 
     const result = validateSpec30(spec);
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain(
+    expectViolation(
+      result.errors,
       "OpenAPI specification must have an 'info' field with object value"
     );
   });
@@ -153,13 +156,13 @@ describe('validateSpec30', () => {
 
     const result = validateSpec30(spec);
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain("OpenAPI version must start with '3.0', got: 3.1.0");
+    expectViolation(result.errors, "OpenAPI version must start with '3.0', got: 3.1.0");
   });
 
   it('should fail for null document', () => {
     const result = validateSpec30(null);
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain('Document must be an object');
+    expectViolation(result.errors, 'Document must be an object');
   });
 
   it('should fail for missing openapi field', () => {
@@ -170,7 +173,8 @@ describe('validateSpec30', () => {
 
     const result = validateSpec30(spec);
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain(
+    expectViolation(
+      result.errors,
       "OpenAPI specification must have an 'openapi' field with string value"
     );
   });

@@ -1,5 +1,12 @@
+import { specViolation, type SpecLinkKey } from '../spec-links.js';
 import { validateSecurity } from '../validate-security.js';
 import type { ValidationResult } from '../validate.js';
+
+/**
+ * Every violation in this file belongs to the 3.1 dialect;
+ * bind it once so call sites stay key-and-message only.
+ */
+const violation = (key: SpecLinkKey, message: string): string => specViolation('3.1', key, message);
 
 /**
  * Validate a raw OpenAPI 3.1.x specification.
@@ -22,31 +29,46 @@ export function validateSpec31(spec: unknown): ValidationResult {
   const errors: string[] = [];
 
   if (!spec || typeof spec !== 'object' || Array.isArray(spec)) {
-    errors.push('Document must be an object');
+    errors.push(violation('document-root', 'Document must be an object'));
     return { valid: false, errors };
   }
 
   const s = spec as Record<string, unknown>;
 
   if (!s.openapi || typeof s.openapi !== 'string') {
-    errors.push("OpenAPI specification must have an 'openapi' field with string value");
+    errors.push(
+      violation(
+        'openapi-field',
+        "OpenAPI specification must have an 'openapi' field with string value"
+      )
+    );
   } else if (!s.openapi.startsWith('3.1')) {
-    errors.push(`OpenAPI version must start with '3.1', got: ${s.openapi}`);
+    errors.push(
+      violation('openapi-field', `OpenAPI version must start with '3.1', got: ${s.openapi}`)
+    );
   }
 
   if (!s.info || typeof s.info !== 'object' || Array.isArray(s.info)) {
-    errors.push("OpenAPI specification must have an 'info' field with object value");
+    errors.push(
+      violation('info-object', "OpenAPI specification must have an 'info' field with object value")
+    );
   } else {
     const info = s.info as Record<string, unknown>;
     if (!info.title || typeof info.title !== 'string') {
-      errors.push("Info object must have a 'title' field with string value");
+      errors.push(
+        violation('info-title', "Info object must have a 'title' field with string value")
+      );
     }
     if (!info.version || typeof info.version !== 'string') {
-      errors.push("Info object must have a 'version' field with string value");
+      errors.push(
+        violation('info-version', "Info object must have a 'version' field with string value")
+      );
     }
   }
 
   if (!s.paths && !s.components && !s.webhooks) {
+    // Not a spec violation: all three fields are optional in 3.1; the check
+    // exists because an empty document gives genoc nothing to generate.
     errors.push(
       "OpenAPI specification must have at least one of 'paths', 'components', or 'webhooks'"
     );
@@ -54,7 +76,7 @@ export function validateSpec31(spec: unknown): ValidationResult {
 
   if (s.paths) {
     if (typeof s.paths !== 'object' || Array.isArray(s.paths)) {
-      errors.push("'paths' field must be an object");
+      errors.push(violation('paths-object', "'paths' field must be an object"));
     }
   }
 
@@ -62,11 +84,11 @@ export function validateSpec31(spec: unknown): ValidationResult {
     const components = s.components as Record<string, unknown>;
     if (components.schemas) {
       if (typeof components.schemas !== 'object' || Array.isArray(components.schemas)) {
-        errors.push("'components.schemas' must be an object");
+        errors.push(violation('components-schemas', "'components.schemas' must be an object"));
       } else {
         for (const [key, schema] of Object.entries(components.schemas)) {
           if (!schema || typeof schema !== 'object' || Array.isArray(schema)) {
-            errors.push(`Schema '${key}' must be an object`);
+            errors.push(violation('schema-object', `Schema '${key}' must be an object`));
           } else {
             validateSchema31(schema, `components.schemas.${key}`, errors);
           }
@@ -95,24 +117,35 @@ function validateSchema31(schema: unknown, path: string, errors: string[]): void
   const s = schema as Record<string, unknown>;
 
   if ('nullable' in s) {
-    errors.push(`Schema '${path}' uses 'nullable' which is a 3.0-only feature`);
+    errors.push(
+      violation('schema-object', `Schema '${path}' uses 'nullable' which is a 3.0-only feature`)
+    );
   }
 
   if (typeof s.exclusiveMinimum === 'boolean') {
     errors.push(
-      `Schema '${path}' uses 'exclusiveMinimum' as a boolean which is a 3.0-only feature`
+      violation(
+        'schema-object',
+        `Schema '${path}' uses 'exclusiveMinimum' as a boolean which is a 3.0-only feature`
+      )
     );
   }
 
   if (typeof s.exclusiveMaximum === 'boolean') {
     errors.push(
-      `Schema '${path}' uses 'exclusiveMaximum' as a boolean which is a 3.0-only feature`
+      violation(
+        'schema-object',
+        `Schema '${path}' uses 'exclusiveMaximum' as a boolean which is a 3.0-only feature`
+      )
     );
   }
 
   if (s.items !== undefined && Array.isArray(s.items)) {
     errors.push(
-      `Schema '${path}' uses 'items' as an array which is not allowed in 3.1 (use 'prefixItems')`
+      violation(
+        'schema-object',
+        `Schema '${path}' uses 'items' as an array which is not allowed in 3.1 (use 'prefixItems')`
+      )
     );
   }
 

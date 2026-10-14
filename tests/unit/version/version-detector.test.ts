@@ -40,4 +40,20 @@ describe('detectSpecVersion', () => {
     expect(() => detectSpecVersion('string' as any)).toThrow(/must be a non-null object/);
     expect(() => detectSpecVersion([] as any)).toThrow(/must be a non-null object/);
   });
+
+  it('rejects versions that are not major.minor(.patch) (malformed openapi field)', () => {
+    expect(() => detectSpecVersion({ openapi: '3.0.x' })).toThrow(
+      'Invalid OpenAPI version format: 3.0.x'
+    );
+    expect(() => detectSpecVersion({ openapi: '3.0.0.1' })).toThrow(
+      'Invalid OpenAPI version format: 3.0.0.1'
+    );
+    expect(() => detectSpecVersion({ openapi: '3.1.0-beta' })).toThrow(
+      'Invalid OpenAPI version format: 3.1.0-beta'
+    );
+  });
+
+  it('accepts a bare major.minor version', () => {
+    expect(detectSpecVersion({ openapi: '3.1' })).toBe('3.1');
+  });
 });

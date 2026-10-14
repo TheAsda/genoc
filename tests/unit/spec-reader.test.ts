@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 
 import { load, loadFromFile } from '../../src/parser/spec-reader.js';
+import { resolveVersion } from '../../src/parser/version/version-detector.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURES = path.resolve(__dirname, '../fixtures');
@@ -32,8 +33,10 @@ describe('spec-reader', () => {
       expect(jsonDoc).toEqual(yamlDoc);
     });
 
-    it('throws descriptive error for unsupported OpenAPI version', async () => {
-      await expect(loadFromFile(path.join(FIXTURES, 'invalid-version.json'))).rejects.toThrow(
+    it('loads docs with unsupported OpenAPI versions; version rules live in the version module', async () => {
+      const doc = await loadFromFile(path.join(FIXTURES, 'invalid-version.json'));
+      expect(doc.openapi).toBe('2.0.0');
+      expect(() => resolveVersion(doc)).toThrow(
         'Unsupported OpenAPI version: 2.0.0. Supported versions: 3.0, 3.1, 3.2'
       );
     });
@@ -85,11 +88,26 @@ describe('spec-reader', () => {
     it('throws parse error for invalid YAML', async () => {
       const invalidYamlPath = path.join(FIXTURES, 'invalid-parse.yaml');
       const { writeFileSync, unlinkSync, existsSync } = await import('node:fs');
-      writeFileSync(invalidYamlPath, 'just a string not an object');
+      writeFileSync(invalidYamlPath, '{ unclosed: [');
       try {
-        await expect(loadFromFile(invalidYamlPath)).rejects.toThrow();
+        await expect(loadFromFile(invalidYamlPath)).rejects.toThrow(/Failed to parse/);
       } finally {
         if (existsSync(invalidYamlPath)) unlinkSync(invalidYamlPath);
+      }
+    });
+
+    it('loads a YAML scalar root; the version module rejects it as a spec violation', async () => {
+      const scalarYamlPath = path.join(FIXTURES, 'scalar-root.yaml');
+      const { writeFileSync, unlinkSync, existsSync } = await import('node:fs');
+      writeFileSync(scalarYamlPath, 'just a string not an object');
+      try {
+        const doc = await loadFromFile(scalarYamlPath);
+        expect(() => resolveVersion(doc)).toThrow(
+          'Invalid spec: must be a non-null object\n' +
+            '  https://spec.openapis.org/oas/v3.1.1.html#openapi-object'
+        );
+      } finally {
+        if (existsSync(scalarYamlPath)) unlinkSync(scalarYamlPath);
       }
     });
   });

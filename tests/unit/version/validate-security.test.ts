@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { validateSecurity } from '../../../src/parser/version/validate-security.js';
+import { expectViolation } from './expect-violation.js';
 
 function run(spec: Record<string, unknown>, version: '3.0' | '3.1' = '3.0'): string[] {
   const errors: string[] = [];
@@ -38,19 +39,21 @@ describe('validateSecurity — securitySchemes entries', () => {
 
   it('rejects a non-object scheme', () => {
     const errors = run(baseSpec({ components: { securitySchemes: { Key: 'nope' } } }));
-    expect(errors).toContain("Security scheme 'Key' must be an object");
+    expectViolation(errors, "Security scheme 'Key' must be an object");
   });
 
   it('rejects an unknown scheme type', () => {
     const errors = run(baseSpec({ components: { securitySchemes: { Key: { type: 'sso' } } } }));
-    expect(errors).toContain(
+    expectViolation(
+      errors,
       "Security scheme 'Key' must have a 'type' field with one of: apiKey, http, oauth2, openIdConnect, got: \"sso\""
     );
   });
 
   it('rejects mutualTLS in 3.0 but accepts it in 3.1', () => {
     const spec = baseSpec({ components: { securitySchemes: { Tls: { type: 'mutualTLS' } } } });
-    expect(run(spec, '3.0')).toContain(
+    expectViolation(
+      run(spec, '3.0'),
       "Security scheme 'Tls' must have a 'type' field with one of: apiKey, http, oauth2, openIdConnect, got: \"mutualTLS\""
     );
     expect(run(spec, '3.1')).toEqual([]);
@@ -58,17 +61,20 @@ describe('validateSecurity — securitySchemes entries', () => {
 
   it('requires name and in for apiKey schemes', () => {
     const errors = run(baseSpec({ components: { securitySchemes: { Key: { type: 'apiKey' } } } }));
-    expect(errors).toContain(
+    expectViolation(
+      errors,
       "apiKey security scheme 'Key' must have a 'name' field with string value"
     );
-    expect(errors).toContain(
+    expectViolation(
+      errors,
       "apiKey security scheme 'Key' must have an 'in' field with one of: query, header, cookie"
     );
   });
 
   it('requires scheme for http schemes', () => {
     const errors = run(baseSpec({ components: { securitySchemes: { Basic: { type: 'http' } } } }));
-    expect(errors).toContain(
+    expectViolation(
+      errors,
       "http security scheme 'Basic' must have a 'scheme' field with string value"
     );
   });
@@ -77,7 +83,8 @@ describe('validateSecurity — securitySchemes entries', () => {
     const missing = run(
       baseSpec({ components: { securitySchemes: { OAuth: { type: 'oauth2' } } } })
     );
-    expect(missing).toContain(
+    expectViolation(
+      missing,
       "oauth2 security scheme 'OAuth' must have a 'flows' field with object value"
     );
 
@@ -90,7 +97,8 @@ describe('validateSecurity — securitySchemes entries', () => {
         },
       })
     );
-    expect(noScopes).toContain(
+    expectViolation(
+      noScopes,
       "oauth2 flow 'password' of security scheme 'OAuth' must have a 'scopes' field with object value"
     );
   });
@@ -99,7 +107,8 @@ describe('validateSecurity — securitySchemes entries', () => {
     const errors = run(
       baseSpec({ components: { securitySchemes: { Oidc: { type: 'openIdConnect' } } } })
     );
-    expect(errors).toContain(
+    expectViolation(
+      errors,
       "openIdConnect security scheme 'Oidc' must have an 'openIdConnectUrl' field with string value"
     );
   });
@@ -140,7 +149,8 @@ describe('validateSecurity — securitySchemes entries', () => {
         components: { securitySchemes: { Key: { $ref: '#/components/schemas/Anything' } } },
       })
     );
-    expect(errors).toContain(
+    expectViolation(
+      errors,
       "Security scheme 'Key' $ref '#/components/schemas/Anything' does not resolve"
     );
   });
@@ -151,7 +161,8 @@ describe('validateSecurity — securitySchemes entries', () => {
         components: { securitySchemes: { Key: { $ref: '#/components/securitySchemes/100%' } } },
       })
     );
-    expect(errors).toContain(
+    expectViolation(
+      errors,
       "Security scheme 'Key' $ref '#/components/securitySchemes/100%' does not resolve"
     );
   });
@@ -162,7 +173,8 @@ describe('validateSecurity — securitySchemes entries', () => {
         components: { securitySchemes: { Key: { $ref: '#' } } },
       })
     );
-    expect(errors).toContain(
+    expectViolation(
+      errors,
       "Security scheme 'Key' must have a 'type' field with one of: apiKey, http, oauth2, openIdConnect, got: null"
     );
   });
@@ -176,7 +188,8 @@ describe('validateSecurity — securitySchemes entries', () => {
         },
       })
     );
-    expect(errors).toContain(
+    expectViolation(
+      errors,
       `Security scheme 'Key' must have a 'type' field with one of: apiKey, http, oauth2, openIdConnect, got: "string"`
     );
   });
@@ -192,7 +205,8 @@ describe('validateSecurity — securitySchemes entries', () => {
         },
       })
     );
-    expect(errors).toContain(
+    expectViolation(
+      errors,
       "Security scheme 'A' has a circular $ref chain ('#/components/securitySchemes/B')"
     );
   });
@@ -209,7 +223,8 @@ describe('validateSecurity — securitySchemes entries', () => {
         security: [{ Key: ['read'] }],
       })
     );
-    expect(errors).toContain(
+    expectViolation(
+      errors,
       "'security[0].Key' must have an empty scopes array for 'http' schemes in OpenAPI 3.0"
     );
   });
@@ -225,7 +240,7 @@ describe('validateSecurity — securitySchemes entries', () => {
 
   it('rejects a non-object components.securitySchemes', () => {
     const errors = run(baseSpec({ components: { securitySchemes: ['nope'] } }));
-    expect(errors).toContain("'components.securitySchemes' must be an object");
+    expectViolation(errors, "'components.securitySchemes' must be an object");
   });
 });
 
@@ -259,29 +274,31 @@ describe('validateSecurity — security requirement lists', () => {
 
   it('rejects a non-array security field', () => {
     const errors = run(baseSpec({ ...withSchemes, security: { Bearer: [] } }));
-    expect(errors).toContain("'security' must be an array");
+    expectViolation(errors, "'security' must be an array");
   });
 
   it('rejects a non-object requirement entry', () => {
     const errors = run(baseSpec({ ...withSchemes, security: ['nope'] }));
-    expect(errors).toContain("'security[0]' must be an object");
+    expectViolation(errors, "'security[0]' must be an object");
   });
 
   it('rejects references to undeclared schemes', () => {
     const errors = run(baseSpec({ ...withSchemes, security: [{ Ghost: [] }] }));
-    expect(errors).toContain(
+    expectViolation(
+      errors,
       "'security[0]' references unknown security scheme 'Ghost' (not declared in components.securitySchemes)"
     );
   });
 
   it('rejects scopes that are not an array of strings', () => {
     const errors = run(baseSpec({ ...withSchemes, security: [{ OAuth: 'read' }] }));
-    expect(errors).toContain("'security[0].OAuth' must be an array of strings");
+    expectViolation(errors, "'security[0].OAuth' must be an array of strings");
   });
 
   it('rejects non-empty scopes on http schemes in 3.0 but allows them in 3.1', () => {
     const spec = baseSpec({ ...withSchemes, security: [{ Bearer: ['admin'] }] });
-    expect(run(spec, '3.0')).toContain(
+    expectViolation(
+      run(spec, '3.0'),
       "'security[0].Bearer' must have an empty scopes array for 'http' schemes in OpenAPI 3.0"
     );
     expect(run(spec, '3.1')).toEqual([]);
@@ -294,7 +311,8 @@ describe('validateSecurity — security requirement lists', () => {
         paths: { '/x': { get: { responses: {}, security: [{ Ghost: [] }] } } },
       })
     );
-    expect(errors).toContain(
+    expectViolation(
+      errors,
       "'paths./x.get.security[0]' references unknown security scheme 'Ghost' (not declared in components.securitySchemes)"
     );
   });
@@ -306,7 +324,8 @@ describe('validateSecurity — security requirement lists', () => {
         paths: { '/x': { security: [{ Bearer: [] }], get: { responses: {} } } },
       })
     );
-    expect(errors).toContain(
+    expectViolation(
+      errors,
       "'paths./x.security' is not allowed: security requirements may be declared at the document and operation levels only"
     );
   });
