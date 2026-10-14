@@ -210,14 +210,16 @@ async function runOneTarget(target: GenerationTarget, context: CommandContext): 
 
   context.process.stdout.write(`Loading spec from ${target.input}...\n`);
   const doc = await load(target.input, { proxy: target.proxy });
-  context.process.stdout.write(`Loaded OpenAPI ${doc.openapi} spec\n`);
 
   const override = target.specVersion;
   if (override !== undefined && override !== '3.0' && override !== '3.1') {
     throw new Error(`No strategy registered for version: ${override}`);
   }
 
+  // Resolve the dialect before logging so a missing/malformed `openapi`
+  // field is reported (with its spec link) instead of logging "undefined".
   const profile = resolveVersion(doc, override);
+  context.process.stdout.write(`Loaded OpenAPI ${doc.openapi} spec\n`);
 
   if (
     override !== undefined &&

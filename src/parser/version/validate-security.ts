@@ -16,6 +16,7 @@
  */
 
 import { HTTP_METHODS } from '../../utils/http-methods.js';
+import { specViolation } from './spec-links.js';
 
 const SCHEME_TYPES: Record<'3.0' | '3.1', ReadonlySet<string>> = {
   '3.0': new Set(['apiKey', 'http', 'oauth2', 'openIdConnect']),
@@ -36,7 +37,9 @@ export function validateSecurity(
   if (rawSchemes === undefined) {
     declaredNames = undefined;
   } else if (typeof rawSchemes !== 'object' || rawSchemes === null || Array.isArray(rawSchemes)) {
-    errors.push("'components.securitySchemes' must be an object");
+    errors.push(
+      specViolation(version, 'components-object', "'components.securitySchemes' must be an object")
+    );
     declaredNames = new Set();
     resolvedByName = new Map();
   } else {
@@ -44,7 +47,7 @@ export function validateSecurity(
     declaredNames = new Set(Object.keys(schemes));
     resolvedByName = new Map();
     for (const [name, scheme] of Object.entries(schemes)) {
-      const resolved = resolveSchemeTarget(spec, name, scheme, new Set(), errors);
+      const resolved = resolveSchemeTarget(spec, name, scheme, version, new Set(), errors);
       if (resolved !== undefined) {
         validateScheme(name, resolved, version, errors);
         resolvedByName.set(name, resolved);
@@ -64,7 +67,11 @@ export function validateSecurity(
     }
     if ('security' in pathItem) {
       errors.push(
-        `'paths.${pathKey}.security' is not allowed: security requirements may be declared at the document and operation levels only`
+        specViolation(
+          version,
+          'path-item-object',
+          `'paths.${pathKey}.security' is not allowed: security requirements may be declared at the document and operation levels only`
+        )
       );
     }
     for (const method of HTTP_METHODS) {
@@ -96,11 +103,18 @@ function resolveSchemeTarget(
   spec: Record<string, unknown>,
   name: string,
   entry: unknown,
+  version: '3.0' | '3.1',
   seenRefs: Set<string>,
   errors: string[]
 ): Record<string, unknown> | undefined {
   if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) {
-    errors.push(`Security scheme '${name}' must be an object`);
+    errors.push(
+      specViolation(
+        version,
+        'security-scheme-object',
+        `Security scheme '${name}' must be an object`
+      )
+    );
     return undefined;
   }
   const record = entry as Record<string, unknown>;
@@ -112,7 +126,13 @@ function resolveSchemeTarget(
     return record; // external document — the ref-resolver's boundary
   }
   if (seenRefs.has(ref)) {
-    errors.push(`Security scheme '${name}' has a circular $ref chain ('${ref}')`);
+    errors.push(
+      specViolation(
+        version,
+        'reference-object',
+        `Security scheme '${name}' has a circular $ref chain ('${ref}')`
+      )
+    );
     return undefined;
   }
   seenRefs.add(ref);
@@ -128,7 +148,13 @@ function resolveSchemeTarget(
             .map((s) => decodeURIComponent(s.replace(/~1/g, '/').replace(/~0/g, '~')));
   } catch {
     // malformed percent-encoding (e.g. a bare '%') — same story as a dangling pointer
-    errors.push(`Security scheme '${name}' $ref '${ref}' does not resolve`);
+    errors.push(
+      specViolation(
+        version,
+        'reference-object',
+        `Security scheme '${name}' $ref '${ref}' does not resolve`
+      )
+    );
     return undefined;
   }
   let target: unknown = spec;
@@ -139,12 +165,18 @@ function resolveSchemeTarget(
       Array.isArray(target) ||
       !(segment in (target as Record<string, unknown>))
     ) {
-      errors.push(`Security scheme '${name}' $ref '${ref}' does not resolve`);
+      errors.push(
+        specViolation(
+          version,
+          'reference-object',
+          `Security scheme '${name}' $ref '${ref}' does not resolve`
+        )
+      );
       return undefined;
     }
     target = (target as Record<string, unknown>)[segment];
   }
-  return resolveSchemeTarget(spec, name, target, seenRefs, errors);
+  return resolveSchemeTarget(spec, name, target, version, seenRefs, errors);
 }
 
 function validateScheme(
@@ -154,7 +186,13 @@ function validateScheme(
   errors: string[]
 ): void {
   if (typeof scheme !== 'object' || scheme === null || Array.isArray(scheme)) {
-    errors.push(`Security scheme '${name}' must be an object`);
+    errors.push(
+      specViolation(
+        version,
+        'security-scheme-object',
+        `Security scheme '${name}' must be an object`
+      )
+    );
     return;
   }
   const s = scheme as Record<string, unknown>;
@@ -166,7 +204,11 @@ function validateScheme(
   if (typeof type !== 'string' || !SCHEME_TYPES[version].has(type)) {
     const allowed = [...SCHEME_TYPES[version]].join(', ');
     errors.push(
-      `Security scheme '${name}' must have a 'type' field with one of: ${allowed}, got: ${JSON.stringify(type ?? null)}`
+      specViolation(
+        version,
+        'security-scheme-type',
+        `Security scheme '${name}' must have a 'type' field with one of: ${allowed}, got: ${JSON.stringify(type ?? null)}`
+      )
     );
     return;
   }
@@ -174,26 +216,46 @@ function validateScheme(
   switch (type) {
     case 'apiKey':
       if (typeof s.name !== 'string' || s.name === '') {
-        errors.push(`apiKey security scheme '${name}' must have a 'name' field with string value`);
+        errors.push(
+          specViolation(
+            version,
+            'security-scheme-name',
+            `apiKey security scheme '${name}' must have a 'name' field with string value`
+          )
+        );
       }
       if (s.in !== 'query' && s.in !== 'header' && s.in !== 'cookie') {
         errors.push(
-          `apiKey security scheme '${name}' must have an 'in' field with one of: query, header, cookie`
+          specViolation(
+            version,
+            'security-scheme-in',
+            `apiKey security scheme '${name}' must have an 'in' field with one of: query, header, cookie`
+          )
         );
       }
       break;
     case 'http':
       if (typeof s.scheme !== 'string' || s.scheme === '') {
-        errors.push(`http security scheme '${name}' must have a 'scheme' field with string value`);
+        errors.push(
+          specViolation(
+            version,
+            'security-scheme-scheme',
+            `http security scheme '${name}' must have a 'scheme' field with string value`
+          )
+        );
       }
       break;
     case 'oauth2':
-      validateOauth2Flows(name, s.flows, errors);
+      validateOauth2Flows(name, s.flows, version, errors);
       break;
     case 'openIdConnect':
       if (typeof s.openIdConnectUrl !== 'string' || s.openIdConnectUrl === '') {
         errors.push(
-          `openIdConnect security scheme '${name}' must have an 'openIdConnectUrl' field with string value`
+          specViolation(
+            version,
+            'security-scheme-open-id-connect-url',
+            `openIdConnect security scheme '${name}' must have an 'openIdConnectUrl' field with string value`
+          )
         );
       }
       break;
@@ -202,9 +264,20 @@ function validateScheme(
   }
 }
 
-function validateOauth2Flows(name: string, flows: unknown, errors: string[]): void {
+function validateOauth2Flows(
+  name: string,
+  flows: unknown,
+  version: '3.0' | '3.1',
+  errors: string[]
+): void {
   if (typeof flows !== 'object' || flows === null || Array.isArray(flows)) {
-    errors.push(`oauth2 security scheme '${name}' must have a 'flows' field with object value`);
+    errors.push(
+      specViolation(
+        version,
+        'security-scheme-flows',
+        `oauth2 security scheme '${name}' must have a 'flows' field with object value`
+      )
+    );
     return;
   }
   for (const [flowKind, flow] of Object.entries(flows as Record<string, unknown>)) {
@@ -212,13 +285,23 @@ function validateOauth2Flows(name: string, flows: unknown, errors: string[]): vo
       continue;
     }
     if (typeof flow !== 'object' || flow === null || Array.isArray(flow)) {
-      errors.push(`oauth2 flow '${flowKind}' of security scheme '${name}' must be an object`);
+      errors.push(
+        specViolation(
+          version,
+          'oauth-flow-object',
+          `oauth2 flow '${flowKind}' of security scheme '${name}' must be an object`
+        )
+      );
       continue;
     }
     const scopes = (flow as Record<string, unknown>).scopes;
     if (typeof scopes !== 'object' || scopes === null || Array.isArray(scopes)) {
       errors.push(
-        `oauth2 flow '${flowKind}' of security scheme '${name}' must have a 'scopes' field with object value`
+        specViolation(
+          version,
+          'oauth-flow-scopes',
+          `oauth2 flow '${flowKind}' of security scheme '${name}' must have a 'scopes' field with object value`
+        )
       );
     }
   }
@@ -236,25 +319,39 @@ function validateSecurityList(
     return;
   }
   if (!Array.isArray(list)) {
-    errors.push(`'${context}' must be an array`);
+    errors.push(
+      specViolation(version, 'security-requirement-object', `'${context}' must be an array`)
+    );
     return;
   }
   list.forEach((requirement, index) => {
     const reqContext = `${context}[${index}]`;
     if (typeof requirement !== 'object' || requirement === null || Array.isArray(requirement)) {
-      errors.push(`'${reqContext}' must be an object`);
+      errors.push(
+        specViolation(version, 'security-requirement-object', `'${reqContext}' must be an object`)
+      );
       return;
     }
     for (const [schemeName, scopes] of Object.entries(requirement as Record<string, unknown>)) {
       if (!declaredNames?.has(schemeName)) {
         errors.push(
-          `'${reqContext}' references unknown security scheme '${schemeName}' (not declared in components.securitySchemes)`
+          specViolation(
+            version,
+            'security-requirement-object',
+            `'${reqContext}' references unknown security scheme '${schemeName}' (not declared in components.securitySchemes)`
+          )
         );
         continue;
       }
       const schemeType = resolvedByName?.get(schemeName)?.type;
       if (!Array.isArray(scopes) || scopes.some((scope) => typeof scope !== 'string')) {
-        errors.push(`'${reqContext}.${schemeName}' must be an array of strings`);
+        errors.push(
+          specViolation(
+            version,
+            'security-requirement-object',
+            `'${reqContext}.${schemeName}' must be an array of strings`
+          )
+        );
         continue;
       }
       if (
@@ -265,7 +362,11 @@ function validateSecurityList(
         schemeType !== 'openIdConnect'
       ) {
         errors.push(
-          `'${reqContext}.${schemeName}' must have an empty scopes array for '${String(schemeType)}' schemes in OpenAPI 3.0`
+          specViolation(
+            version,
+            'security-requirement-object',
+            `'${reqContext}.${schemeName}' must have an empty scopes array for '${String(schemeType)}' schemes in OpenAPI 3.0`
+          )
         );
       }
     }

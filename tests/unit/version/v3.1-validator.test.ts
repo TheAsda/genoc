@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 
 import { validateSpec31 } from '../../../src/parser/version/v3.1/validator.js';
+import { expectViolation } from './expect-violation.js';
 
 describe('validateSpec31', () => {
   it('should pass for a valid minimal 3.1 spec', () => {
@@ -462,7 +463,7 @@ describe('validateSpec31', () => {
 
     const result = validateSpec31(spec);
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain("OpenAPI version must start with '3.1', got: 3.0.3");
+    expectViolation(result.errors, "OpenAPI version must start with '3.1', got: 3.0.3");
   });
 
   it('should fail for missing info.title', () => {
@@ -474,7 +475,7 @@ describe('validateSpec31', () => {
 
     const result = validateSpec31(spec);
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain("Info object must have a 'title' field with string value");
+    expectViolation(result.errors, "Info object must have a 'title' field with string value");
   });
 
   it('should fail for non-object schema entry', () => {
@@ -491,6 +492,6 @@ describe('validateSpec31', () => {
 
     const result = validateSpec31(spec);
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain("Schema 'Broken' must be an object");
+    expectViolation(result.errors, "Schema 'Broken' must be an object");
   });
 });

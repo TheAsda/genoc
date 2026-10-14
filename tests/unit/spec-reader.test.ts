@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 
 import { load, loadFromFile } from '../../src/parser/spec-reader.js';
+import { resolveVersion } from '../../src/parser/version/version-detector.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURES = path.resolve(__dirname, '../fixtures');
@@ -32,8 +33,10 @@ describe('spec-reader', () => {
       expect(jsonDoc).toEqual(yamlDoc);
     });
 
-    it('throws descriptive error for unsupported OpenAPI version', async () => {
-      await expect(loadFromFile(path.join(FIXTURES, 'invalid-version.json'))).rejects.toThrow(
+    it('loads docs with unsupported OpenAPI versions; version rules live in the version module', async () => {
+      const doc = await loadFromFile(path.join(FIXTURES, 'invalid-version.json'));
+      expect(doc.openapi).toBe('2.0.0');
+      expect(() => resolveVersion(doc)).toThrow(
         'Unsupported OpenAPI version: 2.0.0. Supported versions: 3.0, 3.1, 3.2'
       );
     });

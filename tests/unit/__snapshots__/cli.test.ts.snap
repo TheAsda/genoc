@@ -159,6 +159,7 @@ exports[`CLI Entry Point > handles invalid OpenAPI version 1`] = `
 exports[`CLI Entry Point > handles missing required fields 1`] = `
 "Invalid OpenAPI specification:
   - OpenAPI specification must have an 'info' field with object value
+    https://spec.openapis.org/oas/v3.1.1.html#info-object
   - OpenAPI specification must have at least one of 'paths', 'components', or 'webhooks'
 "
 `;

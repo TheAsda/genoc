@@ -57,7 +57,9 @@ describe('validateSpec', () => {
     expect(() => validateSpec(doc, '3.0')).toThrow(
       'Invalid OpenAPI specification:\n' +
         "  - OpenAPI specification must have an 'info' field with object value\n" +
-        "  - OpenAPI 3.0 specification must have a 'paths' field with object value"
+        '    https://spec.openapis.org/oas/v3.0.4.html#info-object\n' +
+        "  - OpenAPI 3.0 specification must have a 'paths' field with object value\n" +
+        '    https://spec.openapis.org/oas/v3.0.4.html#paths-object'
     );
   });
 
