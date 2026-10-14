@@ -62,13 +62,10 @@ export async function loadFromFile(filePath: string): Promise<OpenAPIDocument> {
   }
   const doc = parseContent(content, ext);
 
-  if (typeof doc !== 'object' || doc === null) {
-    throw new Error('Failed to parse: spec is not an object.');
-  }
-
-  // Version/dialect rules (including the `openapi` field) belong to the
-  // version module, which resolves the dialect and links spec violations to
-  // the specification. The cast is safe for the same I/O reason as above.
+  // Version/dialect rules — including whether the parsed root is even an
+  // OpenAPI document — belong to the version module, which resolves the
+  // dialect and links spec violations to the specification. The cast is safe
+  // for the same I/O reason as above: callers validate via resolveVersion.
   return doc as OpenAPIDocument;
 }
 
@@ -107,11 +104,8 @@ export async function loadFromUrl(url: string, opts?: LoadOptions): Promise<Open
     }
   }
 
-  if (typeof doc !== 'object' || doc === null) {
-    throw new Error('Failed to parse: spec is not an object.');
-  }
-
-  // Version/dialect rules belong to the version module (see loadFromFile).
+  // Version/dialect rules — including document-rootedness — belong to the
+  // version module (see loadFromFile).
   return doc as OpenAPIDocument;
 }
 

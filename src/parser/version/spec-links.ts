@@ -25,10 +25,10 @@ export const SPEC_ANCHORS = {
   'info-version': 'info-version',
   'paths-object': 'paths-object',
   'path-item-object': 'path-item-object',
-  'components-object': 'components-object',
+  'components-security-schemes': 'security-scheme-object',
   'components-schemas': 'components-schemas',
   'schema-object': 'schema-object',
-  'security-scheme-object': 'security-scheme-object',
+  'security-scheme-object': 'security-scheme-object-0',
   'security-scheme-type': 'security-scheme-type',
   'security-scheme-name': 'security-scheme-name',
   'security-scheme-in': 'security-scheme-in',
@@ -49,7 +49,8 @@ export function specLinkUrl(version: '3.0' | '3.1', key: SpecLinkKey): string {
 
 /**
  * Renders a spec-violation message with its link line appended on its own
- * indented line (matching the bullet layout of the aggregate message).
+ * line, indented four spaces so it aligns under the `  - ` bullet that
+ * `validateSpec` puts each message in.
  */
 export function specViolation(version: '3.0' | '3.1', key: SpecLinkKey, message: string): string {
   return `${message}\n    ${specLinkUrl(version, key)}`;

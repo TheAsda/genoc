@@ -88,11 +88,26 @@ describe('spec-reader', () => {
     it('throws parse error for invalid YAML', async () => {
       const invalidYamlPath = path.join(FIXTURES, 'invalid-parse.yaml');
       const { writeFileSync, unlinkSync, existsSync } = await import('node:fs');
-      writeFileSync(invalidYamlPath, 'just a string not an object');
+      writeFileSync(invalidYamlPath, '{ unclosed: [');
       try {
-        await expect(loadFromFile(invalidYamlPath)).rejects.toThrow();
+        await expect(loadFromFile(invalidYamlPath)).rejects.toThrow(/Failed to parse/);
       } finally {
         if (existsSync(invalidYamlPath)) unlinkSync(invalidYamlPath);
+      }
+    });
+
+    it('loads a YAML scalar root; the version module rejects it as a spec violation', async () => {
+      const scalarYamlPath = path.join(FIXTURES, 'scalar-root.yaml');
+      const { writeFileSync, unlinkSync, existsSync } = await import('node:fs');
+      writeFileSync(scalarYamlPath, 'just a string not an object');
+      try {
+        const doc = await loadFromFile(scalarYamlPath);
+        expect(() => resolveVersion(doc)).toThrow(
+          'Invalid spec: must be a non-null object\n' +
+            '  https://spec.openapis.org/oas/v3.1.1.html#openapi-object'
+        );
+      } finally {
+        if (existsSync(scalarYamlPath)) unlinkSync(scalarYamlPath);
       }
     });
   });

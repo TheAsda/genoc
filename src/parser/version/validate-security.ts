@@ -38,7 +38,11 @@ export function validateSecurity(
     declaredNames = undefined;
   } else if (typeof rawSchemes !== 'object' || rawSchemes === null || Array.isArray(rawSchemes)) {
     errors.push(
-      specViolation(version, 'components-object', "'components.securitySchemes' must be an object")
+      specViolation(
+        version,
+        'components-security-schemes',
+        "'components.securitySchemes' must be an object"
+      )
     );
     declaredNames = new Set();
     resolvedByName = new Map();

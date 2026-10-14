@@ -54,16 +54,8 @@ export function detectSpecVersion(rawSpec: unknown): string {
     );
   }
 
-  // Extract major.minor version
-  const versionMatch = openapiVersion.match(/^(\d+\.\d+)/);
-  if (!versionMatch) {
-    throw new SpecViolationError(
-      `Invalid OpenAPI version format: ${openapiVersion}`,
-      'openapi-field'
-    );
-  }
-
-  const majorMinorVersion = versionMatch[1];
+  // The format check above guarantees two leading numeric segments.
+  const majorMinorVersion = openapiVersion.split('.').slice(0, 2).join('.');
 
   // Validate supported versions
   const supportedVersions = ['3.0', '3.1', '3.2'];
@@ -93,7 +85,8 @@ export function resolveVersion(doc: unknown, override?: '3.0' | '3.1'): VersionP
     if (error instanceof SpecViolationError) {
       // The dialect is unknown (or the document is not a document at all), so
       // the link targets the dialect being applied; the override decides when
-      // given, otherwise the latest dialect.
+      // given, otherwise the latest dialect. Two-space indent: this error is
+      // thrown standalone, not as a `  - ` bullet of validateSpec's message.
       throw new Error(`${error.message}\n  ${specLinkUrl(override ?? '3.1', error.linkKey)}`, {
         cause: error,
       });

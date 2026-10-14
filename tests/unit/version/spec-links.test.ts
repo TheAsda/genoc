@@ -76,6 +76,32 @@ describe('validators embed spec links in violation messages', () => {
     );
   });
 
+  it("'components.securitySchemes' must be an object links to the exact securitySchemes field", () => {
+    const result = validateSpec31({
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {},
+      components: { securitySchemes: 42 as never },
+    });
+    expect(result.errors).toContain(
+      "'components.securitySchemes' must be an object\n" +
+        '    https://spec.openapis.org/oas/v3.1.1.html#security-scheme-object'
+    );
+  });
+
+  it('a non-object security scheme links to the Security Scheme Object section (not the field row)', () => {
+    const result = validateSpec31({
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {},
+      components: { securitySchemes: { bad: 42 as never } },
+    });
+    expect(result.errors).toContain(
+      "Security scheme 'bad' must be an object\n" +
+        '    https://spec.openapis.org/oas/v3.1.1.html#security-scheme-object-0'
+    );
+  });
+
   it('dialect mismatch links to the version section of the dialect being applied', () => {
     const result = validateSpec30({
       openapi: '3.1.0',
