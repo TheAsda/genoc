@@ -14,6 +14,12 @@ What the analyzer module (`src/analyzer/`) produces from one OpenAPI spec: every
 
 Generators read the AnalyzedSpec and nothing else. The raw OpenAPI document stays behind the parser/analyzer boundary.
 
+## Spec violation
+
+A document flaw that contradicts a rule of the applicable OpenAPI dialect: a REQUIRED field missing or wrongly typed, or a feature the dialect forbids. The only thing the version validators reject, and the only errors that carry a spec link.
+
+genoc enforces exactly what the spec prose mandates — presence and type, never value quality the spec leaves unconstrained: `info.title: ""` is a valid title. A document that is valid but beyond genoc (3.2, external `$ref`s) is an unsupported feature, not a spec violation.
+
 ## Security Scheme
 
 One named authentication mechanism, declared in `components.securitySchemes` — the only declaration site in both 3.0 and 3.1 (external-document references are outside the boundary). Typed by `type`: `apiKey`, `http`, `oauth2`, `openIdConnect`, plus `mutualTLS` in 3.1 only.
