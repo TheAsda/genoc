@@ -1,5 +1,16 @@
 # genoc
 
+## 0.5.0
+
+### Minor Changes
+
+- 66fe206: Generated clients now pass the operation's effective security requirements to the requester: `Requester` options gain `security?: readonly SecurityRequirement[]` (OR-of-ANDs of `{ schemeName, scopes, scheme }` with the fully-resolved scheme object, oauth2 flows included), and the runtime exports `SecurityScheme`, `SecurityCall`, `SecurityRequirement`, `OAuthFlow`, and `OAuthFlows`. Contracts add a `SecuritySchemeName` union of the declared scheme keys. Ops declared `security: []` or with no requirements send no `security` field. `securitySchemes`/`security` are now validated per the OpenAPI spec (required fields per scheme type — `$ref` schemes included, unknown names/types, version-scoped scope rules, `mutualTLS` in 3.1 only, `security` on a Path Item rejected). Note: if you pin an older `genoc/runtime` via `--runtime-import-path`, clients generated from specs with security requirements will fail type-checking against it (excess property). (#17)
+
+### Patch Changes
+
+- b256dae: Fix `DefaultApiError` to extend `ApiError<number, TData>`: generated catch blocks now re-throw it unchanged instead of wrapping it in `RequesterFailError`. `isDefinedError` explicitly returns `false` for it (a `default`-response error is not part of the per-status error union) - catch it with `instanceof DefaultApiError`. Documented in the error-handling guide. Fixes #79.
+- 9abd899: Validation errors that report a spec violation now link to the section of the OpenAPI specification that states the violated rule (e.g. `https://spec.openapis.org/oas/v3.1.1.html#info-version`), each dialect at its latest patch release. When `--spec-version` overrides detection, the override decides which page is linked; for documents whose dialect is unknown, `--spec-version` is used and 3.1.1 is the default. Unsupported features (Swagger 2.0, OpenAPI 3.2, external `$ref`s) remain link-free: those documents are valid and the errors cite a genoc limitation, not a specification rule. Version/dialect rules now live solely in the version module (the spec reader no longer duplicates them). Fixes #83.
+
 ## 0.4.3
 
 ### Patch Changes
