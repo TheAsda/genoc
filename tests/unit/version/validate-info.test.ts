@@ -2,12 +2,15 @@ import { describe, expect, it } from 'vitest';
 
 import { validateInfo } from '../../../src/parser/version/validate-info.js';
 
-function run(spec: Record<string, unknown>, version: '3.0' | '3.1' = '3.0'): string[] {
+function run(spec: Record<string, unknown>, version: '3.0' | '3.1'): string[] {
   const errors: string[] = [];
   validateInfo(spec, version, errors);
   return errors;
 }
 
+// Spec pages are hardcoded instead of importing SPEC_PAGE: these tests must
+// fail loudly if link rendering ever changes. When a spec patch release bumps
+// SPEC_PAGE, update these expectations in the same commit.
 const DIALECTS = [
   { version: '3.0', page: 'https://spec.openapis.org/oas/v3.0.4.html' },
   { version: '3.1', page: 'https://spec.openapis.org/oas/v3.1.1.html' },
