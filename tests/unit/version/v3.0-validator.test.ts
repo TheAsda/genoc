@@ -96,6 +96,19 @@ describe('validateSpec30', () => {
     expectViolation(result.errors, "Info object must have a 'version' field with string value");
   });
 
+  it('should fail for non-string info.title and info.version', () => {
+    const spec = {
+      openapi: '3.0.3',
+      info: { title: 123, version: null },
+      paths: {},
+    };
+
+    const result = validateSpec30(spec);
+    expect(result.valid).toBe(false);
+    expectViolation(result.errors, "Info object must have a 'title' field with string value");
+    expectViolation(result.errors, "Info object must have a 'version' field with string value");
+  });
+
   it('should fail for type arrays in schemas (3.1-only)', () => {
     const spec = {
       openapi: '3.0.3',
