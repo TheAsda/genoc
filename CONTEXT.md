@@ -16,7 +16,7 @@ Generators read the AnalyzedSpec and nothing else. The raw OpenAPI document stay
 
 ## Spec violation
 
-A document flaw that contradicts a rule of the applicable OpenAPI dialect: a REQUIRED field missing or wrongly typed, or a feature the dialect forbids. The only thing the version validators reject, and the only errors that carry a spec link.
+A document flaw that contradicts a rule of the applicable OpenAPI dialect: a REQUIRED field missing or wrongly typed, or a feature the dialect forbids. Spec violations are what carry a spec link; the validators also emit a few generation-usability errors that are not spec violations (an empty 3.1 document, for instance, gives genoc nothing to generate).
 
 genoc enforces exactly what the spec prose mandates — presence and type, never value quality the spec leaves unconstrained: `info.title: ""` is a valid title. A document that is valid but beyond genoc (3.2, external `$ref`s) is an unsupported feature, not a spec violation.
 
