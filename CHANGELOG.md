@@ -1,5 +1,11 @@
 # genoc
 
+## 0.5.1
+
+### Patch Changes
+
+- 2eeec7b: Accept empty-string `info.title` and `info.version`. The OpenAPI specification requires these fields to be present strings but imposes no requirement on the value, so `title: ""` / `version: ""` are no longer rejected. Fixes #85.
+
 ## 0.5.0
 
 ### Minor Changes
