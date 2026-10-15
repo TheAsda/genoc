@@ -50,6 +50,65 @@ describe('validateSpec30', () => {
     );
   });
 
+  it('should accept empty-string info.title', () => {
+    const spec = {
+      openapi: '3.0.3',
+      info: { title: '', version: '1.0.0' },
+      paths: {},
+    };
+
+    const result = validateSpec30(spec);
+    expect(result.valid).toBe(true);
+  });
+
+  it('should accept empty-string info.version', () => {
+    const spec = {
+      openapi: '3.0.3',
+      info: { title: 'Test', version: '' },
+      paths: {},
+    };
+
+    const result = validateSpec30(spec);
+    expect(result.valid).toBe(true);
+  });
+
+  it('should fail for missing info.title', () => {
+    const spec = {
+      openapi: '3.0.3',
+      info: { version: '1.0.0' },
+      paths: {},
+    };
+
+    const result = validateSpec30(spec);
+    expect(result.valid).toBe(false);
+    expectViolation(result.errors, "Info object must have a 'title' field with string value");
+  });
+
+  it('should fail for missing info.version', () => {
+    const spec = {
+      openapi: '3.0.3',
+      info: { title: 'Test' },
+      paths: {},
+    };
+
+    const result = validateSpec30(spec);
+    expect(result.valid).toBe(false);
+    expectViolation(result.errors, "Info object must have a 'version' field with string value");
+  });
+
+  it('should fail for non-string info.title and info.version', () => {
+    const spec = {
+      openapi: '3.0.3',
+      info: { title: 123, version: null },
+      paths: {},
+    };
+
+    const result = validateSpec30(spec);
+    expect(result.valid).toBe(false);
+    expectViolation(result.errors, "Info object must have a 'title' field with string value");
+    expectViolation(result.errors, "Info object must have a 'version' field with string value");
+  });
+
   it('should fail for type arrays in schemas (3.1-only)', () => {
     const spec = {
       openapi: '3.0.3',

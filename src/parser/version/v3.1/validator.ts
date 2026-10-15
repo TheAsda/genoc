@@ -54,12 +54,12 @@ export function validateSpec31(spec: unknown): ValidationResult {
     );
   } else {
     const info = s.info as Record<string, unknown>;
-    if (!info.title || typeof info.title !== 'string') {
+    if (typeof info.title !== 'string') {
       errors.push(
         violation('info-title', "Info object must have a 'title' field with string value")
       );
     }
-    if (!info.version || typeof info.version !== 'string') {
+    if (typeof info.version !== 'string') {
       errors.push(
         violation('info-version', "Info object must have a 'version' field with string value")
       );
