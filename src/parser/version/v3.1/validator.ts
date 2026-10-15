@@ -1,4 +1,5 @@
 import { specViolation, type SpecLinkKey } from '../spec-links.js';
+import { validateInfo } from '../validate-info.js';
 import { validateSecurity } from '../validate-security.js';
 import type { ValidationResult } from '../validate.js';
 
@@ -14,7 +15,7 @@ const violation = (key: SpecLinkKey, message: string): string => specViolation('
  * 3.1-specific validation rules:
  * - `openapi` must start with "3.1"
  * - at least one of `paths`, `components`, or `webhooks` (unlike 3.0 where `paths` is required)
- * - `info` with `title` and `version` required
+ * - `info` with `title` and `version` required (shared rule)
  * - `paths` must be an object when present
  * - `components.schemas` entries must be objects, validated recursively for 3.0-only features
  * - Warns about 3.0-only features in schemas: `nullable`, boolean `exclusiveMinimum`/`exclusiveMaximum`,
@@ -48,23 +49,7 @@ export function validateSpec31(spec: unknown): ValidationResult {
     );
   }
 
-  if (!s.info || typeof s.info !== 'object' || Array.isArray(s.info)) {
-    errors.push(
-      violation('info-object', "OpenAPI specification must have an 'info' field with object value")
-    );
-  } else {
-    const info = s.info as Record<string, unknown>;
-    if (typeof info.title !== 'string') {
-      errors.push(
-        violation('info-title', "Info object must have a 'title' field with string value")
-      );
-    }
-    if (typeof info.version !== 'string') {
-      errors.push(
-        violation('info-version', "Info object must have a 'version' field with string value")
-      );
-    }
-  }
+  validateInfo(s, '3.1', errors);
 
   if (!s.paths && !s.components && !s.webhooks) {
     // Not a spec violation: all three fields are optional in 3.1; the check
