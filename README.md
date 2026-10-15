@@ -129,3 +129,8 @@ For the full example of catching and narrowing errors, see [Error handling](./do
 ## License
 
 [MIT](./LICENSE). Copyright © Andrey Kiselev
+
+## Auto-review smoke test
+
+This line exists to exercise the webhook → T3 auto-review pipeline end to end.
+Safe to revert.
