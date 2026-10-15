@@ -20,6 +20,12 @@ A document flaw that contradicts a rule of the applicable OpenAPI dialect: a REQ
 
 genoc enforces exactly what the spec prose mandates — presence and type, never value quality the spec leaves unconstrained: `info.title: ""` is a valid title. A document that is valid but beyond genoc (3.2, external `$ref`s) is an unsupported feature, not a spec violation.
 
+## Shared rule
+
+A validation rule stated identically by more than one dialect, so its check lives once in a shared module under `src/parser/version/` (`validate-security.ts`, `validate-info.ts`) rather than in each dialect's validator file. The module takes the dialect as a parameter — `(spec, version, errors)` — and renders its own spec links, so the same message cites each dialect's own spec page.
+
+Rules that are identical except for a small delta parameterize the delta per version inside the shared module (security scheme types, for instance); genuinely dialect-specific rules stay in the per-dialect validator files. The published dialects are frozen documents, so a rule identical across two of them stays identical — sharing costs nothing and keeps genoc-side changes out of lockstep edits.
+
 ## Security Scheme
 
 One named authentication mechanism, declared in `components.securitySchemes` — the only declaration site in both 3.0 and 3.1 (external-document references are outside the boundary). Typed by `type`: `apiKey`, `http`, `oauth2`, `openIdConnect`, plus `mutualTLS` in 3.1 only.
