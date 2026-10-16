@@ -1,0 +1,53 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Concrete discriminator base — OAS Pet example (no mapping)",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/pets": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "ok",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Pet" } }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Pet": {
+        "type": "object",
+        "required": ["name", "petType"],
+        "properties": { "name": { "type": "string" }, "petType": { "type": "string" } },
+        "discriminator": { "propertyName": "petType" }
+      },
+      "Cat": {
+        "allOf": [
+          { "$ref": "#/components/schemas/Pet" },
+          {
+            "type": "object",
+            "required": ["huntingSkill"],
+            "properties": { "huntingSkill": { "type": "string" } }
+          }
+        ]
+      },
+      "Dog": {
+        "allOf": [
+          { "$ref": "#/components/schemas/Pet" },
+          {
+            "type": "object",
+            "required": ["packSize"],
+            "properties": { "packSize": { "type": "integer" } }
+          }
+        ]
+      }
+    }
+  }
+}

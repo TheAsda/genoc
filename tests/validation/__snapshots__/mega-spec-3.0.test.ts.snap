@@ -74,9 +74,8 @@ export type AnyOfSchema = string | number;
 
 /** Discriminator schema */
 export type DiscriminatorSchema = {
-  "type": string;
   value?: string;
-};
+} & { "type": 'DiscriminatorSchema' };
 
 /** Enum schema */
 export type EnumSchema = 'option1' | 'option2' | 'option3';
@@ -206,7 +205,7 @@ export type RefWithSibling = (RefTarget & {
 /** Raw file content */
 export type File = string;
 
-export type DiscriminatorSchemaVariant = StringType | NumberType;
+export type DiscriminatorSchemaVariant = DiscriminatorSchema | StringType | NumberType;
 
 export type ApiKeyQueryAuth = { type: 'apiKey'; name: 'api_key'; in: 'query' };
 
@@ -2840,9 +2839,8 @@ export type AnyOfSchema = string | number;
 
 /** Discriminator schema */
 export type DiscriminatorSchema = {
-  "type": string;
   value?: string;
-};
+} & { "type": 'DiscriminatorSchema' };
 
 /** Enum schema */
 export type EnumSchema = 'option1' | 'option2' | 'option3';
@@ -2972,7 +2970,7 @@ export type RefWithSibling = (RefTarget & {
 /** Raw file content */
 export type File = string;
 
-export type DiscriminatorSchemaVariant = StringType | NumberType;
+export type DiscriminatorSchemaVariant = DiscriminatorSchema | StringType | NumberType;
 
 export type ApiKeyQueryAuth = { type: 'apiKey'; name: 'api_key'; in: 'query' };
 

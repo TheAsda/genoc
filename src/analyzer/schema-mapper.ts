@@ -100,6 +100,8 @@ interface SpineContext {
   familyId: string;
   propertyName: string;
   literalValue: string;
+  /** The spine's entry is the family base itself (#93) — its definition's `{ P: string }` placeholder is replaced by the literal. */
+  isBaseMember: boolean;
 }
 
 function spineForEntry(entry: DiscriminatorVariantEntry): SpineContext {
@@ -107,6 +109,7 @@ function spineForEntry(entry: DiscriminatorVariantEntry): SpineContext {
     familyId: entry.familyId,
     propertyName: entry.propertyName,
     literalValue: entry.literalValue,
+    isBaseMember: entry.isBaseMember,
   };
 }
 
@@ -471,7 +474,19 @@ export class SchemaMapper {
 
     const baseFamily = registry.baseRefs.get(refStr) ?? registry.baseRefs.get(canonical);
     if (baseFamily) {
+      const baseEntry = baseFamily.entriesByRef.get(baseFamily.baseRefStr);
+      if (spine && spine.familyId === baseFamily.familyId && baseEntry) {
+        // Member base inside its own family spine (#93): the base joins as a
+        // variant through the entry seam — `Omit<Base, P>` — so the child's
+        // literal append never collides with the base's own.
+        return this.mapSameFamilySpineRef(baseEntry, context, visited, indent);
+      }
       if (spine && spine.familyId === baseFamily.familyId) {
+        return { tsType: baseFamily.baseTypeName, imports: [baseFamily.baseTypeName] };
+      }
+      // Empty family (#93): no members at all — refs fall back to the bare
+      // base name instead of an undeclared `{Base}Variant` union.
+      if (baseFamily.variantUnionMembers.length === 0) {
         return { tsType: baseFamily.baseTypeName, imports: [baseFamily.baseTypeName] };
       }
       return { tsType: baseFamily.variantUnionName, imports: [baseFamily.variantUnionName] };
@@ -872,7 +887,9 @@ export class SchemaMapper {
     const memberLines: string[] = [];
     const allImports: string[] = [];
 
-    if (schema.discriminator) {
+    if (schema.discriminator && !spine?.isBaseMember) {
+      // A member base's placeholder (`"${discPropName}": string;`) is skipped:
+      // its literal append replaces the declared property outright (#93).
       const discPropName = schema.discriminator.propertyName;
       const discIndex = filteredPropNames.indexOf(discPropName);
       if (discIndex !== -1) {

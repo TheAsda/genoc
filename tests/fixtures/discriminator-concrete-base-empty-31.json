@@ -1,0 +1,77 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Concrete discriminator base — 3.1 parity and empty family",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/Entities/Find": {
+      "get": {
+        "parameters": [
+          { "name": "take", "in": "query", "schema": { "type": "integer" } },
+          { "name": "skip", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Entity" } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Orphans": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "ok",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Orphan" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Entity": {
+        "type": "object",
+        "required": ["$type", "id", "name"],
+        "properties": {
+          "$type": { "type": "string" },
+          "id": { "type": "string" },
+          "name": { "type": "string" }
+        },
+        "discriminator": {
+          "propertyName": "$type",
+          "mapping": {
+            "Entity": "#/components/schemas/Entity",
+            "EntityDetails": "#/components/schemas/EntityDetails"
+          }
+        }
+      },
+      "EntityDetails": {
+        "allOf": [
+          { "$ref": "#/components/schemas/Entity" },
+          {
+            "type": "object",
+            "required": ["shortName"],
+            "properties": { "shortName": { "type": "string" } }
+          }
+        ]
+      },
+      "Orphan": {
+        "oneOf": [{ "type": "object" }],
+        "discriminator": {
+          "propertyName": "kind"
+        }
+      }
+    }
+  }
+}

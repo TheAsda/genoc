@@ -350,7 +350,8 @@ describe('discriminator registry', () => {
 
       const family = registry.families.get('Thing');
       expect(family?.variantUnionName).toBe('ThingVariantModel');
-      expect(family?.variantUnionMembers).toEqual(['UpdateThing']);
+      // #93: the concrete base joins its own union as the first member.
+      expect(family?.variantUnionMembers).toEqual(['Thing', 'UpdateThing']);
     });
 
     it('keeps the plain {Base}Variant name when no collision exists', () => {
