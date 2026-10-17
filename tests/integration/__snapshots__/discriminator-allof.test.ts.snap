@@ -80,20 +80,19 @@ export {
 } from 'genoc/runtime';
 
 export type Pet = {
-  "$type": string;
   name?: string;
   age?: number;
-};
+} & { $type: 'Pet' };
 
-export type Cat = Pet & {
+export type Cat = Omit<Pet, '$type'> & {
   meow?: string;
 } & { $type: 'Cat' };
 
-export type Dog = Pet & {
+export type Dog = Omit<Pet, '$type'> & {
   bark?: string;
 } & { $type: 'Dog' };
 
-export type PetVariant = Cat | Dog;
+export type PetVariant = Pet | Cat | Dog;
 
 /** List of pets */
 export type GetPetsResponse = PetVariant[];

@@ -4,16 +4,18 @@
 // Run: npx tsc --strict --noEmit --module nodenext --moduleResolution nodenext \
 //       --ignoreConfig tests/type-assertions/cross-variant-assignability.ts
 //
-// Asserts the discriminator cross-variant semantics: every variant type is
-// usable (not `never`), accepts a fully-populated object literal carrying the
-// parent's props plus the variant's OWN discriminant literal, and rejects
-// sibling / wrong-discriminant literals. This file compiles standalone —
-// `genoc/runtime` is the only external module a fresh clone needs to resolve.
+// Asserts the discriminator cross-variant semantics: every variant type —
+// including a concrete base that joins its own union (#93) — is usable
+// (not `never`), accepts a fully-populated object literal carrying its OWN
+// discriminant literal, and rejects sibling / wrong-discriminant literals.
+// This file compiles standalone — `genoc/runtime` is the only external module
+// a fresh clone needs to resolve.
 //
 // Like tests/type-assertions/is-defined-error-types.ts, the shapes below are
 // inline replicas of generator output (not imports of generated files), so the
 // assertions survive without a generation step. They were transcribed verbatim
-// from real generated contracts on fix/discriminator-cross-variant @ e278932:
+// from real generated contracts on the #93 concrete-base fix (base joins its
+// union, children strip the discriminant via Omit):
 //   node dist/cli/index.js tests/fixtures/dotnet-polymorphism-cross-variant.json --output-dir .tmp-qa/cross-variant
 //   node dist/cli/index.js tests/fixtures/discriminator-spine-topologies.json --output-dir .tmp-qa/spine-topologies
 // If the generator changes shape, regenerate and re-transcribe before trusting a green run.
@@ -23,6 +25,7 @@ type Accepts<T, U> = U extends T ? true : false;
 
 // --- Replica of generated format-branded strings -----------------------------
 type UuidString = string & { readonly __format?: 'uuid' };
+type DateTimeString = string & { readonly __format?: 'date-time' };
 
 // Shared values for branded props (keeps the sweep about variant usability,
 // not about string-literal assignability to branded strings).
@@ -30,25 +33,41 @@ declare const anId: UuidString;
 
 // ===========================================================================
 // Fixture: dotnet-polymorphism-cross-variant.json
-// Family BaseThing (prop `$type`): Partial / Full / Create
-// Family BaseArtifact (prop `$type`): Bulletin
+// Family BaseThing (prop `$type`): BaseThing / Partial / Full / Create
+// Family BaseArtifact (prop `$type`): BaseArtifact / Bulletin
 // ===========================================================================
 
-type BaseThing = { $type: string; id: UuidString };
-type PartialThing = BaseThing & Record<string, unknown> & { $type: 'Partial' };
-type UpdateThing = BaseThing & {
+type BaseThing = {
+  id: UuidString;
+} & { $type: 'BaseThing' };
+type PartialThing = Omit<BaseThing, '$type'> & Record<string, unknown> & { $type: 'Partial' };
+type UpdateThing = Omit<BaseThing, '$type'> & {
   name: string;
   description?: string;
+  detectionDateTime?: DateTimeString;
   bulletin?: BulletinArtifact;
+  affectedReleaseIds?: number[];
 } & { $type: 'Full' };
 type CreateThing = Omit<UpdateThing, '$type'> & Record<string, unknown> & { $type: 'Create' };
-type BaseThingVariant = PartialThing | UpdateThing | CreateThing;
+type BaseThingVariant = BaseThing | PartialThing | UpdateThing | CreateThing;
 
-type BaseArtifact = { $type: string; artifactId: string };
-type BulletinArtifact = BaseArtifact & {
+type BaseArtifact = {
+  artifactId: string;
+} & { $type: 'BaseArtifact' };
+type BulletinArtifact = Omit<BaseArtifact, '$type'> & {
   url: string;
 } & { $type: 'Bulletin' };
-type BaseArtifactVariant = BulletinArtifact;
+type BaseArtifactVariant = BaseArtifact | BulletinArtifact;
+
+// --- BaseThing (concrete base joins its own union, #93) ----------------------
+declare const baseThingIsNever: IsNever<BaseThing>;
+const _baseThingNotNever: false = baseThingIsNever;
+const baseThingOk: BaseThing = { $type: 'BaseThing', id: anId };
+declare const baseThingRejectsPartial: Accepts<
+  BaseThing,
+  { $type: 'Partial'; id: UuidString; extra: string }
+>;
+const _baseThingRejectsPartial: false = baseThingRejectsPartial;
 
 // --- PartialThing ------------------------------------------------------------
 declare const partialIsNever: IsNever<PartialThing>;
@@ -89,13 +108,14 @@ const _createRejectsPartial: false = createRejectsPartial;
 // --- BaseThingVariant union (always emitted, collision-safe name) ------------
 declare const baseThingVariantIsNever: IsNever<BaseThingVariant>;
 const _baseThingVariantNotNever: false = baseThingVariantIsNever;
+const variantAsBase: BaseThingVariant = { $type: 'BaseThing', id: anId };
 const variantAsPartial: BaseThingVariant = { $type: 'Partial', id: anId };
 const variantAsUpdate: BaseThingVariant = { $type: 'Full', id: anId, name: 'u' };
 const variantAsCreate: BaseThingVariant = { $type: 'Create', id: anId, name: 'c' };
 declare const variantRejectsEmpty: Accepts<BaseThingVariant, Record<string, never>>;
 const _variantRejectsEmpty: false = variantRejectsEmpty;
 
-// --- BulletinArtifact (single-member family still gets its own variant) ------
+// --- BulletinArtifact (mapped variant still Omit-strips the base literal) ----
 declare const bulletinIsNever: IsNever<BulletinArtifact>;
 const _bulletinNotNever: false = bulletinIsNever;
 const bulletinOk: BulletinArtifact = { $type: 'Bulletin', artifactId: 'a1', url: 'https://x' };
@@ -108,6 +128,7 @@ const _bulletinRejectsWrongLiteral: false = bulletinRejectsWrongLiteral;
 // --- BaseArtifactVariant union -----------------------------------------------
 declare const baseArtifactVariantIsNever: IsNever<BaseArtifactVariant>;
 const _baseArtifactVariantNotNever: false = baseArtifactVariantIsNever;
+const artifactVariantAsBase: BaseArtifactVariant = { $type: 'BaseArtifact', artifactId: 'a1' };
 const artifactVariantOk: BaseArtifactVariant = {
   $type: 'Bulletin',
   artifactId: 'a1',
@@ -120,10 +141,10 @@ const artifactVariantOk: BaseArtifactVariant = {
 //           Uni0(uni) / Self0(self)
 // ===========================================================================
 
-type Chain0 = { chain: string };
-type ChainMid = Chain0 & { level: number } & { chain: 'mid' };
+type Chain0 = {} & { chain: 'Chain0' };
+type ChainMid = Omit<Chain0, 'chain'> & { level: number } & { chain: 'mid' };
 type ChainLeaf = Omit<ChainMid, 'chain'> & { leafNote: string } & { chain: 'leaf' };
-type Chain0Variant = ChainMid | ChainLeaf;
+type Chain0Variant = Chain0 | ChainMid | ChainLeaf;
 
 // --- ChainMid / ChainLeaf (grandchild chain: Omit through the middle) --------
 declare const chainMidIsNever: IsNever<ChainMid>;
@@ -141,19 +162,20 @@ const chainLeafOk: ChainLeaf = { chain: 'leaf', level: 2, leafNote: 'l' };
 declare const chainLeafRejectsMid: Accepts<ChainLeaf, { chain: 'mid'; level: number }>;
 const _chainLeafRejectsMid: false = chainLeafRejectsMid;
 
+const chainVariantAsBase: Chain0Variant = { chain: 'Chain0' };
 const chainVariantOk: Chain0Variant = { chain: 'leaf', level: 2, leafNote: 'l' };
 declare const chainVariantIsNever: IsNever<Chain0Variant>;
 const _chainVariantNotNever: false = chainVariantIsNever;
 declare const chainVariantRejectsNoDiscriminant: Accepts<Chain0Variant, { level: number }>;
 const _chainVariantRejectsNoDiscriminant: false = chainVariantRejectsNoDiscriminant;
 
-type Loop0 = { loop: string };
-type LoopAlpha = Loop0 & { alphaNote: string } & { loop: 'alpha' };
-type LoopBeta = Loop0 & {
+type Loop0 = {} & { loop: 'Loop0' };
+type LoopAlpha = Omit<Loop0, 'loop'> & { alphaNote: string } & { loop: 'alpha' };
+type LoopBeta = Omit<Loop0, 'loop'> & {
   betaNote: string;
   partner?: LoopAlpha;
 } & { loop: 'beta' };
-type Loop0Variant = LoopAlpha | LoopBeta;
+type Loop0Variant = Loop0 | LoopAlpha | LoopBeta;
 
 // --- LoopAlpha / LoopBeta (property-ref back-edge stays a bare name) ---------
 declare const loopAlphaIsNever: IsNever<LoopAlpha>;
@@ -170,14 +192,18 @@ const loopBetaOkMinimal: LoopBeta = { loop: 'beta', betaNote: 'b' };
 declare const loopBetaRejectsAlpha: Accepts<LoopBeta, { loop: 'alpha'; alphaNote: string }>;
 const _loopBetaRejectsAlpha: false = loopBetaRejectsAlpha;
 
+const loopVariantAsBase: Loop0Variant = { loop: 'Loop0' };
 declare const loopVariantIsNever: IsNever<Loop0Variant>;
 const _loopVariantNotNever: false = loopVariantIsNever;
 const loopVariantOk: Loop0Variant = { loop: 'alpha', alphaNote: 'a' };
 
-type Multi0 = { mult: string };
-type MultiLeft = Multi0 & { leftNote: string } & { mult: 'left' };
-type MultiRight = Multi0 & Omit<MultiLeft, 'mult'> & { rightNote: string } & { mult: 'right' };
-type Multi0Variant = MultiLeft | MultiRight;
+type Multi0 = {} & { mult: 'Multi0' };
+type MultiLeft = Omit<Multi0, 'mult'> & { leftNote: string } & { mult: 'left' };
+type MultiRight = Omit<Multi0, 'mult'> &
+  Omit<MultiLeft, 'mult'> & { rightNote: string } & {
+    mult: 'right';
+  };
+type Multi0Variant = Multi0 | MultiLeft | MultiRight;
 
 // --- MultiLeft / MultiRight (multi-parent: base + same-family sibling) -------
 declare const multiLeftIsNever: IsNever<MultiLeft>;
@@ -195,13 +221,14 @@ const multiRightOk: MultiRight = { mult: 'right', leftNote: 'l', rightNote: 'r' 
 declare const multiRightRejectsLeft: Accepts<MultiRight, { mult: 'left'; leftNote: string }>;
 const _multiRightRejectsLeft: false = multiRightRejectsLeft;
 
+const multiVariantAsBase: Multi0Variant = { mult: 'Multi0' };
 declare const multiVariantIsNever: IsNever<Multi0Variant>;
 const _multiVariantNotNever: false = multiVariantIsNever;
 const multiVariantOk: Multi0Variant = { mult: 'right', leftNote: 'l', rightNote: 'r' };
 
-type Const0 = { mode: string };
-type ConstFast = Const0 & { speed: number } & { mode: 'fast' };
-type Const0Variant = ConstFast;
+type Const0 = {} & { mode: 'Const0' };
+type ConstFast = Omit<Const0, 'mode'> & { speed: number } & { mode: 'fast' };
+type Const0Variant = Const0 | ConstFast;
 
 // --- ConstFast (own-enum conflict: mapping key wins, own 'slow' dropped) -----
 declare const constFastIsNever: IsNever<ConstFast>;
@@ -210,16 +237,17 @@ const constFastOk: ConstFast = { mode: 'fast', speed: 42 };
 declare const constFastRejectsOwnEnum: Accepts<ConstFast, { mode: 'slow'; speed: number }>;
 const _constFastRejectsOwnEnum: false = constFastRejectsOwnEnum;
 
+const constVariantAsBase: Const0Variant = { mode: 'Const0' };
 declare const constVariantIsNever: IsNever<Const0Variant>;
 const _constVariantNotNever: false = constVariantIsNever;
 const constVariantOk: Const0Variant = { mode: 'fast', speed: 42 };
 
-type Uni0 = { uni: string };
+type Uni0 = {} & { uni: 'Uni0' };
 type UniA1 = { aOne: string };
 type UniA2 = { aTwo: string };
 type UniMix = (UniA1 | UniA2) & { uni: 'mix' };
-type UniPick = Uni0 & (UniA1 | UniA2) & { pickNote: string } & { uni: 'pick' };
-type Uni0Variant = UniMix | UniPick;
+type UniPick = Omit<Uni0, 'uni'> & (UniA1 | UniA2) & { pickNote: string } & { uni: 'pick' };
+type Uni0Variant = Uni0 | UniMix | UniPick;
 
 // --- UniMix / UniPick (oneOf-union spine target: literal appends to union) ---
 declare const uniMixIsNever: IsNever<UniMix>;
@@ -236,18 +264,20 @@ const uniPickOkA2: UniPick = { uni: 'pick', aTwo: '2', pickNote: 'p' };
 declare const uniPickRejectsMix: Accepts<UniPick, { uni: 'mix'; aOne: string }>;
 const _uniPickRejectsMix: false = uniPickRejectsMix;
 
+const uniVariantAsBase: Uni0Variant = { uni: 'Uni0' };
 declare const uniVariantIsNever: IsNever<Uni0Variant>;
 const _uniVariantNotNever: false = uniVariantIsNever;
 const uniVariantOk: Uni0Variant = { uni: 'mix', aOne: '1' };
 
-type Self0 = { self: string };
-type Self0Variant = SelfKid;
-type SelfKid = Self0 & {
+type Self0 = {} & { self: 'Self0' };
+type SelfKid = Omit<Self0, 'self'> & {
   parent: Self0Variant;
   kidNote?: string;
 } & { self: 'kid' };
+type Self0Variant = Self0 | SelfKid;
 
 // --- SelfKid (base ref in a property widens: parent: Self0Variant) -----------
+const selfVariantAsBase: Self0Variant = { self: 'Self0' };
 declare const selfVariantValue: Self0Variant;
 declare const selfKidIsNever: IsNever<SelfKid>;
 const _selfKidNotNever: false = selfKidIsNever;

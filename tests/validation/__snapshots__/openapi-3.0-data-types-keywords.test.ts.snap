@@ -134,15 +134,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Pet = {
-  "petType": string;
-};
+export type Pet = {} & { petType: 'Pet' };
 
-export type Cat = Pet & {
+export type Cat = Omit<Pet, 'petType'> & {
   meow?: boolean;
 } & { petType: 'cat' };
 
-export type Dog = Pet & {
+export type Dog = Omit<Pet, 'petType'> & {
   bark?: boolean;
 } & { petType: 'dog' };
 
@@ -150,7 +148,7 @@ export type PetVariant = Cat | Dog;
 
 export type MixedUnion = string | number;
 
-export type PetVariantModel = Cat | Dog;
+export type PetVariantModel = Pet | Cat | Dog;
 
 export type PetVariantVariant = Cat | Dog;"
 `;
@@ -192,15 +190,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Pet = {
-  "petType": string;
-};
+export type Pet = {} & { petType: 'Pet' };
 
-export type Cat = Pet & {
+export type Cat = Omit<Pet, 'petType'> & {
   meow?: boolean;
 } & { petType: 'cat' };
 
-export type Dog = Pet & {
+export type Dog = Omit<Pet, 'petType'> & {
   bark?: boolean;
 } & { petType: 'dog' };
 
@@ -208,7 +204,7 @@ export type PetVariant = Cat | Dog;
 
 export type MixedUnion = string | number;
 
-export type PetVariantModel = Cat | Dog;
+export type PetVariantModel = Pet | Cat | Dog;
 
 export type PetVariantVariant = Cat | Dog;"
 `;
@@ -226,15 +222,13 @@ export {
   ErrorResponse,
 } from 'genoc/runtime';
 
-export type Pet = {
-  "petType": string;
-};
+export type Pet = {} & { petType: 'Pet' };
 
-export type Cat = Pet & {
+export type Cat = Omit<Pet, 'petType'> & {
   meow?: boolean;
 } & { petType: 'cat' };
 
-export type Dog = Pet & {
+export type Dog = Omit<Pet, 'petType'> & {
   bark?: boolean;
 } & { petType: 'dog' };
 
@@ -242,7 +236,7 @@ export type PetVariant = Cat | Dog;
 
 export type MixedUnion = string | number;
 
-export type PetVariantModel = Cat | Dog;
+export type PetVariantModel = Pet | Cat | Dog;
 
 export type PetVariantVariant = Cat | Dog;"
 `;

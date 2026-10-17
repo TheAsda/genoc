@@ -105,10 +105,18 @@ export interface DiscriminatorVariantEntry {
   isNullable: boolean;
   /** Owning family id — the discriminator base's raw component name. */
   familyId: string;
-  /** The exact `$ref` string that produced this entry (mapping value or oneOf/anyOf member ref). */
+  /** The exact `$ref` string that produced this entry (mapping value, oneOf/anyOf member ref, canonical base ref, or implicit allOf child ref). */
   refStr: string;
   /** Rename-aware type name for the ref (same derivation as the mapper's `typeNameGenerator`). */
   typeName: string;
+  /**
+   * True for the family base's own entry — the base participates in its own
+   * family union (self-mapped, or no `oneOf`/`anyOf` of its own). Consumers:
+   * same-family-spine base-ref translation routes through the entry seam
+   * (`Omit<Base, P>`), and the mapper skips the `{ P: string }` placeholder on
+   * the base's own definition because the literal replaces it.
+   */
+  isBaseMember: boolean;
 }
 
 /**
@@ -130,7 +138,7 @@ export interface DiscriminatorFamily {
   propertyName: string;
   /** Collision-safe `{Base}Variant` union name (D6 — via the reserved-name machinery). */
   variantUnionName: string;
-  /** Union member type names (rename-aware, deduped; mapping order, then unmapped oneOf/anyOf refs). */
+  /** Union member type names (rename-aware, deduped; entry insertion order: base, mapping, unmapped oneOf/anyOf refs, implicit allOf children). */
   variantUnionMembers: string[];
   /** Family entries keyed by the FULL `$ref` string (mapping value or oneOf/anyOf member ref). */
   entriesByRef: Map<string, DiscriminatorVariantEntry>;
@@ -194,9 +202,33 @@ export function buildDiscriminatorRegistry(
   };
   if (!schemas) return registry;
 
-  // Pass 1 — discover families; per family, register mapping entries first
-  // (D3: mapping key wins), then implicit oneOf/anyOf variants absent from
-  // the mapping (literal = own const > single-value enum > RAW ref segment).
+  // Implicit allOf children (issue #93): a schema whose `allOf` references a
+  // family base DIRECTLY is a variant of that family even when `mapping` and
+  // the base's own oneOf/anyOf leave it out. Index childName → the set of
+  // canonical `#/components/schemas/…` refs it allOfs, once, up front —
+  // grandchildren (allOf a child, not the base) stay out by construction.
+  const allOfBasesByChild = new Map<string, Set<string>>();
+  for (const [childName, childSchema] of Object.entries(schemas)) {
+    let childResolved: SchemaObject;
+    try {
+      childResolved = resolver.resolve<SchemaObject>(childSchema as SchemaObject | ReferenceObject);
+    } catch {
+      continue;
+    }
+    if (!childResolved.allOf) continue;
+    const bases = new Set<string>();
+    for (const member of childResolved.allOf) {
+      if (!isRefObject(member) || !member.$ref.startsWith('#/components/schemas/')) continue;
+      bases.add(`#/components/schemas/${encodePointerSegment(rawRefSegment(member.$ref))}`);
+    }
+    if (bases.size > 0) allOfBasesByChild.set(childName, bases);
+  }
+
+  // Pass 1 — discover families; per family, register the base's own entry
+  // when it joins its family (self-mapped, or no oneOf/anyOf of its own),
+  // then mapping entries (D3: mapping key wins), then implicit oneOf/anyOf
+  // variants absent from the mapping (literal = own const > single-value
+  // enum > RAW ref segment), then implicit allOf children absent from both.
   for (const [name, schema] of Object.entries(schemas)) {
     const resolved = resolver.resolve<SchemaObject>(schema as SchemaObject | ReferenceObject);
     const disc = resolved.discriminator;
@@ -213,11 +245,50 @@ export function buildDiscriminatorRegistry(
       entriesByRef: new Map(),
     };
 
+    // Base membership (#93): a CONCRETE base (no oneOf/anyOf of its own) is a
+    // variant of its own family even when `mapping` omits it — with no other
+    // members the family would otherwise reference an empty union. A base
+    // listed in its own mapping joins too (its key wins the literal, D3).
+    // Insertion order matters: the base entry lands FIRST so union members
+    // read `{Base} | <mapped…> | <implicit…>`.
+    const baseHasOwnUnion = (resolved.oneOf?.length ?? 0) > 0 || (resolved.anyOf?.length ?? 0) > 0;
+    const selfMappingKey = disc.mapping
+      ? Object.entries(disc.mapping).find(([, refStr]) => refStr === family.baseRefStr)?.[0]
+      : undefined;
+    if (selfMappingKey !== undefined || !baseHasOwnUnion) {
+      const ownBaseLiteral = resolveOwnDiscriminatorLiteral(resolved, disc.propertyName, resolver);
+      if (
+        selfMappingKey !== undefined &&
+        ownBaseLiteral !== undefined &&
+        ownBaseLiteral.value !== selfMappingKey
+      ) {
+        warn(
+          `Warning: Discriminator mapping key "${selfMappingKey}" for "${family.baseRefStr}" conflicts with its own declared ${ownBaseLiteral.source} literal "${ownBaseLiteral.value}"; the mapping key wins.\n`
+        );
+      }
+      family.entriesByRef.set(family.baseRefStr, {
+        propertyName: disc.propertyName,
+        // Base literal precedence: self-mapping key > own const/enum > raw
+        // component name (the runtime value, NOT the sanitized type name).
+        literalValue: escapeStringLiteral(selfMappingKey ?? ownBaseLiteral?.value ?? name),
+        isNamed: true, // the base is by definition an emitted component schema
+        isUnion: baseHasOwnUnion,
+        isNullable:
+          resolved.nullable === true ||
+          (Array.isArray(resolved.type) ? resolved.type.includes('null') : false),
+        isBaseMember: true,
+        familyId,
+        refStr: family.baseRefStr,
+        typeName: family.baseTypeName,
+      });
+    }
+
     const mappedRefStrs = new Set<string>();
     if (disc.mapping) {
       for (const [mappingKey, refStr] of Object.entries(disc.mapping)) {
         if (mappedRefStrs.has(refStr)) continue; // two keys → same target: first key wins
         mappedRefStrs.add(refStr);
+        if (family.entriesByRef.has(refStr)) continue; // base self-mapping — the base entry already carries it
         const target = resolveTargetSchema(resolver, refStr);
         const own = resolveOwnDiscriminatorLiteral(target, disc.propertyName, resolver);
         if (own !== undefined && own.value !== mappingKey) {
@@ -234,6 +305,7 @@ export function buildDiscriminatorRegistry(
           isNullable:
             target?.nullable === true ||
             (Array.isArray(target?.type) ? target.type.includes('null') : false),
+          isBaseMember: false,
           familyId,
           refStr,
           typeName: renameAwareTypeName(renameMap, rawSegment),
@@ -247,7 +319,7 @@ export function buildDiscriminatorRegistry(
       if (isRefObject(member)) implicitRefs.push(member.$ref);
     }
     for (const refStr of implicitRefs) {
-      if (mappedRefStrs.has(refStr)) continue; // already registered via mapping
+      if (mappedRefStrs.has(refStr) || family.entriesByRef.has(refStr)) continue; // already registered
       const target = resolveTargetSchema(resolver, refStr);
       const own = resolveOwnDiscriminatorLiteral(target, disc.propertyName, resolver);
       const rawSegment = rawRefSegment(refStr);
@@ -262,6 +334,7 @@ export function buildDiscriminatorRegistry(
         isNullable:
           target?.nullable === true ||
           (Array.isArray(target?.type) ? target.type.includes('null') : false),
+        isBaseMember: false,
         familyId,
         refStr,
         typeName: renameAwareTypeName(renameMap, rawSegment),
@@ -269,12 +342,40 @@ export function buildDiscriminatorRegistry(
       family.entriesByRef.set(refStr, entry);
     }
 
+    // Implicit allOf children (#93): direct `allOf` refs to the base count as
+    // variants even when `mapping` leaves them out; anything already present
+    // (mapping target, implicit oneOf/anyOf ref, the base itself) is skipped,
+    // so children land in component order after the mapped/implicit members.
+    for (const [childName, bases] of allOfBasesByChild) {
+      if (!bases.has(family.baseRefStr)) continue;
+      const childRefStr = `#/components/schemas/${encodePointerSegment(childName)}`;
+      if (family.entriesByRef.has(childRefStr)) continue;
+      const target = resolveTargetSchema(resolver, childRefStr);
+      const own = resolveOwnDiscriminatorLiteral(target, disc.propertyName, resolver);
+      const entry: DiscriminatorVariantEntry = {
+        propertyName: disc.propertyName,
+        // Same D3 fallback chain as unmapped oneOf/anyOf variants.
+        literalValue: escapeStringLiteral(own?.value ?? childName),
+        isNamed: allSchemaNames.has(renameAwareTypeName(renameMap, childName)),
+        isUnion: (target?.oneOf?.length ?? 0) > 0 || (target?.anyOf?.length ?? 0) > 0,
+        isNullable:
+          target?.nullable === true ||
+          (Array.isArray(target?.type) ? target.type.includes('null') : false),
+        isBaseMember: false,
+        familyId,
+        refStr: childRefStr,
+        typeName: renameAwareTypeName(renameMap, childName),
+      };
+      family.entriesByRef.set(childRefStr, entry);
+    }
+
     registry.families.set(familyId, family);
   }
 
   // Pass 2 — flat lookups + per-family name index + union members
-  // (mapping order, then unmapped oneOf/anyOf refs; deduped by refStr and
-  // by typeName — alias refs to one emitted name collapse).
+  // (entry insertion order: base, then mapping, then unmapped oneOf/anyOf
+  // refs, then implicit allOf children; deduped by refStr and by typeName
+  // — alias refs to one emitted name collapse).
   for (const family of registry.families.values()) {
     const memberNames: string[] = [];
     const seenNames = new Set<string>();

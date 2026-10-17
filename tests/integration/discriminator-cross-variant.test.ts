@@ -76,13 +76,15 @@ describe('Discriminator cross-variant integration', () => {
 
     it('T1: UpdateThing keeps the base spine and a single Full literal', () => {
       const update = typeBlock(output.contracts, 'UpdateThing');
-      expect(update).toMatch(/^export type UpdateThing = BaseThing &/);
+      // #93: the concrete base joins its own union, so the child spine strips
+      // the base's discriminant (`Omit`) instead of inheriting it verbatim.
+      expect(update).toMatch(/^export type UpdateThing = Omit<BaseThing, '\$type'> &/);
       expect(update).toMatch(/\{ ["']?\$type["']?: 'Full' \};$/);
     });
 
-    it('T1: PartialThing shape is unchanged (regression pin)', () => {
+    it('T1: PartialThing keeps the base spine with the discriminant stripped (#93)', () => {
       expect(typeBlock(output.contracts, 'PartialThing')).toBe(
-        "export type PartialThing = BaseThing & Record<string, unknown> & { $type: 'Partial' };"
+        "export type PartialThing = Omit<BaseThing, '$type'> & Record<string, unknown> & { $type: 'Partial' };"
       );
     });
 
@@ -201,7 +203,8 @@ describe('Discriminator cross-variant integration', () => {
       // the renamed variants.
       const duplicateDeclarations = output.contracts.match(/^export type ThingVariant = /gm);
       expect(duplicateDeclarations).toHaveLength(1);
-      expect(output.contracts).toMatch(/export type \w+ = UserDto \| UserDtoModel;/);
+      // #93: the concrete base joins its own union as the first member.
+      expect(output.contracts).toMatch(/export type \w+ = Thing \| UserDto \| UserDtoModel;/);
     });
 
     it('generated contracts and client compile with tsc --strict --noEmit', async () => {
