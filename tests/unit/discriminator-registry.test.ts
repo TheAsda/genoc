@@ -334,6 +334,50 @@ describe('discriminator registry', () => {
     });
   });
 
+  describe('self-mapped base literal conflict warning (#93)', () => {
+    it('keeps the self-mapping key and warns when the base declares a conflicting own literal', () => {
+      const warnSink = vi.fn();
+      const registry = buildRegistry(
+        {
+          Base: {
+            ...objectSchema({ kind: { const: 'wrong-literal' } }),
+            discriminator: {
+              propertyName: 'kind',
+              mapping: { Base: '#/components/schemas/Base' },
+            },
+          },
+        },
+        warnSink
+      );
+
+      const base = registry.families.get('Base')?.entriesByRef.get('#/components/schemas/Base');
+      expect(base?.literalValue).toBe('Base');
+      expect(warnSink).toHaveBeenCalledTimes(1);
+      expect(warnSink.mock.calls[0][0]).toContain('"Base"');
+      expect(warnSink.mock.calls[0][0]).toContain('"wrong-literal"');
+    });
+
+    it('does not warn when the self-mapping key matches the own literal', () => {
+      const warnSink = vi.fn();
+      const registry = buildRegistry(
+        {
+          Base: {
+            ...objectSchema({ kind: { const: 'Base' } }),
+            discriminator: {
+              propertyName: 'kind',
+              mapping: { Base: '#/components/schemas/Base' },
+            },
+          },
+        },
+        warnSink
+      );
+
+      const base = registry.families.get('Base')?.entriesByRef.get('#/components/schemas/Base');
+      expect(base?.literalValue).toBe('Base');
+      expect(warnSink).not.toHaveBeenCalled();
+    });
+  });
+
   describe('variant union naming (D6)', () => {
     it('renames the {Base}Variant union when a user schema already owns that name', () => {
       const registry = buildRegistry({

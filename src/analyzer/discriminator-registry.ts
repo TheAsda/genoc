@@ -138,7 +138,7 @@ export interface DiscriminatorFamily {
   propertyName: string;
   /** Collision-safe `{Base}Variant` union name (D6 — via the reserved-name machinery). */
   variantUnionName: string;
-  /** Union member type names (rename-aware, deduped; mapping order, then unmapped oneOf/anyOf refs). */
+  /** Union member type names (rename-aware, deduped; entry insertion order: base, mapping, unmapped oneOf/anyOf refs, implicit allOf children). */
   variantUnionMembers: string[];
   /** Family entries keyed by the FULL `$ref` string (mapping value or oneOf/anyOf member ref). */
   entriesByRef: Map<string, DiscriminatorVariantEntry>;
@@ -373,8 +373,9 @@ export function buildDiscriminatorRegistry(
   }
 
   // Pass 2 — flat lookups + per-family name index + union members
-  // (mapping order, then unmapped oneOf/anyOf refs; deduped by refStr and
-  // by typeName — alias refs to one emitted name collapse).
+  // (entry insertion order: base, then mapping, then unmapped oneOf/anyOf
+  // refs, then implicit allOf children; deduped by refStr and by typeName
+  // — alias refs to one emitted name collapse).
   for (const family of registry.families.values()) {
     const memberNames: string[] = [];
     const seenNames = new Set<string>();
