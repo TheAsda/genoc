@@ -12,8 +12,9 @@ project.
 - **`isDefinedError(err, client.method)`**: type guard that narrows to the method's defined error union
 
 ```typescript
-import { DefaultApiError, UnspecifiedApiError, RequesterFailError } from './contracts.js';
 import { isDefinedError } from 'genoc/runtime';
+
+import { DefaultApiError, UnspecifiedApiError, RequesterFailError } from './contracts.js';
 
 try {
   const result = await client.getPets();
