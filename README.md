@@ -58,9 +58,10 @@ import type { Requester } from 'genoc/runtime';
 For the full `Requester` type signature and binary and stream handling, see [Usage](./docs/usage.md).
 
 ```typescript
-import { createClient } from './client.js';
 import type { Requester } from 'genoc/runtime';
 import { RequesterFailError, ErrorResponse } from 'genoc/runtime';
+
+import { createClient } from './client.js';
 
 const baseUrl = 'https://api.example.com';
 
