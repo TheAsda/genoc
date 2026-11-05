@@ -181,6 +181,103 @@ describe('SchemaMapper', () => {
     });
   });
 
+  describe('typeless object schemas (no explicit type keyword)', () => {
+    // OpenAPI permits omitting `type`: `properties` / `additionalProperties`
+    // imply an object schema. Regression tests: these used to degrade to
+    // `unknown`.
+    it('maps typeless schema with properties to an inline object type', () => {
+      const result = mapper.mapSchema({
+        properties: {
+          name: { type: 'string' },
+          age: { type: 'integer' },
+        },
+        required: ['name'],
+      });
+      expect(result.tsType).toBe('{\n  name: string;\n  age?: number;\n}');
+      expect(result.imports).toEqual([]);
+    });
+
+    it('maps named typeless schema like a named typed object', () => {
+      const result = mapper.mapSchema(
+        {
+          properties: {
+            id: { type: 'string' },
+          },
+          required: ['id'],
+          additionalProperties: false,
+        },
+        'Widget'
+      );
+      expect(result.tsType).toBe('{\n  id: string;\n}');
+    });
+
+    it('maps typeless schema with only additionalProperties to Record', () => {
+      const result = mapper.mapSchema({
+        additionalProperties: { type: 'number' },
+      });
+      expect(result.tsType).toBe('Record<string, number>');
+    });
+
+    it('maps typeless schema with additionalProperties: false like a typed one', () => {
+      const typeless = mapper.mapSchema({ additionalProperties: false });
+      const typed = mapper.mapSchema({ type: 'object', additionalProperties: false });
+      expect(typeless.tsType).toBe(typed.tsType);
+      expect(typeless.tsType).toBe('Record<string, unknown>');
+    });
+
+    it('maps typeless empty-schema additionalProperties to Record<string, unknown>', () => {
+      const result = mapper.mapSchema({ additionalProperties: {} });
+      expect(result.tsType).toBe('Record<string, unknown>');
+    });
+
+    it('maps typeless schema with empty properties like a typed one', () => {
+      const result = mapper.mapSchema({ properties: {} });
+      expect(result.tsType).toBe('Record<string, unknown>');
+    });
+
+    it('applies nullable to a typeless object schema', () => {
+      const result = mapper.mapSchema({
+        properties: { n: { type: 'number' } },
+        nullable: true,
+      });
+      expect(result.tsType).toBe('{\n  n?: number;\n} | null');
+    });
+
+    it('maps typeless object schema nested as a property', () => {
+      const result = mapper.mapSchema({
+        type: 'object',
+        properties: {
+          meta: {
+            properties: { source: { type: 'string' } },
+            required: ['source'],
+            additionalProperties: false,
+          },
+        },
+      });
+      expect(result.tsType).toContain('meta?: {');
+      expect(result.tsType).toContain('source: string');
+      expect(result.tsType).not.toContain('meta?: unknown');
+    });
+
+    it('maps typeless object schema in array items', () => {
+      const result = mapper.mapSchema({
+        type: 'array',
+        items: { properties: { name: { type: 'string' } } },
+      });
+      expect(result.tsType).toBe('Array<{\n  name?: string;\n}>');
+    });
+
+    it('still maps an empty schema {} to unknown', () => {
+      const result = mapper.mapSchema({});
+      expect(result.tsType).toBe('unknown');
+    });
+
+    it('still maps format-only typeless schema to unknown', () => {
+      const result = mapper.mapSchema({ format: 'date-time' });
+      expect(result.tsType).toBe('unknown');
+    });
+  });
+
   describe('$ref handling', () => {
     it('resolves $ref to type name and adds to imports', () => {
       const result = mapper.mapSchema({

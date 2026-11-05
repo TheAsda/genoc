@@ -110,6 +110,71 @@ describe('OpenAPI 3.0 — Data Types (3.0-#1-#6)', () => {
     );
     expect(result).toMatchSnapshot();
   });
+
+  // 3.0-#6 (implicit object): `type` is optional in OpenAPI — a schema with
+  // `properties`/`additionalProperties` and no `type` is an object schema.
+  // Regression: these used to degrade to `unknown`.
+  it('3.0-#6: maps typeless schema with properties to object type (implicit object)', () => {
+    const result = generateFromYaml(
+      BASE_SPEC(`
+      TypelessUser:
+        properties:
+          name: { type: string }
+          age: { type: integer }
+        required: [name]
+        additionalProperties: false
+    `)
+    );
+    expect(result).toMatchSnapshot();
+    expect(result).toContain('TypelessUser = {');
+    expect(result).not.toContain('TypelessUser = unknown');
+  });
+
+  it('3.0-#6: maps typeless schema with only additionalProperties to Record', () => {
+    const result = generateFromYaml(
+      BASE_SPEC(`
+      TypelessMap:
+        additionalProperties: { type: number }
+    `)
+    );
+    expect(result).toMatchSnapshot();
+    expect(result).toContain('TypelessMap = {');
+    expect(result).toContain('[key: string]: number;');
+  });
+
+  it('3.0-#6: maps typeless closed empty object schema like a typed one', () => {
+    const result = generateFromYaml(
+      BASE_SPEC(`
+      TypelessClosed:
+        additionalProperties: false
+    `)
+    );
+    expect(result).toMatchSnapshot();
+  });
+
+  it('3.0-#6: maps typeless object schema nested inline (property and array items)', () => {
+    const result = generateFromYaml(
+      BASE_SPEC(`
+      Order:
+        type: object
+        properties:
+          meta:
+            properties:
+              source: { type: string }
+            required: [source]
+            additionalProperties: false
+          items:
+            type: array
+            items:
+              properties:
+                sku: { type: string }
+              required: [sku]
+    `)
+    );
+    expect(result).toMatchSnapshot();
+    expect(result).not.toContain('meta?: unknown');
+    expect(result).not.toContain('unknown[]');
+  });
 });
 
 // ── Null via nullable (3.0-#7) — Tier 3, 3.0-specific ────────────────────
