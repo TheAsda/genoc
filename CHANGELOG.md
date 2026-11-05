@@ -1,5 +1,12 @@
 # genoc
 
+## 0.5.3
+
+### Patch Changes
+
+- e46b2b0: Concrete discriminator bases now join their own `{Base}Variant` unions. Previously, refs to a base with no `oneOf`/`anyOf` (or listed in its own `mapping`) could name an undeclared union type, a self-mapped base collapsed its children to `never` through conflicting discriminant literals, and mapping-children-only families omitted the base from its own union. Variants of a concrete base now strip the discriminant via `Omit<Base, '$disc'>`, implicit direct-`allOf` children count as variants, and families with no members fall back to bare base names instead of emitting an unused union. Generated output shape changes for specs with concrete discriminator bases: existing variant unions gain the base as a member. Fixes #93.
+- e46b2b0: Warn on binary file data declared under `application/x-www-form-urlencoded` request bodies, and fix multipart bodies that declare their form fields via `allOf`. A urlencoded body containing `format: binary` fields cannot transport them, but previously typed them silently as plain strings; genoc now prints a warning naming the offending fields (found through `allOf`, `$ref`, arrays, and nested objects, cycle-safe). Separately, a `multipart/form-data` body whose fields live in `allOf` members used to collapse to `Record<string, never>` and drop every FormData append — the multipart property walk now merges `allOf` members (recursively, resolving `$ref`s, unioning `required`), so those fields generate as `FileInput`/`FileInput[]`/string fields again.
+
 ## 0.5.2
 
 ### Patch Changes
