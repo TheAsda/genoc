@@ -19,7 +19,13 @@ import {
 import { operationEmissions, RESERVED_TYPE_NAMES } from '../utils/operation-naming.js';
 import { escapeStringLiteral } from '../utils/string.js';
 import { buildDiscriminatorRegistry, renameAwareTypeName } from './discriminator-registry.js';
-import { analyzePathsDetailed, type AnalyzedParameter } from './path-analyzer.js';
+import {
+  analyzePathsDetailed,
+  collectFormProperties,
+  findBinaryFieldNames,
+  schemaContainsBinary,
+  type AnalyzedParameter,
+} from './path-analyzer.js';
 import { SchemaMapper } from './schema-mapper.js';
 import type {
   AnalyzedSecurityCall,
@@ -422,6 +428,7 @@ function analyzeServers(servers: ServerObject[] | undefined): ServerTypeDeclarat
 export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): AnalyzedSpec {
   const resolver = opts.resolver ?? new RefResolver(doc);
   const strategy = opts.strategy ?? 'path-based';
+  const warn = opts.warnSink ?? writeWarning;
 
   const schemaNameList = doc.components?.schemas ? Object.keys(doc.components.schemas) : [];
   const renameMap = buildSchemaRenameMap(schemaNameList, RESERVED_TYPE_NAMES);
@@ -456,7 +463,7 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
     resolver,
     renameMap,
     allSchemaNames,
-    writeWarning
+    warn
   );
 
   const mapper = new SchemaMapper(resolver, {
@@ -591,16 +598,36 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
       );
     }
 
+    // A urlencoded body declaring `format: binary` fields cannot transport
+    // them — the generated client would silently type the files as plain
+    // strings. Warn and name the offending fields (merged through allOf).
+    if (
+      op.requestBody?.contentTypes[0] === 'application/x-www-form-urlencoded' &&
+      rawBodySchema !== undefined &&
+      schemaContainsBinary(rawBodySchema, resolver)
+    ) {
+      const fieldNames = findBinaryFieldNames(rawBodySchema, resolver);
+      const fieldList =
+        fieldNames.length > 0
+          ? ` declaring binary fields (${fieldNames.map((n) => `"${n}"`).join(', ')})`
+          : ' declaring binary data';
+      warn(
+        `Warning: the request body of ${op.method.toUpperCase()} ${op.path} uses content type "application/x-www-form-urlencoded"${fieldList}, but urlencoded form data cannot transport binary files. File uploads require "multipart/form-data"; the generated client types these fields as plain strings.\n`
+      );
+    }
+
     // Section 3: Request body types
     const bodyJsDoc = op.requestBody ? buildDescriptionJsDoc(op.requestBody.description) : '';
 
     if (op.requestBody?.isMultipart && rawBodySchema !== undefined) {
-      const schema = resolver.resolveSchema(rawBodySchema);
-      const requiredSet = new Set(schema.required ?? []);
+      // Form fields come from the allOf-merged walk: a body declaring its
+      // fields via `allOf` members (resolving `$ref`s) previously produced an
+      // empty property walk — `Record<string, never>` and dropped appends.
+      const { properties, required: requiredSet } = collectFormProperties(rawBodySchema, resolver);
       const propLines: string[] = [];
       const fileUploadProperties: FileUploadPropertyFact[] = [];
-      for (const [name, propSchema] of Object.entries(schema.properties ?? {})) {
-        const resolved = resolver.resolveSchema(propSchema as SchemaObject | ReferenceObject);
+      for (const [name, propSchema] of properties) {
+        const resolved = resolver.resolveSchema(propSchema);
         const optional = requiredSet.has(name) ? '' : '?';
         let tsType: string;
         let kind: FileUploadPropertyFact['kind'];

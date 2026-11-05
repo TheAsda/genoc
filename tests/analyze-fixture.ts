@@ -9,6 +9,8 @@ import type { OpenAPIDocument } from '../src/types/openapi.js';
 export interface AnalyzeFixtureOptions {
   strategy?: MethodNameStrategy;
   preserveRefSiblings?: boolean;
+  /** Warning sink forwarded to `analyze()`; defaults to stderr like production. */
+  warnSink?: (message: string) => void;
 }
 
 /**
@@ -24,6 +26,7 @@ export function analyzeFixture(
   return analyze(doc, {
     resolver: new RefResolver(doc, { preserveRefSiblings: options?.preserveRefSiblings }),
     strategy: options?.strategy,
+    warnSink: options?.warnSink,
   });
 }
 
