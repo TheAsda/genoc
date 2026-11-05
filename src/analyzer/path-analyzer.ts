@@ -111,6 +111,116 @@ function isBinarySchema(
   return resolver.resolveSchema(schema).format === 'binary';
 }
 
+/**
+ * Deep, ref-resolving, cycle-safe check: does any schema node reachable from
+ * `schema` (through `properties`, `items`, `allOf`/`oneOf`/`anyOf` members and
+ * schema-valued `additionalProperties`) declare `format: binary`? Unlike
+ * {@link isBinarySchema} this catches binary data buried in composed schemas —
+ * e.g. a `files` array of binary strings hidden inside an `allOf` member.
+ */
+export function schemaContainsBinary(
+  schema: SchemaObject | ReferenceObject | undefined,
+  resolver: RefResolver
+): boolean {
+  return containsBinary(schema, resolver, new Set());
+}
+
+function containsBinary(
+  schema: SchemaObject | ReferenceObject | undefined,
+  resolver: RefResolver,
+  visited: Set<SchemaObject>
+): boolean {
+  if (!schema) return false;
+  const resolved = resolver.resolveSchema(schema);
+  // Cycle guard on resolved object identity (a self-referencing $ref chain
+  // would otherwise recurse forever; schema-mapper uses the same pattern).
+  if (visited.has(resolved)) return false;
+  visited.add(resolved);
+
+  if (resolved.format === 'binary') return true;
+
+  if (resolved.items !== undefined) {
+    if (containsBinary(resolved.items, resolver, visited)) return true;
+  }
+  for (const member of resolved.allOf ?? []) {
+    if (containsBinary(member, resolver, visited)) return true;
+  }
+  for (const member of resolved.oneOf ?? []) {
+    if (containsBinary(member, resolver, visited)) return true;
+  }
+  for (const member of resolved.anyOf ?? []) {
+    if (containsBinary(member, resolver, visited)) return true;
+  }
+  for (const propSchema of Object.values(resolved.properties ?? {})) {
+    if (containsBinary(propSchema as SchemaObject | ReferenceObject, resolver, visited))
+      return true;
+  }
+  if (typeof resolved.additionalProperties === 'object' && resolved.additionalProperties !== null) {
+    if (containsBinary(resolved.additionalProperties, resolver, visited)) return true;
+  }
+  return false;
+}
+
+/**
+ * The flattened form fields of a request body schema: the root object's own
+ * `properties`/`required` merged with those of every `allOf` member,
+ * recursively, resolving `$ref`s. Later same-named members do not override
+ * earlier ones (first-write wins, matching the mapper's `allOf` array-order
+ * rendering); member `required` lists are unioned.
+ *
+ * Motivation: multipart bodies declaring their fields via `allOf` (a common
+ * upstream-spec shape) previously produced an empty property walk — the
+ * generated body type collapsed to `Record<string, never>` and every FormData
+ * append was silently dropped.
+ */
+export function collectFormProperties(
+  schema: SchemaObject | ReferenceObject | undefined,
+  resolver: RefResolver,
+  properties: Map<string, SchemaObject | ReferenceObject> = new Map(),
+  required: Set<string> = new Set(),
+  visited: Set<SchemaObject> = new Set()
+): { properties: Map<string, SchemaObject | ReferenceObject>; required: Set<string> } {
+  if (!schema) return { properties, required };
+  const resolved = resolver.resolveSchema(schema);
+  // Cycle guard on resolved identity (same pattern as containsBinary above).
+  if (visited.has(resolved)) return { properties, required };
+  visited.add(resolved);
+
+  // allOf members come first, mirroring the mapper's `A & B` member order.
+  for (const member of resolved.allOf ?? []) {
+    collectFormProperties(member, resolver, properties, required, visited);
+  }
+  for (const name of resolved.required ?? []) {
+    required.add(name);
+  }
+  for (const [name, propSchema] of Object.entries(resolved.properties ?? {})) {
+    if (!properties.has(name)) {
+      properties.set(name, propSchema);
+    }
+  }
+  return { properties, required };
+}
+
+/**
+ * Names of the (allOf-merged) top-level form fields whose subtree contains
+ * `format: binary` — for warnings that name the offending fields. Empty when
+ * the binary data sits outside any named field (e.g. the whole body schema
+ * is a binary string) or there is no binary data at all.
+ */
+export function findBinaryFieldNames(
+  schema: SchemaObject | ReferenceObject | undefined,
+  resolver: RefResolver
+): string[] {
+  const { properties } = collectFormProperties(schema, resolver);
+  const names: string[] = [];
+  for (const [name, propSchema] of properties) {
+    if (containsBinary(propSchema, resolver, new Set())) {
+      names.push(name);
+    }
+  }
+  return names;
+}
+
 function resolveParameter(
   param: ParameterObject | ReferenceObject,
   resolver: RefResolver

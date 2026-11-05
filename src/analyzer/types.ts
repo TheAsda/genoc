@@ -157,4 +157,6 @@ export interface AnalyzeOptions {
    * Omitted is treated as `'3.1'`.
    */
   effectiveVersion?: '3.0' | '3.1';
+  /** Warning sink; defaults to `process.stderr.write`. Mirrors the mapper's `warnSink`. */
+  warnSink?: (message: string) => void;
 }
