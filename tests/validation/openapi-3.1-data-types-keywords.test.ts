@@ -104,6 +104,46 @@ describe('OpenAPI 3.1 — Data Types (3.1-#1-#8)', () => {
     expect(result).toMatchSnapshot();
   });
 
+  // 3.1-#6 (implicit object): `type` is optional in JSON Schema 2020-12 —
+  // a schema with `properties`/`additionalProperties` and no `type` is an
+  // object schema. Regression: these used to degrade to `unknown`.
+  it('3.1-#6: maps typeless schema with properties to object type (implicit object)', () => {
+    const result = generateFromYaml(
+      BASE_SPEC(`
+      TypelessUser:
+        properties:
+          name: { type: string }
+          tags: { type: array, items: { type: string } }
+        required: [name]
+    `)
+    );
+    expect(result).toMatchSnapshot();
+    expect(result).toContain('TypelessUser = {');
+    expect(result).not.toContain('TypelessUser = unknown');
+  });
+
+  it('3.1-#6: maps typeless schema with only additionalProperties to Record', () => {
+    const result = generateFromYaml(
+      BASE_SPEC(`
+      TypelessMap:
+        additionalProperties: { type: string }
+    `)
+    );
+    expect(result).toMatchSnapshot();
+    expect(result).toContain('TypelessMap = {');
+    expect(result).toContain('[key: string]: string;');
+  });
+
+  it('3.1-#6: keeps unknown for typeless schema with no object keywords (any value)', () => {
+    const result = generateFromYaml(
+      BASE_SPEC(`
+      JustDescription:
+        description: no type, no properties, no additionalProperties
+    `)
+    );
+    expect(result).toMatchSnapshot();
+  });
+
   // 3.1-#7: null
   it('3.1-#7: maps null type to TypeScript null', () => {
     const result = generateFromYaml(BASE_SPEC("Nothing: { type: 'null' }"));

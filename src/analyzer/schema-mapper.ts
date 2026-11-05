@@ -368,6 +368,14 @@ export class SchemaMapper {
     }
 
     if (s.type === undefined) {
+      // OpenAPI permits omitting `type`: a schema carrying `properties`
+      // and/or `additionalProperties` is an object schema regardless. Map it
+      // through the object branch instead of degrading to `unknown`; a
+      // genuinely unconstrained schema (no keywords to infer from) stays
+      // `unknown` (any JSON value).
+      if (s.properties !== undefined || s.additionalProperties !== undefined) {
+        return this.mapObject(s, name, context, visited, indent, spine);
+      }
       return { tsType: 'unknown', imports: [] };
     }
 
