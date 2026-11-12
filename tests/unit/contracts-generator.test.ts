@@ -257,8 +257,10 @@ describe('generateContracts', () => {
       const doc = createDoc({ components: { schemas: {} } });
       const result = renderContracts(analyzeFixture(doc));
       expect(result).toMatchSnapshot();
-      expect(result).not.toMatch(/export interface \w+/);
-      expect(result).not.toMatch(/export type \w+ =/);
+      // kept: negative checks the snapshot cannot flag with a precise
+      // message — schema types are aliases, never interfaces.
+      expect(result).not.toContain('export interface ');
+      expect(result).not.toContain('export type ');
     });
   });
 
@@ -1420,7 +1422,8 @@ describe('generateContracts', () => {
       });
       const result = renderContracts(analyzeFixture(doc));
       expect(result).toMatchSnapshot();
-      expect(result).not.toMatch(/export type ErrorResponse =/);
+      // The ErrorResponse name stays reserved for the runtime class.
+      expect(result).not.toContain('export type ErrorResponse =');
     });
 
     it('renames user schema that collides with ApiError', () => {

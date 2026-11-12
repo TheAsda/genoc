@@ -71,21 +71,18 @@ describe('multipart uploads with $ref\u2019d file properties (T2 divergence regr
   const { contracts, client } = generateOutput(analyzeYaml(SPEC), CONFIG);
 
   it('types $ref\u2019d binary properties as FileInput in contracts', () => {
-    expect(contracts).toContain('export interface FileInput {');
-    expect(contracts).toContain('avatar: FileInput;');
-    expect(contracts).toContain('gallery: FileInput[];');
-    expect(contracts).toContain('label?: Label;'); // $ref to a string schema keeps its named type
+    // The full contracts snapshot pins the FileInput interface plus the
+    // per-property shapes: avatar: FileInput; gallery: FileInput[]; and the
+    // $ref-to-string-schema `label?: Label;` named type.
+    expect(contracts).toMatchSnapshot('multipart-ref-upload contracts');
   });
 
   it('reuses the referenced component for the whole-body $ref (pruning its orphaned raw field types)', () => {
-    // the body aliases the component, and the component renders form-mapped
+    // The body aliases the form-mapped component (`PostUploadWholeRefBody =
+    // UploadForm`, pinned by the contracts snapshot above); these guards
+    // document the pruning semantics — Label survives its last raw
+    // reference, Avatar/Gallery lose theirs and are dropped.
     expect(contracts).toContain('export type PostUploadWholeRefBody = UploadForm;');
-    expect(contracts).toContain(
-      'export type UploadForm = {\n  avatar: FileInput;\n  gallery: FileInput[];\n  label?: Label;\n};'
-    );
-    // Label survives (still referenced by UploadForm and PostUploadBody);
-    // Avatar/Gallery lose their last reference to the form-mapped rendering
-    // and are pruned instead of lingering unused
     expect(contracts).toContain('export type Label = string;');
     expect(contracts).not.toContain('export type Avatar');
     expect(contracts).not.toContain('export type Gallery');
@@ -154,14 +151,11 @@ describe('multipart whole-body $ref to a schema with other consumers', () => {
   it('keeps the flattened body and the raw component mapping (no alias)', () => {
     // SharedForm also backs a JSON response, so re-pointing its definition at
     // the form mapping would corrupt that consumer: the single-consumer rule
-    // kicks in and the body keeps its flattened inline form instead.
+    // kicks in and the body keeps its flattened inline form instead. The
+    // contracts snapshot pins the flattened body, the raw (binary → string)
+    // component mapping, and the JSON response reference.
+    expect(contracts).toMatchSnapshot('multipart-shared-form contracts');
     expect(contracts).toContain('export type PostUploadSharedBody = {');
-    expect(contracts).toContain('  file: FileInput;\n  caption?: string;\n};');
-    // the component keeps its raw schema mapping (binary → string) and stays
-    // referenced by the JSON response
-    expect(contracts).toContain(
-      'export type SharedForm = {\n  file: string;\n  caption?: string;\n};'
-    );
     expect(contracts).toContain('export type GetFormsResponse = SharedForm;');
     // the upload client still appends the form-mapped fields
     expect(client).toContain('formData.append("file", body.file.data, body.file.filename);');

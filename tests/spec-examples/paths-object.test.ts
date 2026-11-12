@@ -158,7 +158,12 @@ describe('Paths Object examples', () => {
       const { client } = generateOutput(analyzeFixture(doc), makeConfig());
 
       expect(client).toMatchSnapshot();
-      expect(client).not.toMatch(/import type \{[^}]+\} from '\.\/contracts\.js';/);
+      // No type-only import from the contracts file is emitted when no types
+      // are needed (the runtime `Requester` type import is fine).
+      const typeImportsFromContracts = client
+        .split('\n')
+        .filter((line) => line.includes('import type') && line.includes("'./contracts.js'"));
+      expect(typeImportsFromContracts).toEqual([]);
     });
 
     it('returns empty operations array from analyzePaths', () => {

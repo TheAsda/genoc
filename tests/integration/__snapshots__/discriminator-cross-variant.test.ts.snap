@@ -1,0 +1,27 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Discriminator cross-variant integration > discriminator-nullable-variant (paren loss) > T5: nullable variant keeps its literal via parenthesized append > T5 OnGate type block 1`] = `
+"export type OnGate = ((Omit<GateBase, 'state'> & {
+  level: number;
+}) | null) & { state: 'On' };"
+`;
+
+exports[`Discriminator cross-variant integration > discriminator-rename-collisions > T11: a user schema named ThingVariant does not collide with the generated union > T11 collision-free variant union line 1`] = `"export type ThingVariantModel = Thing | UserDto | UserDtoModel;"`;
+
+exports[`Discriminator cross-variant integration > discriminator-spine-topologies > T10: grandchild chain uses Omit and a single literal > T10 ChainLeaf type block 1`] = `
+"export type ChainLeaf = Omit<ChainMid, 'chain'> & {
+  leafNote: string;
+} & { chain: 'leaf' };"
+`;
+
+exports[`Discriminator cross-variant integration > dotnet-polymorphism-cross-variant (THE bug shape) > T1: CreateThing inherits via Omit<UpdateThing> with exactly ONE $type literal > T1 CreateThing type block 1`] = `"export type CreateThing = Omit<UpdateThing, '$type'> & Record<string, unknown> & { $type: 'Create' };"`;
+
+exports[`Discriminator cross-variant integration > dotnet-polymorphism-cross-variant (THE bug shape) > T1: UpdateThing keeps the base spine and a single Full literal > T1 UpdateThing type block 1`] = `
+"export type UpdateThing = Omit<BaseThing, '$type'> & {
+  name: string;
+  description?: string;
+  detectionDateTime?: DateTimeString;
+  bulletin?: BulletinArtifact;
+  affectedReleaseIds?: number[];
+} & { $type: 'Full' };"
+`;

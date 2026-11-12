@@ -50,8 +50,10 @@ describe('Discriminator allOf integration', () => {
 
   // 3. Response types use PetVariant union
   it('response types use PetVariant instead of Pet', () => {
-    expect(contracts).not.toMatch(/GetPetsResponse\s*=\s*Pet[^V]/);
-    expect(contracts).not.toMatch(/GetPetsIdResponse\s*=\s*Pet[^V]/);
+    // kept: negative check the full-file snapshots above cannot flag with a
+    // precise message — responses must never alias the bare base type.
+    expect(contracts).not.toContain('export type GetPetsResponse = Pet;');
+    expect(contracts).not.toContain('export type GetPetsIdResponse = Pet;');
   });
 
   it('matches contracts snapshot', () => {

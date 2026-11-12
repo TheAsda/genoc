@@ -126,7 +126,7 @@ describe('OpenAPI 3.0 — Parameters (3.0-#33-#40)', () => {
       expect(contracts).toMatchSnapshot();
       expect(client).toMatchSnapshot();
       // required: true → non-optional
-      expect(contracts).not.toMatch(/q\?:/);
+      expect(contracts).not.toContain('q?:');
     });
 
     it('makes path params always required regardless of explicit setting', () => {

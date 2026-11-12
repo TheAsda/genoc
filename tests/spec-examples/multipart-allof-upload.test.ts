@@ -114,18 +114,12 @@ describe('multipart uploads with allOf-composed bodies (regression)', () => {
   const { contracts, client } = generateOutput(analyzeYaml(SPEC), CONFIG);
 
   it('reuses the referenced component for whole-body $ref bodies (form-mapped)', () => {
+    // The contracts snapshot pins the aliased shapes: `PostCompetencyLevelBody
+    // = PostRequest` with the component itself form-mapped (`$ref` fields keep
+    // named types, binary → FileInput); the negative guard stays for a
+    // precise failure message if the body ever collapses again.
+    expect(contracts).toMatchSnapshot('multipart-allof contracts');
     expect(contracts).not.toContain('Record<string, never>');
-    // whole-body `$ref` bodies alias the component instead of emitting a
-    // flattened twin that orphans it — the component itself renders through
-    // the form-field walk (`$ref` fields keep named types, binary → FileInput)
-    expect(contracts).toContain('export type PostCompetencyLevelBody = PostRequest;');
-    expect(contracts).toContain(
-      'export type PostRequest = {\n  request: PostInput;\n  files?: FileInput[];\n};'
-    );
-    expect(contracts).toContain('export type PostNestedAllOfBody = NestedMembers;');
-    expect(contracts).toContain(
-      'export type NestedMembers = {\n  deep?: FileInput;\n  shallow?: string;\n};'
-    );
   });
 
   it('emits FileInput and appends every allOf field in the client FormData', () => {
@@ -140,19 +134,16 @@ describe('multipart uploads with allOf-composed bodies (regression)', () => {
   });
 
   it('recurses into allOf members that themselves use allOf', () => {
-    // NestedMembers nests an allOf inside an allOf member; its form-mapped
-    // definition (reused by PostNestedAllOfBody) carries the merged fields
-    expect(contracts).toContain('deep?: FileInput;');
-    expect(contracts).toContain('shallow?: string;');
+    // contracts side (`deep?: FileInput;`, `shallow?: string;` — inside the
+    // form-mapped NestedMembers definition) is pinned by the
+    // 'multipart-allof contracts' snapshot above.
     expect(client).toContain('formData.append("deep", body.deep.data, body.deep.filename);');
   });
 
   it('merges own properties alongside allOf members (inline body stays flattened)', () => {
-    // no whole-body `$ref` → no alias target; the body keeps its own
-    // flattened object literal
-    expect(contracts).toContain('export type PostOwnPlusAllofBody = {');
-    expect(contracts).toContain('files?: FileInput[];');
-    expect(contracts).toContain('note?: string;');
+    // no whole-body `$ref` → no alias target: the contracts side (the
+    // flattened `PostOwnPlusAllofBody` object literal) is pinned by the
+    // 'multipart-allof contracts' snapshot above.
     expect(client).toContain(
       'if (body.files !== undefined) { for (const file of body.files) { formData.append("files", file.data, file.filename); } }'
     );

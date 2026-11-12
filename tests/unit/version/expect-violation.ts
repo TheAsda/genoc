@@ -13,6 +13,7 @@ export function expectViolation(errors: string[], message: string): void {
     match,
     `expected a spec violation starting with: ${message}\nin:\n${errors.join('\n')}`
   ).toBeDefined();
+  // kept: validator error-message text, not generated output
   expect(match).toMatch(SPEC_URL_LINE);
 }
 
