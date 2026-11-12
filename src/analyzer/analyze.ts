@@ -488,18 +488,29 @@ function buildFormBodyPlan(
     if (resolved.format === 'binary') {
       tsType = 'FileInput';
       kind = 'file';
-    } else if (resolved.type === 'array' && resolved.items?.format === 'binary') {
+    } else if (
+      resolved.type === 'array' &&
+      resolved.items !== undefined &&
+      resolver.resolveSchema(resolved.items).format === 'binary'
+    ) {
+      // items may itself be a `$ref` to a binary schema — resolve before
+      // checking the format so those upload as files, not JSON
       tsType = 'FileInput[]';
       kind = 'file-array';
     } else {
       // Non-file fields keep their schema type: a `$ref` property maps to
       // the referenced named type (not a collapsed `string`), arrays and
-      // primitives keep their own shapes. Only string-valued fields
-      // (incl. `$ref`s resolving to `type: string` and string enums) are
-      // appended directly; everything else is JSON-serialized by the
-      // client, so the fact records it as `json-field`.
+      // primitives keep their own shapes. String-valued fields (incl.
+      // `$ref`s resolving to `type: string` and string enums) are appended
+      // directly; nullable string fields append directly too but need a
+      // `null` guard, since `string | null` does not satisfy FormData's
+      // `string | Blob`. Everything else is JSON-serialized by the client,
+      // so the fact records it as `json-field`.
       tsType = mapper.mapSchema(propSchema, undefined, 'request').tsType;
-      kind = resolved.type === 'string' ? 'field' : 'json-field';
+      const typeList = Array.isArray(resolved.type) ? resolved.type : undefined;
+      const isStringType = resolved.type === 'string' || typeList?.includes('string') === true;
+      const isNullable = resolved.nullable === true || typeList?.includes('null') === true;
+      kind = !isStringType ? 'json-field' : isNullable ? 'field-nullable' : 'field';
     }
     facts.push({ name, required: requiredSet.has(name), kind });
     const jsDoc = buildTypeJsDoc(resolved);
@@ -884,15 +895,6 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
     };
     const defByName = new Map(schemaTypes.map((entry) => [entry.name, entry.definition]));
     const opTexts = operations.map((finished) => finished.contractsLines.join('\n'));
-    const isReferenced = (name: string): boolean => {
-      for (const [owner, definition] of defByName) {
-        if (owner !== name && refsOf(definition).has(name)) return true;
-      }
-      for (const text of opTexts) {
-        if (refsOf(text).has(name)) return true;
-      }
-      return false;
-    };
 
     const removed = new Set<string>();
     const queue: string[] = [];
@@ -912,9 +914,31 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
       if (definition === undefined) continue;
       for (const next of refsOf(definition)) enqueue(next);
     }
-    // Safety net: never remove a type the final output still references.
-    for (const name of removed) {
-      if (isReferenced(name)) removed.delete(name);
+    // Safety net: never remove a type the final output still references —
+    // from a kept definition, operation contract lines, or the client's
+    // path-parameter imports (path param types never appear in contracts
+    // lines, only in the client signature). References from definitions
+    // that are themselves removed do not count; iterate to a fixpoint
+    // because restoring a definition can keep what it references.
+    const pathParamNames = new Set(
+      operations.flatMap((finished) => finished.pathParamTypeNames ?? [])
+    );
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const name of removed) {
+        const stillReferenced =
+          pathParamNames.has(name) ||
+          opTexts.some((text) => refsOf(text).has(name)) ||
+          [...defByName.entries()].some(
+            ([owner, definition]) =>
+              owner !== name && !removed.has(owner) && refsOf(definition).has(name)
+          );
+        if (stillReferenced) {
+          removed.delete(name);
+          changed = true;
+        }
+      }
     }
     if (removed.size > 0) {
       const kept = schemaTypes.filter((entry) => !removed.has(entry.name));

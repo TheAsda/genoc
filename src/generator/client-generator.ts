@@ -175,6 +175,13 @@ function buildClientMethodBody(
             `if (body.${propName} !== undefined) formData.append("${propName}", JSON.stringify(body.${propName}));`
           );
         }
+      } else if (prop.kind === 'field-nullable') {
+        // Nullable string field: append the string when present; `null` has
+        // no FormData representation, so it is skipped (`string | null` does
+        // not satisfy FormData's `string | Blob`).
+        formDataLines.push(
+          `if (body.${propName} !== undefined && body.${propName} !== null) formData.append("${propName}", body.${propName});`
+        );
       } else {
         formDataLines.push(
           `if (body.${propName} !== undefined) formData.append("${propName}", body.${propName});`
