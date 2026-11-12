@@ -113,10 +113,19 @@ const CONFIG: GeneratorConfig = { input: 'spec.yaml', outputDir: '/tmp/test' };
 describe('multipart uploads with allOf-composed bodies (regression)', () => {
   const { contracts, client } = generateOutput(analyzeYaml(SPEC), CONFIG);
 
-  it('merges allOf member properties into the body type (no Record<string, never>)', () => {
+  it('reuses the referenced component for whole-body $ref bodies (form-mapped)', () => {
     expect(contracts).not.toContain('Record<string, never>');
-    expect(contracts).toMatch(/request: PostInput;/); // $ref property keeps its reference type
-    expect(contracts).toMatch(/files\?: FileInput\[\];/);
+    // whole-body `$ref` bodies alias the component instead of emitting a
+    // flattened twin that orphans it — the component itself renders through
+    // the form-field walk (`$ref` fields keep named types, binary → FileInput)
+    expect(contracts).toContain('export type PostCompetencyLevelBody = PostRequest;');
+    expect(contracts).toContain(
+      'export type PostRequest = {\n  request: PostInput;\n  files?: FileInput[];\n};'
+    );
+    expect(contracts).toContain('export type PostNestedAllOfBody = NestedMembers;');
+    expect(contracts).toContain(
+      'export type NestedMembers = {\n  deep?: FileInput;\n  shallow?: string;\n};'
+    );
   });
 
   it('emits FileInput and appends every allOf field in the client FormData', () => {
@@ -131,14 +140,19 @@ describe('multipart uploads with allOf-composed bodies (regression)', () => {
   });
 
   it('recurses into allOf members that themselves use allOf', () => {
-    expect(contracts).toMatch(/deep\?: FileInput;/);
-    expect(contracts).toMatch(/shallow\?: string;/);
+    // NestedMembers nests an allOf inside an allOf member; its form-mapped
+    // definition (reused by PostNestedAllOfBody) carries the merged fields
+    expect(contracts).toContain('deep?: FileInput;');
+    expect(contracts).toContain('shallow?: string;');
     expect(client).toContain('formData.append("deep", body.deep.data, body.deep.filename);');
   });
 
-  it('merges own properties alongside allOf members', () => {
-    expect(contracts).toMatch(/files\?: FileInput\[\];/);
-    expect(contracts).toMatch(/note\?: string;/);
+  it('merges own properties alongside allOf members (inline body stays flattened)', () => {
+    // no whole-body `$ref` → no alias target; the body keeps its own
+    // flattened object literal
+    expect(contracts).toContain('export type PostOwnPlusAllofBody = {');
+    expect(contracts).toContain('files?: FileInput[];');
+    expect(contracts).toContain('note?: string;');
     expect(client).toContain(
       'if (body.files !== undefined) { for (const file of body.files) { formData.append("files", file.data, file.filename); } }'
     );

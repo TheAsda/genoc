@@ -72,9 +72,23 @@ describe('multipart uploads with $ref\u2019d file properties (T2 divergence regr
 
   it('types $ref\u2019d binary properties as FileInput in contracts', () => {
     expect(contracts).toContain('export interface FileInput {');
-    expect(contracts).toMatch(/avatar: FileInput;/);
-    expect(contracts).toMatch(/gallery: FileInput\[\];/);
-    expect(contracts).toMatch(/label\?: Label;/); // $ref to a string schema keeps its named type
+    expect(contracts).toContain('avatar: FileInput;');
+    expect(contracts).toContain('gallery: FileInput[];');
+    expect(contracts).toContain('label?: Label;'); // $ref to a string schema keeps its named type
+  });
+
+  it('reuses the referenced component for the whole-body $ref (pruning its orphaned raw field types)', () => {
+    // the body aliases the component, and the component renders form-mapped
+    expect(contracts).toContain('export type PostUploadWholeRefBody = UploadForm;');
+    expect(contracts).toContain(
+      'export type UploadForm = {\n  avatar: FileInput;\n  gallery: FileInput[];\n  label?: Label;\n};'
+    );
+    // Label survives (still referenced by UploadForm and PostUploadBody);
+    // Avatar/Gallery lose their last reference to the form-mapped rendering
+    // and are pruned instead of lingering unused
+    expect(contracts).toContain('export type Label = string;');
+    expect(contracts).not.toContain('export type Avatar');
+    expect(contracts).not.toContain('export type Gallery');
   });
 
   it('appends $ref\u2019d binary properties as Files in the client (property-level refs)', () => {
@@ -98,5 +112,58 @@ describe('multipart uploads with $ref\u2019d file properties (T2 divergence regr
     // distinguish — count direct appends across both methods instead.
     const directAppends = client.match(/formData\.append\("avatar", body\.avatar\.data/g);
     expect(directAppends).toHaveLength(2);
+  });
+});
+
+const SHARED_SPEC = `
+  openapi: "3.1.0"
+  info: { title: Uploads, version: "1.0.0" }
+  components:
+    schemas:
+      SharedForm:
+        type: object
+        properties:
+          file: { type: string, format: binary }
+          caption: { type: string }
+        required: [file]
+  paths:
+    /upload-shared:
+      post:
+        operationId: uploadShared
+        requestBody:
+          required: true
+          content:
+            multipart/form-data:
+              schema: { $ref: "#/components/schemas/SharedForm" }
+        responses:
+          "200": { description: OK }
+    /forms:
+      get:
+        operationId: listForms
+        responses:
+          "200":
+            description: OK
+            content:
+              application/json:
+                schema: { $ref: "#/components/schemas/SharedForm" }
+`;
+
+describe('multipart whole-body $ref to a schema with other consumers', () => {
+  const { contracts, client } = generateOutput(analyzeYaml(SHARED_SPEC), CONFIG);
+
+  it('keeps the flattened body and the raw component mapping (no alias)', () => {
+    // SharedForm also backs a JSON response, so re-pointing its definition at
+    // the form mapping would corrupt that consumer: the single-consumer rule
+    // kicks in and the body keeps its flattened inline form instead.
+    expect(contracts).toContain('export type PostUploadSharedBody = {');
+    expect(contracts).toContain('  file: FileInput;\n  caption?: string;\n};');
+    // the component keeps its raw schema mapping (binary → string) and stays
+    // referenced by the JSON response
+    expect(contracts).toContain(
+      'export type SharedForm = {\n  file: string;\n  caption?: string;\n};'
+    );
+    expect(contracts).toContain('export type GetFormsResponse = SharedForm;');
+    // the upload client still appends the form-mapped fields
+    expect(client).toContain('formData.append("file", body.file.data, body.file.filename);');
   });
 });
