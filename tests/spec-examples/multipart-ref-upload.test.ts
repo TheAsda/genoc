@@ -74,7 +74,7 @@ describe('multipart uploads with $ref\u2019d file properties (T2 divergence regr
     expect(contracts).toContain('export interface FileInput {');
     expect(contracts).toMatch(/avatar: FileInput;/);
     expect(contracts).toMatch(/gallery: FileInput\[\];/);
-    expect(contracts).toMatch(/label\?: string;/);
+    expect(contracts).toMatch(/label\?: Label;/); // $ref to a string schema keeps its named type
   });
 
   it('appends $ref\u2019d binary properties as Files in the client (property-level refs)', () => {

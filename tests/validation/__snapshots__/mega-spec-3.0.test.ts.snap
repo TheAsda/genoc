@@ -423,7 +423,7 @@ export type PostUploadBody = {
   /** Text file */
   text_file?: string;
   /** Array field */
-  array_field?: string;
+  array_field?: string[];
   /** Array of binary files */
   gallery?: FileInput[];
 };
@@ -1489,7 +1489,7 @@ export function createClient(requester: Requester) {
           if (body.text_field !== undefined) formData.append("text_field", body.text_field);
           formData.append("file_field", body.file_field.data, body.file_field.filename);
           if (body.text_file !== undefined) formData.append("text_file", body.text_file);
-          if (body.array_field !== undefined) formData.append("array_field", body.array_field);
+          if (body.array_field !== undefined) formData.append("array_field", JSON.stringify(body.array_field));
           if (body.gallery !== undefined) { for (const file of body.gallery) { formData.append("gallery", file.data, file.filename); } }
           try {
             const result = await requester<PostUploadResponse>("POST", \`/upload\`, { body: formData });
@@ -3188,7 +3188,7 @@ export type PostUploadBody = {
   /** Text file */
   text_file?: string;
   /** Array field */
-  array_field?: string;
+  array_field?: string[];
   /** Array of binary files */
   gallery?: FileInput[];
 };
@@ -4254,7 +4254,7 @@ export function createClient(requester: Requester) {
           if (body.text_field !== undefined) formData.append("text_field", body.text_field);
           formData.append("file_field", body.file_field.data, body.file_field.filename);
           if (body.text_file !== undefined) formData.append("text_file", body.text_file);
-          if (body.array_field !== undefined) formData.append("array_field", body.array_field);
+          if (body.array_field !== undefined) formData.append("array_field", JSON.stringify(body.array_field));
           if (body.gallery !== undefined) { for (const file of body.gallery) { formData.append("gallery", file.data, file.filename); } }
           try {
             const result = await requester<PostUploadResponse>("POST", \`/upload\`, { body: formData });

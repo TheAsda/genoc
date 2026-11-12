@@ -115,15 +115,15 @@ describe('multipart uploads with allOf-composed bodies (regression)', () => {
 
   it('merges allOf member properties into the body type (no Record<string, never>)', () => {
     expect(contracts).not.toContain('Record<string, never>');
-    expect(contracts).toMatch(/request: string;/); // allOf member requiredness flows through
+    expect(contracts).toMatch(/request: PostInput;/); // $ref property keeps its reference type
     expect(contracts).toMatch(/files\?: FileInput\[\];/);
   });
 
   it('emits FileInput and appends every allOf field in the client FormData', () => {
     expect(contracts).toContain('export interface FileInput {');
     expect(client).toContain('const formData = new FormData();');
-    // required string field from an allOf member → direct append
-    expect(client).toContain('formData.append("request", body.request);');
+    // required $ref'd object field from an allOf member → JSON append
+    expect(client).toContain('formData.append("request", JSON.stringify(body.request));');
     // optional array-of-binary from an allOf member → File[] loop
     expect(client).toContain(
       'if (body.files !== undefined) { for (const file of body.files) { formData.append("files", file.data, file.filename); } }'

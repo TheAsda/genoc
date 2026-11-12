@@ -638,8 +638,14 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
           tsType = 'FileInput[]';
           kind = 'file-array';
         } else {
-          tsType = 'string';
-          kind = 'field';
+          // Non-file fields keep their schema type: a `$ref` property maps to
+          // the referenced named type (not a collapsed `string`), arrays and
+          // primitives keep their own shapes. Only string-valued fields
+          // (incl. `$ref`s resolving to `type: string` and string enums) are
+          // appended directly; everything else is JSON-serialized by the
+          // client, so the fact records it as `json-field`.
+          tsType = mapper.mapSchema(propSchema, undefined, 'request').tsType;
+          kind = resolved.type === 'string' ? 'field' : 'json-field';
         }
         fileUploadProperties.push({ name, required: requiredSet.has(name), kind });
         const jsDoc = buildTypeJsDoc(resolved);
