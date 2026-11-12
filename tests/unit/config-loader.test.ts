@@ -301,6 +301,7 @@ describe('loadConfigFile — parse errors', () => {
     const err = await expectUserError(loadConfigFile({ searchDir: dir }));
 
     expect(err.message).toContain(ymlPath);
+    // kept: error-message text, not generated output
     expect(err.message).toMatch(/line 3/);
   });
 
@@ -311,6 +312,7 @@ describe('loadConfigFile — parse errors', () => {
     const err = await expectUserError(loadConfigFile({ searchDir: dir }));
 
     expect(err.message).toContain(ymlPath);
+    // kept: error-message text, not generated output
     expect(err.message).toMatch(/multiple documents/i);
   });
 
@@ -349,6 +351,7 @@ describe('loadConfigFile — parse errors', () => {
 
     const err = await expectUserError(loadConfigFile({ searchDir: dir }));
 
+    // kept: error-message text, not generated output
     expect(err.message).toMatch(/no configuration keys/i);
   });
 

@@ -68,9 +68,7 @@ describe('Discriminator cross-variant integration', () => {
 
     it('T1: CreateThing inherits via Omit<UpdateThing> with exactly ONE $type literal', () => {
       const create = typeBlock(output.contracts, 'CreateThing');
-      expect(create).toMatch(
-        /^export type CreateThing = Omit<UpdateThing, ["']?\$type["']?> & Record<string, unknown> & \{ ["']?\$type["']?: 'Create' \};$/
-      );
+      expect(create).toMatchSnapshot('T1 CreateThing type block');
       expect(create).not.toContain("'Full'");
     });
 
@@ -78,8 +76,7 @@ describe('Discriminator cross-variant integration', () => {
       const update = typeBlock(output.contracts, 'UpdateThing');
       // #93: the concrete base joins its own union, so the child spine strips
       // the base's discriminant (`Omit`) instead of inheriting it verbatim.
-      expect(update).toMatch(/^export type UpdateThing = Omit<BaseThing, '\$type'> &/);
-      expect(update).toMatch(/\{ ["']?\$type["']?: 'Full' \};$/);
+      expect(update).toMatchSnapshot('T1 UpdateThing type block');
     });
 
     it('T1: PartialThing keeps the base spine with the discriminant stripped (#93)', () => {
@@ -137,9 +134,7 @@ describe('Discriminator cross-variant integration', () => {
     });
 
     it('T5: nullable variant keeps its literal via parenthesized append', () => {
-      expect(typeBlock(output.contracts, 'OnGate')).toMatch(
-        /\| null\) & \{ ["']?state["']?: 'On' \};$/
-      );
+      expect(typeBlock(output.contracts, 'OnGate')).toMatchSnapshot('T5 OnGate type block');
     });
 
     it('T5: response $ref to the nullable target is a bare alias', () => {
@@ -203,8 +198,13 @@ describe('Discriminator cross-variant integration', () => {
       // the renamed variants.
       const duplicateDeclarations = output.contracts.match(/^export type ThingVariant = /gm);
       expect(duplicateDeclarations).toHaveLength(1);
-      // #93: the concrete base joins its own union as the first member.
-      expect(output.contracts).toMatch(/export type \w+ = Thing \| UserDto \| UserDtoModel;/);
+      // #93: the concrete base joins its own union as the first member —
+      // under a collision-free name, pinned by snapshotting the union line.
+      const variantUnions = output.contracts.match(
+        /^export type \w+ = Thing \| UserDto \| UserDtoModel;$/gm
+      );
+      expect(variantUnions).toHaveLength(1);
+      expect(variantUnions[0]).toMatchSnapshot('T11 collision-free variant union line');
     });
 
     it('generated contracts and client compile with tsc --strict --noEmit', async () => {
@@ -248,9 +248,8 @@ describe('Discriminator cross-variant integration', () => {
 
     it('T10: grandchild chain uses Omit and a single literal', () => {
       const leaf = typeBlock(output.contracts, 'ChainLeaf');
-      expect(leaf).toMatch(/^export type ChainLeaf = Omit<ChainMid, ["']?chain["']?>/);
+      expect(leaf).toMatchSnapshot('T10 ChainLeaf type block');
       expect(leaf).not.toContain("'mid'");
-      expect(leaf).toMatch(/\{ ["']?chain["']?: 'leaf' \};$/);
     });
 
     it('T10: cyclic sibling spines terminate with one literal each', () => {

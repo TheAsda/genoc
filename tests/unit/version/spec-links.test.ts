@@ -123,7 +123,7 @@ describe('validators embed spec links in violation messages', () => {
       result.errors.find((e) =>
         e.includes("must have at least one of 'paths', 'components', or 'webhooks'")
       )
-    ).not.toMatch(/https:/);
+    ).not.toContain('https:');
   });
 });
 

@@ -117,8 +117,8 @@ describe('Cross-task integration: OAuth2 + Headers + DefaultApiError', () => {
     it('client references header types, DefaultApiError, and OAuth2 types', () => {});
 
     it('no regression: Oauth2 (wrong casing) does not appear anywhere', () => {
-      expect(contracts).not.toMatch(/Oauth2/);
-      expect(client).not.toMatch(/Oauth2/);
+      expect(contracts).not.toContain('Oauth2');
+      expect(client).not.toContain('Oauth2');
     });
 
     it('no regression: defined error types still use ApiError', () => {});

@@ -110,6 +110,7 @@ describe('parseConfig — shape conflict (flat keys + clients)', () => {
     );
     expect(error.message).toContain('clients');
     expect(error.message).toContain('input');
+    // kept: error-message text, not generated output
     expect(error.message.toLowerCase()).toMatch(/either|not both|cannot mix/);
   });
 });
@@ -126,6 +127,7 @@ describe('parseConfig — unknown keys', () => {
   it("should reject the deliberately excluded 'requesterModuleName' key", () => {
     const error = expectUserError(() => parseConfig({ requesterModuleName: './my-requester.js' }));
     expect(error.message).toContain('requesterModuleName');
+    // kept: error-message text, not generated output
     expect(error.message).not.toMatch(/allowed[^\n]*requesterModuleName/);
   });
 
@@ -143,6 +145,7 @@ describe('parseConfig — unknown keys', () => {
 describe('parseConfig — clients map validation', () => {
   it('should reject an empty clients map', () => {
     const error = expectUserError(() => parseConfig({ clients: {} }));
+    // kept: error-message text, not generated output
     expect(error.message).toMatch(/at least one|empty/i);
   });
 
@@ -150,6 +153,7 @@ describe('parseConfig — clients map validation', () => {
     const error = expectUserError(() =>
       parseConfig({ clients: { '': { input: './a.yml', outputDir: './src/a' } } })
     );
+    // kept: error-message text, not generated output
     expect(error.message).toMatch(/non-empty|client name/i);
   });
 
@@ -211,12 +215,14 @@ describe('parseConfig — type errors', () => {
     const error = expectUserError(() =>
       parseConfig({ clients: { api: { input: 42, outputDir: './src/a' } } })
     );
+    // kept: error-message text, not generated output
     expect(error.message).toMatch(/string/i);
     expect(error.message).toContain('api');
   });
 
   it('should reject a string where a boolean is expected', () => {
     const error = expectUserError(() => parseConfig({ strictVersion: 'yes' }));
+    // kept: error-message text, not generated output
     expect(error.message).toMatch(/boolean/i);
   });
 });
@@ -224,22 +230,26 @@ describe('parseConfig — type errors', () => {
 describe('parseConfig — empty and non-object input', () => {
   it("should report 'no configuration keys' for {}", () => {
     const error = expectUserError(() => parseConfig({}));
+    // kept: error-message text, not generated output
     expect(error.message).toMatch(/no configuration keys/i);
   });
 
   it("should report 'no configuration keys' for null", () => {
     const error = expectUserError(() => parseConfig(null));
+    // kept: error-message text, not generated output
     expect(error.message).toMatch(/no configuration keys/i);
   });
 
   it('should throw UserError (never a raw zod error) for a string input', () => {
     const error = expectUserError(() => parseConfig('openapi.yaml'));
+    // kept: error-message text, not generated output
     expect(error.message).toMatch(/invalid genocrc configuration/i);
     expect(error.message).not.toMatch(/ZodError/);
   });
 
   it('should throw UserError for an array input', () => {
     const error = expectUserError(() => parseConfig(['./a.yml']));
+    // kept: error-message text, not generated output
     expect(error.message).toMatch(/invalid genocrc configuration/i);
   });
 });

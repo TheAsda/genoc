@@ -1,0 +1,33 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SchemaMapper > discriminator single-injection architecture (RED matrix) > T1: cross-variant inheritance emits Omit<Parent> with exactly ONE literal > T1 CreateThing tsType 1`] = `"Omit<UpdateThing, '$type'> & Record<string, unknown> & { $type: 'Create' }"`;
+
+exports[`SchemaMapper > discriminator single-injection architecture (RED matrix) > T5: nullable mapping target keeps its literal via parenthesized append (D9) > T5 OnGate tsType 1`] = `
+"((Omit<GateBase, 'state'> & {
+  level?: number;
+}) | null) & { state: 'On' }"
+`;
+
+exports[`SchemaMapper > discriminator single-injection architecture (RED matrix) > T9: a property $ref to another family variant target stays a bare name (multi-family scoping) > T9 UpdateThing tsType 1`] = `
+"Omit<BaseThing, '$type'> & {
+  bulletin?: BulletinArtifact;
+} & { $type: 'Full' }"
+`;
+
+exports[`SchemaMapper > discriminator single-injection architecture (RED matrix) > T10a: grandchild chain emits Omit<mid, P> with exactly one literal > T10a ChainLeaf tsType 1`] = `
+"Omit<ChainMid, 'chain'> & {
+  leafNote?: string;
+} & { chain: 'leaf' }"
+`;
+
+exports[`SchemaMapper > discriminator single-injection architecture (RED matrix) > T10d: spine $ref to a oneOf-union target falls back to inline expansion without the literal > T10d UniPick tsType 1`] = `
+"Omit<Uni0, 'uni'> & (UniA1 | UniA2) & {
+  pickNote?: string;
+} & { uni: 'pick' }"
+`;
+
+exports[`SchemaMapper > discriminator single-injection architecture (RED matrix) > T10e: nested base $ref inside a variant becomes {Base}Variant; spine base ref stays bare (D1) > T10e SelfKid tsType 1`] = `
+"Omit<Self0, 'self'> & {
+  parent: Self0Variant;
+} & { self: 'kid' }"
+`;

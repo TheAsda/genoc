@@ -1718,9 +1718,7 @@ describe('SchemaMapper', () => {
 
       // NEW shape: exactly one literal, parent referenced via Omit (D2),
       // pre-existing Record<string, unknown> member preserved.
-      expect(result.tsType).toMatch(
-        /^Omit<UpdateThing, ["']?\$type["']?> & Record<string, unknown> & \{ ["']?\$type["']?: 'Create' \}$/
-      );
+      expect(result.tsType).toMatchSnapshot('T1 CreateThing tsType');
       // The parent's 'Full' literal must NOT leak into the child (the `never` bug).
       expect(result.tsType).not.toContain("'Full'");
     });
@@ -1834,7 +1832,7 @@ describe('SchemaMapper', () => {
 
       // The append must wrap the `| null` tail in parens so the literal is not
       // silently lost (`X | null & { ... }` distributes the & onto null only).
-      expect(result.tsType).toMatch(/\| null\) & \{ ["']?state["']?: 'On' \}$/);
+      expect(result.tsType).toMatchSnapshot('T5 OnGate tsType');
     });
 
     it('T6: implicit oneOf variants without mapping map to bare names (D7)', () => {
@@ -2008,7 +2006,7 @@ describe('SchemaMapper', () => {
       expect(result.tsType).toContain('bulletin?: BulletinArtifact;');
       // The sibling family's literal must not be inlined here.
       expect(result.tsType).not.toContain("'Bulletin'");
-      expect(result.tsType).toMatch(/\{ ["']?\$type["']?: 'Full' \}$/);
+      expect(result.tsType).toMatchSnapshot('T9 UpdateThing tsType');
     });
 
     it('T10a: grandchild chain emits Omit<mid, P> with exactly one literal', () => {
@@ -2040,9 +2038,8 @@ describe('SchemaMapper', () => {
 
       const leaf = mapper.mapSchema(schemas.ChainLeaf!, 'ChainLeaf');
 
-      expect(leaf.tsType).toMatch(/^Omit<ChainMid, ["']?chain["']?>/);
+      expect(leaf.tsType).toMatchSnapshot('T10a ChainLeaf tsType');
       expect(leaf.tsType).not.toContain("'mid'");
-      expect(leaf.tsType).toMatch(/\{ ["']?chain["']?: 'leaf' \}$/);
     });
 
     it('T10b: multi-parent spine Omit-references every same-family sibling (D4)', () => {
@@ -2171,7 +2168,7 @@ describe('SchemaMapper', () => {
       const pick = mapper.mapSchema(schemas.UniPick!, 'UniPick');
       expect(pick.tsType).toContain('(UniA1 | UniA2) &');
       expect(pick.tsType).not.toContain("'mix'");
-      expect(pick.tsType).toMatch(/\{ ["']?uni["']?: 'pick' \}$/);
+      expect(pick.tsType).toMatchSnapshot('T10d UniPick tsType');
     });
 
     it('T10e: nested base $ref inside a variant becomes {Base}Variant; spine base ref stays bare (D1)', () => {
@@ -2199,7 +2196,7 @@ describe('SchemaMapper', () => {
       const kid = mapper.mapSchema(schemas.SelfKid!, 'SelfKid');
 
       expect(kid.tsType).toContain('parent: Self0Variant;');
-      expect(kid.tsType).toMatch(/\{ ["']?self["']?: 'kid' \}$/);
+      expect(kid.tsType).toMatchSnapshot('T10e SelfKid tsType');
     });
 
     it('T10f: variant redeclaring its own discriminator value loses to the mapping key and warns (D3)', () => {

@@ -39,9 +39,10 @@ function generateFromYaml(yaml: string): { contracts: string; client: string } {
 describe('typed path params (spec #71 T1 tracer)', () => {
   it('types an integer path param (with format) as `id: number | string`', () => {
     const { client } = generateFromYaml(INT_PATH_PARAM_SPEC);
-    expect(client).toContain('id: number | string');
+    expect(client).toMatchSnapshot('integer path param client');
     // Not a bare `string` signature: the schema type leads the union.
-    expect(client).not.toMatch(/id: string[,)]/);
+    expect(client).not.toContain('id: string,');
+    expect(client).not.toContain('id: string)');
   });
 
   it('types a plain `type: number` path param as `id: number | string` (3.0 dialect too)', () => {
@@ -60,8 +61,9 @@ describe('typed path params (spec #71 T1 tracer)', () => {
               "200": { description: OK }
     `;
     const { client } = generateFromYaml(spec);
-    expect(client).toContain('id: number | string');
-    expect(client).not.toMatch(/id: string[,)]/);
+    expect(client).toMatchSnapshot('plain number path param client');
+    expect(client).not.toContain('id: string,');
+    expect(client).not.toContain('id: string)');
   });
 
   it('keeps schema-less path params as `string`', () => {
@@ -261,8 +263,13 @@ describe('typed path params (spec #71 T1 tracer)', () => {
       expect(client, version).toContain('petId: string');
       // The named object type stays in contracts but never reaches the client
       // file (no signature reference, no `import type`).
-      expect(contracts, version).toMatch(/export type Pet = \{/);
-      expect(client, version).not.toMatch(/\bPet\b/);
+      expect(contracts, version).toMatchSnapshot(`object-ref param contracts ${version}`);
+      expect(contracts, version).toContain('export type Pet = {');
+      expect(client, version).toMatchSnapshot(`object-ref param client ${version}`);
+      // No signature reference and no `import type` of the named object type
+      // reaches the client file.
+      expect(client, version).not.toContain('petId: Pet');
+      expect(client, version).not.toContain('import type { Pet');
       expect(client, version).toContain('`/pets/${encodeURIComponent(String(petId))}`');
     }
   });
@@ -398,7 +405,7 @@ describe('typed path params (spec #71 T1 tracer)', () => {
       expect(generated).toContain('id: number | null | string');
       // Non-primitive $ref path param falls back to bare `string`.
       expect(generated).toContain('resident: string');
-      expect(generated).not.toMatch(/\bresident: Pet\b/);
+      expect(generated).not.toContain('resident: Pet');
       expectFilesCompile([join(outDir, 'usage.ts')]);
     });
   });

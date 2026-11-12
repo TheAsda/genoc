@@ -122,7 +122,7 @@ describe('Parameter Object spec examples', () => {
 
       expect(contracts).toMatchSnapshot();
       // required: true → non-optional
-      expect(contracts).not.toMatch(/q\?:/);
+      expect(contracts).not.toContain('q?:');
 
       // Client: not all optional, so query is required arg
       const { client } = generateOutput(analyzeFixture(doc), createConfig());
