@@ -425,6 +425,122 @@ function analyzeServers(servers: ServerObject[] | undefined): ServerTypeDeclarat
  * @param opts - Optional resolver override and method naming strategy
  * @returns The AnalyzedSpec model consumed by all generators
  */
+/**
+ * Raw ref name when a schema is exactly a `#/components/schemas/…` `$ref`
+ * (e.g. a multipart body whose whole schema is a component reference).
+ */
+function wholeBodySchemaRefName(schema: SchemaObject | ReferenceObject): string | undefined {
+  if (!('$ref' in schema)) return undefined;
+  const ref = schema.$ref;
+  const prefix = '#/components/schemas/';
+  return typeof ref === 'string' && ref.startsWith(prefix)
+    ? ref.slice(prefix.length) || undefined
+    : undefined;
+}
+
+/**
+ * Occurrences of a `$ref` pointer anywhere in the raw document — any owner
+ * counts (other operations, sibling content types, other components,
+ * recursive self-references).
+ */
+function countRefOccurrences(node: unknown, pointer: string): number {
+  if (Array.isArray(node)) {
+    let count = 0;
+    for (const item of node) count += countRefOccurrences(item, pointer);
+    return count;
+  }
+  if (node !== null && typeof node === 'object') {
+    const record = node as Record<string, unknown>;
+    let count = record['$ref'] === pointer ? 1 : 0;
+    for (const value of Object.values(record)) count += countRefOccurrences(value, pointer);
+    return count;
+  }
+  return 0;
+}
+
+interface FormBodyPlan {
+  /** FormData append facts, one per (allOf-merged) top-level form field. */
+  facts: FileUploadPropertyFact[];
+  /** Rendered object literal text (`{ … }`); null when the walk found no fields. */
+  objectText: string | null;
+}
+
+/**
+ * Shared multipart form walk: builds the append facts and the form-mapped
+ * object literal (binary → `FileInput`, array-of-binary → `FileInput[]`,
+ * non-file fields via the schema mapper so `$ref`s keep their named types).
+ * Used both for flattened inline body types and for rendering the component
+ * definition a whole-body `$ref` body reuses.
+ */
+function buildFormBodyPlan(
+  schema: SchemaObject | ReferenceObject,
+  resolver: RefResolver,
+  mapper: SchemaMapper
+): FormBodyPlan {
+  const { properties, required: requiredSet } = collectFormProperties(schema, resolver);
+  const propLines: string[] = [];
+  const facts: FileUploadPropertyFact[] = [];
+  for (const [name, propSchema] of properties) {
+    const resolved = resolver.resolveSchema(propSchema);
+    const optional = requiredSet.has(name) ? '' : '?';
+    let tsType: string;
+    let kind: FileUploadPropertyFact['kind'];
+    if (resolved.format === 'binary') {
+      tsType = 'FileInput';
+      kind = 'file';
+    } else if (
+      resolved.type === 'array' &&
+      resolved.items !== undefined &&
+      resolver.resolveSchema(resolved.items).format === 'binary'
+    ) {
+      // items may itself be a `$ref` to a binary schema — resolve before
+      // checking the format so those upload as files, not JSON
+      tsType = 'FileInput[]';
+      kind = 'file-array';
+    } else {
+      // Non-file fields keep their schema type: a `$ref` property maps to
+      // the referenced named type (not a collapsed `string`), arrays and
+      // primitives keep their own shapes. String-valued fields (incl.
+      // `$ref`s resolving to `type: string` and string enums) are appended
+      // directly; nullable string fields append directly too but need a
+      // `null` guard, since `string | null` does not satisfy FormData's
+      // `string | Blob`. Everything else is JSON-serialized by the client,
+      // so the fact records it as `json-field`.
+      tsType = mapper.mapSchema(propSchema, undefined, 'request').tsType;
+      const typeList = Array.isArray(resolved.type) ? resolved.type : undefined;
+      const isStringType = resolved.type === 'string' || typeList?.includes('string') === true;
+      const isNullable = resolved.nullable === true || typeList?.includes('null') === true;
+      kind = !isStringType ? 'json-field' : isNullable ? 'field-nullable' : 'field';
+    }
+    facts.push({ name, required: requiredSet.has(name), kind });
+    const jsDoc = buildTypeJsDoc(resolved);
+    if (jsDoc !== '') {
+      propLines.push(...indentJsDocBlock(jsDoc));
+    }
+    propLines.push(`${INDENT_UNIT}${name}${optional}: ${tsType};`);
+  }
+  return {
+    facts,
+    objectText: propLines.length > 0 ? `{\n${propLines.join('\n')}\n}` : null,
+  };
+}
+
+/**
+ * The renamed component type a whole-body `$ref` multipart body reuses,
+ * when that component passed the override eligibility checks; `undefined`
+ * when the body keeps its flattened inline form.
+ */
+function aliasedFormSchemaName(
+  schema: SchemaObject | ReferenceObject,
+  renameMap: Map<string, string>,
+  overrides: Map<string, string>
+): string | undefined {
+  const refName = wholeBodySchemaRefName(schema);
+  if (refName === undefined) return undefined;
+  const renamed = renameMap.get(refName) ?? sanitizeTypeName(refName);
+  return overrides.has(renamed) ? renamed : undefined;
+}
+
 export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): AnalyzedSpec {
   const resolver = opts.resolver ?? new RefResolver(doc);
   const strategy = opts.strategy ?? 'path-based';
@@ -473,6 +589,46 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
     effectiveVersion: opts?.effectiveVersion,
   });
 
+  const { operations: analyzedOperations, requestBodySchemas } = analyzePathsDetailed(
+    doc,
+    resolver,
+    strategy
+  );
+
+  // Whole-body `$ref` multipart bodies reuse the referenced component type
+  // instead of emitting a flattened copy beside it: the component's own
+  // definition is rendered through the same form-field walk (binary →
+  // `FileInput`, non-file `$ref`s keep their named types), so the body type
+  // becomes `PostXBody = PostRequest` and the component stays referenced
+  // instead of being orphaned by its flattened twin.
+  const multipartSchemaOverrides = new Map<string, string>();
+  const overriddenSchemaRawTypes = new Map<string, string>();
+  const componentSchemaNames = new Set<string>();
+  if (doc.components?.schemas) {
+    for (let opIdx = 0; opIdx < analyzedOperations.length; opIdx++) {
+      const rawBody = requestBodySchemas[opIdx];
+      if (rawBody === undefined || !analyzedOperations[opIdx].requestBody?.isMultipart) continue;
+      const refName = wholeBodySchemaRefName(rawBody);
+      if (refName === undefined || !(refName in doc.components.schemas)) continue;
+      const renamed = renameMap.get(refName) ?? sanitizeTypeName(refName);
+      // Single-consumer rule: any other `$ref` to this schema — another
+      // operation, a sibling content type, another component, a recursive
+      // self-reference — still needs the raw schema mapping, so that body
+      // keeps its flattened form. Discriminator family members are excluded
+      // because their definitions carry family-specific rendering.
+      if (
+        discriminatorRegistry.byName.has(renamed) ||
+        countRefOccurrences(doc, `#/components/schemas/${refName}`) !== 1
+      ) {
+        continue;
+      }
+      const plan = buildFormBodyPlan(rawBody, resolver, mapper);
+      if (plan.objectText !== null && !multipartSchemaOverrides.has(renamed)) {
+        multipartSchemaOverrides.set(renamed, plan.objectText);
+      }
+    }
+  }
+
   // Section 1: Schema types
   const schemaEntries: ContractEntry[] = [];
 
@@ -483,11 +639,19 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
   if (doc.components?.schemas) {
     for (const [name, schema] of Object.entries(doc.components.schemas)) {
       const renamedName = renameMap.get(name) ?? sanitizeTypeName(name);
-      const result = mapper.mapSchema(schema, renamedName);
-      namedMappedTypes.set(renamedName, result.tsType);
+      componentSchemaNames.add(renamedName);
+      const rawResult = mapper.mapSchema(schema, renamedName);
+      namedMappedTypes.set(renamedName, rawResult.tsType);
       const resolved = resolver.resolve<SchemaObject>(schema as SchemaObject | ReferenceObject);
 
-      const definition = `export type ${renamedName} = ${result.tsType};`;
+      // Override-eligible multipart containers render their definition
+      // through the form-field walk; the raw mapping is kept for the
+      // orphan-pruning pass below.
+      const overrideText = multipartSchemaOverrides.get(renamedName);
+      if (overrideText !== undefined) {
+        overriddenSchemaRawTypes.set(renamedName, rawResult.tsType);
+      }
+      const definition = `export type ${renamedName} = ${overrideText ?? rawResult.tsType};`;
 
       schemaEntries.push({
         name: renamedName,
@@ -518,11 +682,6 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
     allSchemaNames.add(family.variantUnionName);
   }
 
-  const { operations: analyzedOperations, requestBodySchemas } = analyzePathsDetailed(
-    doc,
-    resolver,
-    strategy
-  );
   const operations: FinishedOperation[] = [];
   for (const op of analyzedOperations) {
     // Path params render as flat method arguments, so each carries its
@@ -620,41 +779,20 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
     const bodyJsDoc = op.requestBody ? buildDescriptionJsDoc(op.requestBody.description) : '';
 
     if (op.requestBody?.isMultipart && rawBodySchema !== undefined) {
-      // Form fields come from the allOf-merged walk: a body declaring its
-      // fields via `allOf` members (resolving `$ref`s) previously produced an
-      // empty property walk — `Record<string, never>` and dropped appends.
-      const { properties, required: requiredSet } = collectFormProperties(rawBodySchema, resolver);
-      const propLines: string[] = [];
-      const fileUploadProperties: FileUploadPropertyFact[] = [];
-      for (const [name, propSchema] of properties) {
-        const resolved = resolver.resolveSchema(propSchema);
-        const optional = requiredSet.has(name) ? '' : '?';
-        let tsType: string;
-        let kind: FileUploadPropertyFact['kind'];
-        if (resolved.format === 'binary') {
-          tsType = 'FileInput';
-          kind = 'file';
-        } else if (resolved.type === 'array' && resolved.items?.format === 'binary') {
-          tsType = 'FileInput[]';
-          kind = 'file-array';
-        } else {
-          tsType = 'string';
-          kind = 'field';
-        }
-        fileUploadProperties.push({ name, required: requiredSet.has(name), kind });
-        const jsDoc = buildTypeJsDoc(resolved);
-        if (jsDoc !== '') {
-          propLines.push(...indentJsDocBlock(jsDoc));
-        }
-        propLines.push(`${INDENT_UNIT}${name}${optional}: ${tsType};`);
-      }
-      op.fileUploadProperties = fileUploadProperties;
-      if (propLines.length > 0) {
+      // Form fields come from the allOf-merged walk (shared with the
+      // whole-body `$ref` override above): a body declaring its fields via
+      // `allOf` members (resolving `$ref`s) previously produced an empty
+      // property walk — `Record<string, never>` and dropped appends.
+      const plan = buildFormBodyPlan(rawBodySchema, resolver, mapper);
+      op.fileUploadProperties = plan.facts;
+      // A whole-body `$ref` to an override-eligible component reuses the
+      // component type instead of emitting a flattened twin beside it.
+      const aliasName = aliasedFormSchemaName(rawBodySchema, renameMap, multipartSchemaOverrides);
+      if (aliasName !== undefined) {
+        opLines.push(attachTypeJsDoc(bodyJsDoc, `export type ${emissions.body} = ${aliasName};`));
+      } else if (plan.objectText !== null) {
         opLines.push(
-          attachTypeJsDoc(
-            bodyJsDoc,
-            `export type ${emissions.body} = {\n${propLines.join('\n')}\n};`
-          )
+          attachTypeJsDoc(bodyJsDoc, `export type ${emissions.body} = ${plan.objectText};`)
         );
       } else {
         opLines.push(
@@ -741,6 +879,72 @@ export function analyze(doc: OpenAPIDocument, opts: AnalyzeOptions = {}): Analyz
     }
 
     op.contractsLines = opLines;
+  }
+
+  // Multipart overrides can orphan types: replacing a container's raw
+  // definition with its form-mapped one drops the references the raw text
+  // carried (e.g. a `$ref`-ed binary field now renders as `FileInput`). Those
+  // override-orphaned component types are pruned — transitively, since
+  // removing one can orphan what it referenced — while anything still
+  // referenced by the final output is kept. Standalone component schemas
+  // that were already unreferenced before the override stay emitted.
+  if (multipartSchemaOverrides.size > 0) {
+    const refsOf = (text: string): Set<string> => {
+      const identifiers = text.match(/[A-Za-z_$][A-Za-z0-9_$]*/g) ?? [];
+      return new Set(identifiers.filter((id) => componentSchemaNames.has(id)));
+    };
+    const defByName = new Map(schemaTypes.map((entry) => [entry.name, entry.definition]));
+    const opTexts = operations.map((finished) => finished.contractsLines.join('\n'));
+
+    const removed = new Set<string>();
+    const queue: string[] = [];
+    const enqueue = (name: string): void => {
+      if (!removed.has(name)) {
+        removed.add(name);
+        queue.push(name);
+      }
+    };
+    for (const raw of overriddenSchemaRawTypes.values()) {
+      for (const name of refsOf(raw)) enqueue(name);
+    }
+    while (queue.length > 0) {
+      const name = queue.shift();
+      if (name === undefined) continue;
+      const definition = defByName.get(name);
+      if (definition === undefined) continue;
+      for (const next of refsOf(definition)) enqueue(next);
+    }
+    // Safety net: never remove a type the final output still references —
+    // from a kept definition, operation contract lines, or the client's
+    // path-parameter imports (path param types never appear in contracts
+    // lines, only in the client signature). References from definitions
+    // that are themselves removed do not count; iterate to a fixpoint
+    // because restoring a definition can keep what it references.
+    const pathParamNames = new Set(
+      operations.flatMap((finished) => finished.pathParamTypeNames ?? [])
+    );
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const name of removed) {
+        const stillReferenced =
+          pathParamNames.has(name) ||
+          opTexts.some((text) => refsOf(text).has(name)) ||
+          [...defByName.entries()].some(
+            ([owner, definition]) =>
+              owner !== name && !removed.has(owner) && refsOf(definition).has(name)
+          );
+        if (stillReferenced) {
+          removed.delete(name);
+          changed = true;
+        }
+      }
+    }
+    if (removed.size > 0) {
+      const kept = schemaTypes.filter((entry) => !removed.has(entry.name));
+      schemaTypes.length = 0;
+      schemaTypes.push(...kept);
+    }
   }
 
   // Branded types snapshot after every mapSchema call has run, mirroring the

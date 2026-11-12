@@ -165,6 +165,23 @@ function buildClientMethodBody(
         formDataLines.push(
           `if (body.${propName} !== undefined) { for (const file of body.${propName}) { formData.append("${propName}", file.data, file.filename); } }`
         );
+      } else if (prop.kind === 'json-field') {
+        // Non-string field (object/array/number/boolean…): FormData would
+        // coerce it to "[object Object]", so serialize it as JSON.
+        if (prop.required) {
+          formDataLines.push(`formData.append("${propName}", JSON.stringify(body.${propName}));`);
+        } else {
+          formDataLines.push(
+            `if (body.${propName} !== undefined) formData.append("${propName}", JSON.stringify(body.${propName}));`
+          );
+        }
+      } else if (prop.kind === 'field-nullable') {
+        // Nullable string field: append the string when present; `null` has
+        // no FormData representation, so it is skipped (`string | null` does
+        // not satisfy FormData's `string | Blob`).
+        formDataLines.push(
+          `if (body.${propName} !== undefined && body.${propName} !== null) formData.append("${propName}", body.${propName});`
+        );
       } else {
         formDataLines.push(
           `if (body.${propName} !== undefined) formData.append("${propName}", body.${propName});`

@@ -79,8 +79,8 @@ export interface FileUploadPropertyFact {
   name: string;
   /** Whether the property is listed in the schema's `required` array. */
   required: boolean;
-  /** `file` → `FileInput`, `file-array` → `FileInput[]`, `field` → `string`. */
-  kind: 'file' | 'file-array' | 'field';
+  /** `file` → `FileInput`, `file-array` → `FileInput[]`, `field` → string-valued (direct append), `field-nullable` → string-valued but nullable (direct append guarded against `null`), `json-field` → any other mapped type (appended as JSON). */
+  kind: 'file' | 'file-array' | 'field' | 'field-nullable' | 'json-field';
 }
 
 /**
